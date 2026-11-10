@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 전능 마스터 최고관리자 관제 완비</title>
+  <title>이지콜 (EasyCall) - 엔터프라이즈 마스터 관제센터</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -18,7 +18,7 @@
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col text-slate-800">
 
-  <!-- ==================== A. 일반 로그인 화면 (최고관리자 통합 로그인 겸용) ==================== -->
+  <!-- ==================== A. 일반 로그인 화면 ==================== -->
   <div id="login-view" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-50">
     <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-[420px] shadow-2xl">
       <div class="flex items-center gap-3 mb-6">
@@ -45,57 +45,112 @@
         <div id="login-error" class="text-xs text-rose-500 font-bold text-center"></div>
       </div>
       <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-        <span>💡 마스터 계정: <strong>super</strong> 입력 시 어느 곳에서든 본사 관제 진입</span>
+        <span>💡 마스터 계정: <strong>super</strong> 입력 시 전사 관제센터 진입</span>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 1. 최고관리자 관제 대시보드 (전능 마스터 포털) ==================== -->
+  <!-- ==================== 1. 최고관리자 관제 대시보드 (4대 핵심 모듈 완비) ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <h1 class="text-lg font-bold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (마스터 전능 관리)</h1>
-        <span class="text-xs bg-indigo-900 text-indigo-300 px-2.5 py-1 rounded-full font-bold">최고관리자 세션 활성화</span>
+      <div class="flex items-center gap-4">
+        <h1 class="text-lg font-bold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (엔터프라이즈 마스터)</h1>
+        <!-- 모듈 3: 통신사 SIP 망 연동 및 API 상태 관제 상태등 -->
+        <div class="flex items-center gap-2 bg-slate-950 px-3 py-1 rounded-full border border-slate-800 text-xs">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-300 font-mono">KT/LGU+ SIP 트렁크 정상 (12ms)</span>
+        </div>
       </div>
       <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">로그아웃</button>
     </header>
-    <main class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto">
-      <div class="col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스 및 예치금 충전 승인</h3>
-          <span class="text-xs text-slate-400">마스터 권한으로 모든 캠프 데이터 즉시 열람 및 제어 가능</span>
-        </div>
-        <table class="w-full text-left text-sm">
-          <thead class="text-slate-400 border-b border-slate-800">
-            <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">잔여 예치금</th><th class="pb-3">상태</th><th class="pb-3">본사 마스터 제어</th></tr>
-          </thead>
-          <tbody id="super-camps-body" class="divide-y divide-slate-800">
-            <tr>
-              <td class="py-3 font-bold">보령시·서천군 선거캠프</td>
-              <td class="py-3">camp01</td>
-              <td class="py-3 font-mono">15대</td>
-              <td class="py-3 font-mono text-emerald-400">150,000원</td>
-              <td class="py-3"><span class="text-emerald-400 font-bold">정상 🟢</span></td>
-              <td class="py-3">
-                <button onclick="alert('10만 원 충전 승인 완료!')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-bold mr-1">충전승인</button>
-                <button onclick="toggleCampStatus(this)" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded text-xs font-bold">이용정지</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <!-- 신규 캠프 개설 패널 (태블릿 가동 대수 입력 공간 복원) -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
-        <div>
-          <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 대수 설정</h3>
-          <div class="space-y-4">
-            <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="홍성군·예산군 캠프"></div>
-            <div><label class="block text-xs text-slate-400 mb-1">관리자 아이디</label><input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="camp02"></div>
-            <div><label class="block text-xs text-slate-400 mb-1">태블릿 가동 라이선스 대수</label><input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="15"></div>
-            <div><label class="block text-xs text-slate-400 mb-1">초기 예치금 (원)</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="100000"></div>
+
+    <main class="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar">
+      
+      <!-- 모듈 1: 전사 매출 및 일일 통화량(트래픽) 실시간 KPI 요약 카드 -->
+      <div class="grid grid-cols-4 gap-5">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 block mb-1">총 가동 캠프 수</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-black text-white font-mono">12개</span>
+            <span class="text-xs text-emerald-400 font-bold">+2개 (이번주)</span>
           </div>
         </div>
-        <button onclick="alert('신규 캠프 개설 및 태블릿 대수 라이선스 승인 완료!')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition">캠프 개설 승인</button>
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 block mb-1">활성 태블릿 총 대수</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-black text-indigo-400 font-mono">185대</span>
+            <span class="text-xs text-slate-400">라이선스 한도 내</span>
+          </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 block mb-1">금일 전사 누적 통화 건수</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-black text-emerald-400 font-mono">4,280건</span>
+            <span class="text-xs text-emerald-400 font-bold">목표 대비 112%</span>
+          </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+          <span class="text-xs font-bold text-slate-400 block mb-1">플랫폼 총 잔여 예치금</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-black text-amber-400 font-mono">6,450,000원</span>
+            <span class="text-xs text-amber-400 font-bold">안전 구간</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 2단 그리드: 캠프 관리 및 모듈 4 (긴급 공지 브로드캐스트) -->
+      <div class="grid grid-cols-3 gap-6">
+        
+        <!-- 캠프 목록 및 모듈 2 (상세 사용량 감시) -->
+        <div class="col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스 및 예치금 충전 승인</h3>
+            <span class="text-xs text-slate-400">행 클릭 시 상세 요원 접속 현황 열람 가능</span>
+          </div>
+          <table class="w-full text-left text-sm">
+            <thead class="text-slate-400 border-b border-slate-800">
+              <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">잔여 예치금</th><th class="pb-3">상태</th><th class="pb-3">본사 마스터 제어</th></tr>
+            </thead>
+            <tbody id="super-camps-body" class="divide-y divide-slate-800">
+              <tr>
+                <td class="py-3 font-bold">보령시·서천군 선거캠프</td>
+                <td class="py-3">camp01</td>
+                <td class="py-3 font-mono">15대 (활성 14)</td>
+                <td class="py-3 font-mono text-emerald-400">150,000원</td>
+                <td class="py-3"><span class="text-emerald-400 font-bold">정상 🟢</span></td>
+                <td class="py-3">
+                  <button onclick="alert('10만 원 충전 승인 완료!')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded text-xs font-bold mr-1">충전승인</button>
+                  <button onclick="toggleCampStatus(this)" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded text-xs font-bold">이용정지</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 우측 열: 신규 캠프 개설 및 모듈 4 (긴급 공지 브로드캐스트 푸시) -->
+        <div class="space-y-6 flex flex-col justify-between">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 대수 설정</h3>
+            <div class="space-y-3">
+              <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="홍성군·예산군 캠프"></div>
+              <div><label class="block text-xs text-slate-400 mb-1">관리자 아이디</label><input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="camp02"></div>
+              <div><label class="block text-xs text-slate-400 mb-1">태블릿 라이선스 대수</label><input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="15"></div>
+              <div><label class="block text-xs text-slate-400 mb-1">초기 예치금 (원)</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="100000"></div>
+            </div>
+            <button onclick="alert('신규 캠프 개설 및 라이선스 승인 완료!')" class="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition text-xs">캠프 개설 승인</button>
+          </div>
+
+          <!-- 모듈 4: 전사 캠프 긴급 공지 브로드캐스트 푸시 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 class="text-base font-bold text-indigo-300 mb-2"><i class="fa-solid fa-bullhorn text-amber-400 mr-1"></i> 전사 긴급 공지 브로드캐스트</h3>
+            <p class="text-[11px] text-slate-400 mb-3">등록 즉시 모든 캠프 상황실과 태블릿 화면 상단에 팝업 공지가 송출됩니다.</p>
+            <textarea id="broadcast-msg" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white resize-none mb-3" placeholder="예: 선거관리위원회 긴급 공지 준수 안내..."></textarea>
+            <button onclick="sendBroadcastNotice()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition shadow-sm">
+              전사 캠프 일괄 푸시 송출
+            </button>
+          </div>
+        </div>
+
       </div>
     </main>
   </div>
@@ -242,8 +297,15 @@
     function toggleCampStatus(btn) {
       const isStopped = btn.innerText.includes('이용정지');
       btn.innerText = isStopped ? '시작(재개)' : '이용정지';
-      btn.className = isStopped ? 'bg-emerald-600 text-white px-3 py-1 rounded text-xs font-bold' : 'bg-rose-600 text-white px-3 py-1 rounded text-xs font-bold';
+      btn.className = isStopped ? 'bg-emerald-600 text-white px-2.5 py-1 rounded text-xs font-bold' : 'bg-rose-600 text-white px-2.5 py-1 rounded text-xs font-bold';
       alert(`캠프 프로그램 사용 상태가 [${isStopped ? '이용 중지' : '정상 시작'}] 처리되었습니다.`);
+    }
+
+    function sendBroadcastNotice() {
+      const msg = document.getElementById('broadcast-msg').value.trim();
+      if (!msg) { alert("송출할 공지 내용을 입력해 주세요."); return; }
+      alert(`🚨 [전사 긴급 공지 브로드캐스트 송출 완료]\n"${msg}"\n\n모든 가동 중인 캠프와 태블릿 화면에 실시간 배포되었습니다.`);
+      document.getElementById('broadcast-msg').value = '';
     }
 
     function toggleAgentBreak() {
