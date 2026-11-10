@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 실시간 DB 연동 PDS 플랫폼</title>
+  <title>이지콜 (EasyCall) - 실시간 인증 연동 PDS 플랫폼</title>
   <!-- Supabase 라이브러리 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -43,23 +43,20 @@
 </head>
 <body>
 
-  <!-- 1. 로그인 화면 -->
+  <!-- 1. Supabase Auth 로그인 화면 -->
   <div id="login-container">
     <div class="login-box">
-      <h2>이지콜 (EasyCall) 로그인</h2>
+      <h2>이지콜 (EasyCall) 보안 로그인</h2>
       <div class="form-group">
-        <label>계정 아이디</label>
-        <input type="text" id="login-id" class="form-input" placeholder="super 또는 camp01 또는 agent01">
+        <label>이메일 주소 (Supabase Auth)</label>
+        <input type="email" id="login-email" class="form-input" placeholder="admin@easycall.com">
       </div>
       <div class="form-group">
         <label>비밀번호</label>
         <input type="password" id="login-pw" class="form-input" placeholder="••••••••">
       </div>
-      <button class="btn-primary" onclick="handleLogin()">로그인 및 역할 분기</button>
-      <div style="margin-top: 16px; font-size: 0.8rem; color: #64748b; text-align: center; line-height: 1.4;">
-        * 테스트 계정:<br>
-        슈퍼관리자: <strong>super</strong> / 캠프관리자: <strong>camp01</strong> / 요원: <strong>agent01</strong>
-      </div>
+      <button class="btn-primary" onclick="handleSupabaseLogin()">클라우드 보안 로그인</button>
+      <div id="login-error" style="color: #f87171; font-size: 0.85rem; margin-top: 10px; text-align: center;"></div>
     </div>
   </div>
 
@@ -68,7 +65,8 @@
     <header class="app-header" style="background: #1e1b4b; border-color: #312e81;">
       <div class="header-title"><span style="color: #818cf8;">🌐 이지콜 SaaS 플랫폼 본사 (슈퍼 관리자)</span></div>
       <div class="header-info">
-        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+        <span id="user-email-display"></span>
+        <button class="btn-logout" onclick="handleSupabaseLogout()">로그아웃</button>
       </div>
     </header>
     <div class="super-body">
@@ -91,16 +89,13 @@
     <header class="app-header">
       <div class="header-title"><span>📊 선거 캠프 상황실 (관리자 대시보드)</span></div>
       <div class="header-info">
-        <span>접속자: <strong>상황실장</strong></span>
-        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+        <span>접속자 (Auth): <strong id="admin-email-display"></strong></span>
+        <button class="btn-logout" onclick="handleSupabaseLogout()">로그아웃</button>
       </div>
     </header>
     <div class="app-body">
       <div class="card">
         <h3 style="color: #2563eb; margin-bottom: 16px;">📥 엑셀(CSV) 유권자 명부 대량 업로드 (DB 연동)</h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 14px;">
-          CSV 파일을 업로드하면 Supabase <code>voters</code> 테이블에 실시간으로 적재됩니다.
-        </p>
         <div style="border: 2px dashed #cbd5e1; padding: 24px; text-align: center; border-radius: 8px; background: #f8fafc; margin-bottom: 14px;">
           <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUpload(event)">
         </div>
@@ -109,14 +104,14 @@
     </div>
   </div>
 
-  <!-- 4. 요원 발신 (태블릿) 화면 - DB 실시간 연동 -->
+  <!-- 4. 요원 발신 (태블릿) 화면 -->
   <div id="view-agent" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
     <header class="app-header">
       <div class="header-title"><span>📱 이지콜 태블릿 요원 워크스페이스 (Live DB)</span></div>
       <div class="header-info">
-        <span>요원 ID: <strong id="agent-display-id">agent01</strong></span>
+        <span>인증 계정: <strong id="agent-email-display"></strong></span>
         <span>오늘 완료: <strong id="completed-count">0</strong>건</span>
-        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+        <button class="btn-logout" onclick="handleSupabaseLogout()">로그아웃</button>
       </div>
     </header>
     <div class="app-body" style="display: flex; flex-direction: row; gap: 20px; padding: 20px;">
@@ -159,32 +154,51 @@
     let currentVoterList = [];
     let currentVoterIndex = 0;
     let completedCount = 0;
-    let currentAgentId = 'agent01';
 
-    // --- 로그인 및 역할 분기 ---
-    async function handleLogin() {
-      const id = document.getElementById('login-id').value.trim();
-      document.getElementById('login-container').classList.add('hidden');
-      document.getElementById('view-super').classList.add('hidden');
-      document.getElementById('view-admin').classList.add('hidden');
-      document.getElementById('view-agent').classList.add('hidden');
+    // --- Supabase 실제 인증(Auth) 로그인 처리 ---
+    async function handleSupabaseLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-pw').value.trim();
+      const errorEl = document.getElementById('login-error');
+      errorEl.innerText = "";
 
-      if (id === 'super') {
-        document.getElementById('view-super').classList.remove('hidden');
-        fetchSuperData();
-      } else if (id === 'camp01') {
-        document.getElementById('view-admin').classList.remove('hidden');
-      } else {
-        currentAgentId = id || 'agent01';
-        document.getElementById('view-agent').classList.remove('hidden');
-        document.getElementById('agent-display-id').innerText = currentAgentId;
-        await loadVotersFromSupabase();
+      if (!email || !password) {
+        errorEl.innerText = "이메일과 비밀번호를 입력해 주세요.";
+        return;
       }
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errorEl.innerText = "로그인 실패: " + error.message;
+        return;
+      }
+
+      routeUserByEmail(email);
     }
 
-    function handleLogout() {
+    async function handleSupabaseLogout() {
+      await supabaseClient.auth.signOut();
       document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
       document.getElementById('login-container').classList.remove('hidden');
+    }
+
+    function routeUserByEmail(email) {
+      document.getElementById('login-container').classList.add('hidden');
+      document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+
+      if (email.includes('super')) {
+        document.getElementById('view-super').classList.remove('hidden');
+        document.getElementById('user-email-display').innerText = email;
+        fetchSuperData();
+      } else if (email.includes('admin') || email.includes('camp')) {
+        document.getElementById('view-admin').classList.remove('hidden');
+        document.getElementById('admin-email-display').innerText = email;
+      } else {
+        document.getElementById('view-agent').classList.remove('hidden');
+        document.getElementById('agent-email-display').innerText = email;
+        loadVotersFromSupabase();
+      }
     }
 
     // --- 슈퍼관리자: DB 캠프 조회 ---
@@ -228,7 +242,7 @@
       reader.readAsText(file, 'utf-8');
     }
 
-    // --- 요원: Supabase에서 미처리 유권자 명부 가져오기 ---
+    // --- 요원: Supabase에서 명부 가져오기 ---
     async function loadVotersFromSupabase() {
       const { data, error } = await supabaseClient.from('voters').select('*').eq('support_status', '미분류').limit(20);
       if (error || !data || data.length === 0) {
@@ -254,7 +268,7 @@
       document.getElementById('v-memo').value = '';
     }
 
-    // --- 요원: 통화 결과 성향 및 메모를 Supabase DB에 실시간 저장 ---
+    // --- 요원: 결과 저장 ---
     async function saveResultToSupabase(status) {
       if (currentVoterList.length === 0) return;
       const v = currentVoterList[currentVoterIndex];
@@ -263,7 +277,6 @@
       const { error } = await supabaseClient.from('voters').update({
         support_status: status,
         memo: memoText,
-        agent_id: currentAgentId,
         called_at: new Date().toISOString()
       }).eq('id', v.id);
 
