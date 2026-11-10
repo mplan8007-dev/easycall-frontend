@@ -97,18 +97,9 @@
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
                 <tr class="camp-row" data-keyword="보령시·서천군 선거캠프 camp01 충청남도 보령시 김본사">
                   <td class="py-3 text-xs text-slate-400 font-bold">충청남도 보령시</td>
-                  <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline camp-title-btn" 
-                      data-name="보령시·서천군 선거캠프" 
-                      data-id="camp01" 
-                      data-region="충청남도 보령시" 
-                      data-staff="김본사 팀장" 
-                      data-manager="김철수" 
-                      data-phone="010-9999-8888" 
-                      data-email="chulsoo@camp.com" 
-                      data-period="2026-04-01 ~ 2026-06-03" 
-                      data-tablet="15대" 
-                      data-fee="350,000원" 
-                      data-balance="150,000원">
+                  <!-- 인라인 onclick으로 확실하게 모달 호출 -->
+                  <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" 
+                      onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김본사 팀장', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
                     보령시·서천군 선거캠프 🔍
                   </td>
                   <td class="py-3 font-mono text-xs">camp01</td>
@@ -188,7 +179,7 @@
     </main>
   </div>
 
-  <!-- ==================== 캠프 상세 정보 모달 (표시 활성화 수정 완료) ==================== -->
+  <!-- ==================== 캠프 상세 정보 모달 (표시 활성화 완료) ==================== -->
   <div id="camp-detail-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 items-center justify-center">
     <div class="bg-slate-900 border border-slate-800 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
       <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
@@ -533,7 +524,6 @@
       const savedId = localStorage.getItem('easycall_id');
 
       updateAdminBankNotice();
-      initCampDetailClickEvents();
 
       if (savedRole) {
         document.getElementById('login-view').classList.add('hidden');
@@ -576,27 +566,6 @@
         document.getElementById('agent-script-display').innerText = `"${savedScript}"`;
       }
     };
-
-    function initCampDetailClickEvents() {
-      document.addEventListener('click', function(e) {
-        const target = e.target.closest('.camp-title-btn');
-        if (target) {
-          const name = target.getAttribute('data-name');
-          const id = target.getAttribute('data-id');
-          const region = target.getAttribute('data-region');
-          const staff = target.getAttribute('data-staff');
-          const manager = target.getAttribute('data-manager');
-          const phone = target.getAttribute('data-phone');
-          const email = target.getAttribute('data-email');
-          const period = target.getAttribute('data-period');
-          const tablets = target.getAttribute('data-tablet');
-          const fee = target.getAttribute('data-fee');
-          const balance = target.getAttribute('data-balance');
-
-          openCampDetailModal(name, id, region, staff, manager, phone, email, period, tablets, fee, balance);
-        }
-      });
-    }
 
     function handleInstantLogin() {
       const idInput = document.getElementById('login-id').value.trim().toLowerCase();
@@ -696,18 +665,8 @@
       newRow.setAttribute('data-keyword', `${name} ${admin} ${regionStr} ${staff}`.toLowerCase());
       newRow.innerHTML = `
         <td class="py-3 text-xs text-slate-400 font-bold">${regionStr}</td>
-        <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline camp-title-btn" 
-            data-name="${name}" 
-            data-id="${admin}" 
-            data-region="${regionStr}" 
-            data-staff="${staff}" 
-            data-manager="${manager}" 
-            data-phone="${phone}" 
-            data-email="${email}" 
-            data-period="${start} ~ ${end}" 
-            data-tablet="${tablets}" 
-            data-fee="0원" 
-            data-balance="${balance}">
+        <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" 
+            onclick="openCampDetailModal('${name}', '${admin}', '${regionStr}', '${staff}', '${manager}', '${phone}', '${email}', '${start} ~ ${end}', '${tablets}', '0원', '${balance}')">
           ${name} 🔍
         </td>
         <td class="py-3 font-mono text-xs">${admin}</td>
