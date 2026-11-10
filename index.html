@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- ==================== 1. 최고관리자 관제 대시보드 (입금 계좌 설정 패널 추가) ==================== -->
+  <!-- ==================== 1. 최고관리자 관제 대시보드 (캠프 사용 승인 제어 완비) ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -83,21 +83,21 @@
       <div class="grid grid-cols-3 gap-6">
         <div class="col-span-2 space-y-6">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 class="text-base font-bold text-indigo-300 mb-4">📋 전체 선거 캠프 라이선스 및 예치금 충전 승인</h3>
+            <h3 class="text-base font-bold text-indigo-300 mb-4">📋 전체 선거 캠프 라이선스 및 사용 승인 / 충전 관리</h3>
             <table class="w-full text-left text-sm">
               <thead class="text-slate-400 border-b border-slate-800">
-                <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">잔여 예치금</th><th class="pb-3">상태</th><th class="pb-3">제어</th></tr>
+                <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">잔여 예치금</th><th class="pb-3">사용 승인 상태</th><th class="pb-3">마스터 제어</th></tr>
               </thead>
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
                 <tr>
                   <td class="py-3 font-bold">보령시·서천군 선거캠프</td>
-                  <td class="py-3">camp01</td>
+                  <td class="py-3 font-mono text-xs">camp01</td>
                   <td class="py-3 font-mono">15대</td>
                   <td class="py-3 font-mono text-emerald-400">150,000원</td>
-                  <td class="py-3"><span class="text-emerald-400 font-bold">정상 🟢</span></td>
-                  <td class="py-3">
-                    <button onclick="alert('입금 확인 및 예치금 충전 승인 완료!')" class="bg-indigo-600 text-white px-2.5 py-1 rounded text-xs font-bold mr-1">충전승인</button>
-                    <button onclick="toggleCampStatus(this)" class="bg-rose-600 text-white px-2.5 py-1 rounded text-xs font-bold">이용정지</button>
+                  <td class="py-3"><span id="camp-status-badge-1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨 (정상 가동)</span></td>
+                  <td class="py-3 flex gap-1.5">
+                    <button onclick="approveCampCharge(this)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded text-xs font-bold">충전승인</button>
+                    <button id="btn-toggle-approval-1" onclick="toggleCampApproval(1)" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-xs font-bold">사용중지</button>
                   </td>
                 </tr>
               </tbody>
@@ -106,24 +106,27 @@
         </div>
 
         <div class="space-y-6 flex flex-col justify-between">
-          <!-- 마스터 입금 계좌 설정 패널 -->
+          <!-- 신규 캠프 개설 및 사용 승인 설정 패널 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 자동 승인</h3>
+            <div class="space-y-3">
+              <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="홍성군 캠프"></div>
+              <div><label class="block text-xs text-slate-400 mb-1">관리자 ID</label><input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="camp02"></div>
+              <div><label class="block text-xs text-slate-400 mb-1">태블릿 대수</label><input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="15"></div>
+              <div><label class="block text-xs text-slate-400 mb-1">초기 예치금</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="100000"></div>
+            </div>
+            <button onclick="registerNewCampByMaster()" class="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">신규 캠프 개설 및 사용 승인</button>
+          </div>
+
+          <!-- 본사 입금 계좌 관리 패널 -->
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 class="text-base font-bold text-indigo-300 mb-3"><i class="fa-solid fa-university mr-1"></i> 본사 입금 계좌 관리</h3>
-            <p class="text-[11px] text-slate-400 mb-4">캠프 상황실 충전 안내란에 실시간 연동될 본사 계좌를 설정합니다.</p>
             <div class="space-y-3">
               <div><label class="block text-xs text-slate-400 mb-1">은행명</label><input type="text" id="master-bank-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold" value="국민은행"></div>
               <div><label class="block text-xs text-slate-400 mb-1">계좌번호</label><input type="text" id="master-bank-account" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-mono font-bold" value="123-456-789012"></div>
               <div><label class="block text-xs text-slate-400 mb-1">예금주명</label><input type="text" id="master-bank-holder" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold" value="(주)이지콜"></div>
             </div>
-            <button onclick="saveMasterBankInfo()" class="w-full mt-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">
-              입금 계좌 실시간 배포
-            </button>
-          </div>
-
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 class="text-base font-bold text-indigo-300 mb-2">전사 긴급 공지 브로드캐스트</h3>
-            <textarea id="broadcast-msg" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white resize-none mb-3" placeholder="공지 내용 입력..."></textarea>
-            <button onclick="sendBroadcastNotice()" class="w-full py-2.5 bg-amber-600 text-white font-bold text-xs rounded-xl">전사 푸시 송출</button>
+            <button onclick="saveMasterBankInfo()" class="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">계좌 정보 실시간 배포</button>
           </div>
         </div>
       </div>
@@ -195,12 +198,10 @@
         </div>
       </div>
 
-      <!-- 우측: 마스터 연동 입금 계좌 안내 및 충전 신청 -->
       <div class="space-y-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">💳 전화 예치금 계좌이체 충전 신청</h3>
-          <p class="text-xs text-slate-500 mb-3" id="admin-bank-notice">본사 계좌(국민은행 123-456-789012) 입금 후 충전하실 금액을 선택하세요.</p>
-          
+          <p class="text-xs text-slate-500 mb-3" id="admin-bank-notice">본사 계좌 입금 후 충전하실 금액을 선택하세요.</p>
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">충전 금액 선택</label>
@@ -332,6 +333,12 @@
     </main>
   </div>
 
+  <!-- Toast 알림 -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none z-50">
+    <i class="fa-solid fa-shield-halved text-emerald-400 text-base"></i>
+    <span id="toast-message">저장 완료!</span>
+  </div>
+
   <script>
     let selectedStatus = '';
     let isAgentOnBreak = false;
@@ -350,14 +357,12 @@
       const savedRole = localStorage.getItem('easycall_role');
       const savedId = localStorage.getItem('easycall_id');
 
-      // 마스터 설정 계좌 정보 로드 및 반영
       updateAdminBankNotice();
 
       if (savedRole) {
         document.getElementById('login-view').classList.add('hidden');
         if (savedRole === 'super') {
           document.getElementById('super-view').classList.remove('hidden');
-          // 마스터 입력 폼에 현재 값 로드
           const bName = localStorage.getItem('master_bank_name') || '국민은행';
           const bAcc = localStorage.getItem('master_bank_acc') || '123-456-789012';
           const bHold = localStorage.getItem('master_bank_hold') || '(주)이지콜';
@@ -365,9 +370,24 @@
           document.getElementById('master-bank-account').value = bAcc;
           document.getElementById('master-bank-holder').value = bHold;
         } else if (savedRole === 'admin') {
+          // 캠프 사용 승인 상태 확인 (만약 중지 상태면 로그인 차단)
+          const isApproved = localStorage.getItem('camp_01_approved') !== 'false';
+          if (!isApproved) {
+            alert("🚨 [이용 차단]\n본사 마스터 관리자에 의해 해당 캠프의 사용 승인이 중지되었습니다. 본사에 문의하세요.");
+            localStorage.clear();
+            window.location.reload();
+            return;
+          }
           document.getElementById('admin-view').classList.remove('hidden');
           renderAdminLogsTable();
         } else if (savedRole === 'agent') {
+          const isApproved = localStorage.getItem('camp_01_approved') !== 'false';
+          if (!isApproved) {
+            alert("🚨 [이용 차단]\n캠프 상황실의 사용 승인이 중지되어 접속할 수 없습니다.");
+            localStorage.clear();
+            window.location.reload();
+            return;
+          }
           document.getElementById('agent-view').classList.remove('hidden');
           currentAgentId = savedId || 'agent01';
           document.getElementById('agent-display-id').innerText = currentAgentId;
@@ -380,6 +400,14 @@
       const idInput = document.getElementById('login-id').value.trim().toLowerCase();
       if (!idInput) { alert("아이디를 입력해 주세요."); return; }
 
+      if (idInput.includes('camp') || idInput.includes('agent')) {
+        const isApproved = localStorage.getItem('camp_01_approved') !== 'false';
+        if (!isApproved) {
+          alert("🚨 [이용 차단] 본사 마스터로부터 사용 승인이 중지된 캠프입니다.");
+          return;
+        }
+      }
+
       document.getElementById('login-view').classList.add('hidden');
 
       if (idInput === 'super' || idInput === 'admin' || idInput.includes('master')) {
@@ -389,7 +417,6 @@
       }
       if (idInput.includes('camp')) {
         localStorage.setItem('easycall_role', 'admin');
-        localStorage.setItem('easycall_view', 'admin');
         document.getElementById('admin-view').classList.remove('hidden');
         updateAdminBankNotice();
         renderAdminLogsTable();
@@ -410,22 +437,49 @@
       window.location.href = window.location.pathname;
     }
 
-    // --- 최고관리자 계좌 정보 저장 및 실시간 배포 ---
+    // --- 마스터 관제: 캠프 사용 승인 토글 제어 ---
+    function toggleCampApproval(campIndex) {
+      const currentStatus = localStorage.getItem('camp_01_approved') !== 'false';
+      const newStatus = !currentStatus;
+      localStorage.setItem('camp_01_approved', newStatus);
+
+      const badge = document.getElementById(`camp-status-badge-${campIndex}`);
+      const btn = document.getElementById(`btn-toggle-approval-${campIndex}`);
+
+      if (newStatus) {
+        badge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800";
+        badge.innerText = "승인됨 (정상 가동)";
+        btn.className = "bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-xs font-bold";
+        btn.innerText = "사용중지";
+        alert("✅ 해당 캠프의 프로그램 사용이 [승인]되었습니다.");
+      } else {
+        badge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-rose-950 text-rose-400 border border-rose-800";
+        badge.innerText = "중지됨 (접근 차단)";
+        btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-bold";
+        btn.innerText = "사용승인";
+        alert("🛑 해당 캠프의 프로그램 사용이 [중지] 처리되었습니다. (즉시 접속 차단)");
+      }
+    }
+
+    function registerNewCampByMaster() {
+      const name = document.getElementById('new-camp-name').value.trim();
+      const admin = document.getElementById('new-camp-admin').value.trim();
+      if (!name || !admin) { alert("캠프명과 관리자 아이디를 입력하세요."); return; }
+      alert(`🎉 [신규 캠프 개설 및 자동 승인 완료]\n- 캠프명: ${name}\n- 관리자 ID: ${admin}\n\n즉시 사용 승인 상태로 관제센터에 등록되었습니다.`);
+    }
+
     function saveMasterBankInfo() {
       const name = document.getElementById('master-bank-name').value.trim();
       const acc = document.getElementById('master-bank-account').value.trim();
       const holder = document.getElementById('master-bank-holder').value.trim();
-
       if (!name || !acc || !holder) { alert("모든 계좌 정보를 입력해 주세요."); return; }
-
       localStorage.setItem('master_bank_name', name);
       localStorage.setItem('master_bank_acc', acc);
       localStorage.setItem('master_bank_hold', holder);
-
-      alert(`✅ [본사 입금 계좌 배포 완료]\n- 은행: ${name}\n- 계좌: ${acc}\n- 예금주: ${holder}\n\n모든 선거 캠프 상황실 화면에 실시간 반영되었습니다!`);
+      alert(`✅ [본사 계좌 배포 완료]\n- ${name} ${acc} (${holder})`);
+      updateAdminBankNotice();
     }
 
-    // --- 캠프관리자 화면에 마스터 계좌 안내 동기화 ---
     function updateAdminBankNotice() {
       const name = localStorage.getItem('master_bank_name') || '국민은행';
       const acc = localStorage.getItem('master_bank_acc') || '123-456-789012';
@@ -530,7 +584,7 @@
     }
 
     function endCallSimulation() {
-      document.getElementById('call-idle-state').classList.remove('hidden');
+      document.getElementById('call-idle-state').classList.add('hidden');
       document.getElementById('call-active-state').classList.add('hidden');
     }
 
