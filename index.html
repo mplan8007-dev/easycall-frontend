@@ -261,3 +261,162 @@
           <div class="control-item">
             <div>
               <div style="font-weight: bold;">자동 연속 발신(PDS) 강제</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">전체 태블릿 일괄 적용</div>
+            </div>
+            <input type="checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+          </div>
+
+          <div class="control-item">
+            <div>
+              <div style="font-weight: bold;">후처리 제한 시간 설정</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">초과 시 자동 다음 번호 전환</div>
+            </div>
+            <select style="background: #334155; color: #fff; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px;">
+              <option>15초</option>
+              <option selected>30초</option>
+              <option>45초</option>
+              <option>제한없음</option>
+            </select>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button style="width: 100%; padding: 12px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+              📥 엑셀(CSV) 유권자 명부 대량 등록
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 뷰 전환 스크립트
+    function switchView(mode) {
+      document.getElementById('view-agent').classList.toggle('active', mode === 'agent');
+      document.getElementById('view-admin').classList.toggle('active', mode === 'admin');
+      
+      document.getElementById('tab-agent').classList.toggle('active', mode === 'agent');
+      document.getElementById('tab-admin').classList.toggle('active', mode === 'admin');
+    }
+
+    // 요원 화면 데이터 로직
+    const voters = [
+      { id: 1, name: "김철수", phone: "010-1234-5678", region: "대천1동", age: "50대", tendency: "미분류", notes: "" },
+      { id: 2, name: "이영희", phone: "010-2345-6789", region: "대천2동", age: "40대", tendency: "우호", notes: "공약 문자 재발송 요청" },
+      { id: 3, name: "박민우", phone: "010-3456-7890", region: "동대동", age: "30대", tendency: "미분류", notes: "" },
+      { id: 4, name: "정순자", phone: "010-4567-8901", region: "죽정동", age: "60대", tendency: "부동", notes: "경로당 지원 정책 관심" }
+    ];
+
+    let currentIndex = 0;
+    let status = "대기중";
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let currentTendency = "미분류";
+
+    function renderList() {
+      const listEl = document.getElementById("voter-list");
+      listEl.innerHTML = "";
+      voters.forEach((v, idx) => {
+        const item = document.createElement("div");
+        item.className = "voter-item " + (idx === currentIndex ? "active" : "");
+        item.onclick = () => { if(status === "대기중") selectVoter(idx); };
+        item.innerHTML = `
+          <div class="voter-top">
+            <span>${v.name}</span>
+            <span class="badge badge-${v.tendency}">${v.tendency}</span>
+          </div>
+          <div class="voter-info">${v.phone} · ${v.region}</div>
+        `;
+        listEl.appendChild(item);
+      });
+      document.getElementById("progress-text").innerText = `${currentIndex + 1} / ${voters.length} 명`;
+    }
+
+    function selectVoter(index) {
+      currentIndex = index;
+      const v = voters[currentIndex];
+      document.getElementById("v-name").innerText = `${v.name} 선생님`;
+      document.getElementById("v-phone").innerText = v.phone;
+      document.getElementById("v-desc").innerText = `거주지역: ${v.region} | 연령대: ${v.age}`;
+      document.getElementById("script-content").innerText = `"안녕하십니까, ${v.name} 선생님! ${v.region} 맞춤 복지와 지역 발전을 준비하는 기호 1번 캠프 자원봉사자입니다. 잠시 의견을 여쭙고자 연락드렸습니다."`;
+      document.getElementById("v-memo").value = v.notes || "";
+      setTendency(v.tendency || "미분류");
+      
+      const btnSms = document.getElementById("btn-sms");
+      btnSms.innerText = "📱 통화 중 공약 요약 문자(SMS) 즉시 전송";
+      btnSms.style.background = "#f8fafc";
+      btnSms.style.color = "#1e293b";
+      
+      renderList();
+    }
+
+    function setTendency(type) {
+      currentTendency = type;
+      document.querySelectorAll(".t-btn").forEach(btn => {
+        btn.classList.toggle("selected", btn.innerText === type);
+      });
+    }
+
+    function startCall() {
+      status = "통화중";
+      document.getElementById("status-text").innerText = "통화중";
+      document.getElementById("status-dot").className = "dot calling";
+      document.getElementById("btn-call").style.display = "none";
+      document.getElementById("btn-end").style.display = "inline-block";
+      document.getElementById("btn-save").style.display = "none";
+      
+      timerSeconds = 0;
+      const timerEl = document.getElementById("timer-text");
+      timerEl.style.display = "inline";
+      timerEl.innerText = "00:00";
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const s = String(timerSeconds % 60).padStart(2, '0');
+        timerEl.innerText = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function endCall() {
+      status = "후처리중";
+      clearInterval(timerInterval);
+      document.getElementById("status-text").innerText = "후처리중";
+      document.getElementById("status-dot").className = "dot post";
+      document.getElementById("btn-end").style.display = "none";
+      document.getElementById("btn-save").style.display = "inline-block";
+    }
+
+    function saveAndNext() {
+      voters[currentIndex].tendency = currentTendency;
+      voters[currentIndex].notes = document.getElementById("v-memo").value;
+      
+      status = "대기중";
+      document.getElementById("status-text").innerText = "대기중";
+      document.getElementById("status-dot").className = "dot";
+      document.getElementById("timer-text").style.display = "none";
+      document.getElementById("btn-save").style.display = "none";
+      document.getElementById("btn-call").style.display = "inline-block";
+
+      if (currentIndex < voters.length - 1) {
+        selectVoter(currentIndex + 1);
+        if (document.getElementById("auto-dial").checked) {
+          setTimeout(startCall, 1500);
+        }
+      } else {
+        renderList();
+        alert("배정된 명부 통화가 모두 완료되었습니다!");
+      }
+    }
+
+    function sendSms() {
+      const btn = document.getElementById("btn-sms");
+      btn.innerText = "✓ 공약 요약 문자 발송 완료";
+      btn.style.background = "#94a3b8";
+      btn.style.color = "#ffffff";
+    }
+
+    selectVoter(0);
+  </script>
+</body>
+</html>
