@@ -3,410 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 차세대 선거 PDS 통합 시스템</title>
+  <title>이지콜 (EasyCall) - 통합 관리자 관제 시스템</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", dotum, sans-serif; background-color: #f1f5f9; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", dotum, sans-serif; background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* 최상단 네비게이션 */
-    .top-nav { height: 50px; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #334155; }
-    .nav-brand { font-size: 1.1rem; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
-    .nav-tabs { display: flex; gap: 8px; }
-    .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 0.9rem; font-weight: bold; padding: 6px 16px; border-radius: 4px; cursor: pointer; }
-    .tab-btn.active { background: #1e293b; color: #38bdf8; }
-    .nav-info { display: flex; gap: 15px; font-size: 0.85rem; color: #cbd5e1; }
-    .nav-info span strong { color: #facc15; }
+    /* 관리자 상단 헤더 */
+    .admin-header { height: 60px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .header-title { font-size: 1.25rem; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
+    .header-info { display: flex; gap: 20px; font-size: 0.9rem; color: #94a3b8; }
+    .header-info strong { color: #facc15; }
 
-    .view-container { flex: 1; height: calc(100vh - 50px); display: none; }
-    .view-container.active { display: flex; }
-
-    /* 1. 요원 워크스페이스 */
-    .sidebar { width: 320px; background: #ffffff; border-right: 1px solid #cbd5e1; display: flex; flex-direction: column; }
-    .side-status { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
-    .status-row { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; }
-    .status-count { color: #2563eb; }
-    .auto-dial-box { margin-top: 10px; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
-    .voter-list { flex: 1; overflow-y: auto; padding: 8px; }
-    .voter-item { padding: 12px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e2e8f0; cursor: pointer; background: #fff; }
-    .voter-item.active { border: 2px solid #2563eb; background: #eff6ff; }
-    .voter-top { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px; }
-    .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: normal; }
-    .badge-우호 { background: #dcfce7; color: #15803d; }
-    .badge-부동 { background: #fef9c3; color: #854d0e; }
-    .badge-미분류 { background: #f1f5f9; color: #64748b; }
-    .badge-비우호 { background: #fee2e2; color: #b91c1c; }
-    .voter-info { font-size: 0.8rem; color: #64748b; }
-
-    .main { flex: 1; display: flex; flex-direction: column; }
-    .call-bar { height: 75px; background: #fff; border-bottom: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-    .status-indicator { display: flex; align-items: center; gap: 10px; font-weight: bold; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; }
-    .dot.calling { background: #22c55e; }
-    .dot.post { background: #eab308; }
-    .timer { font-size: 1.2rem; color: #ef4444; font-weight: bold; margin-left: 10px; }
+    /* 메인 대시보드 그리드 레이아웃 */
+    .admin-body { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
     
-    .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
-    .btn-call { background: #2563eb; color: #fff; }
-    .btn-end { background: #dc2626; color: #fff; display: none; }
-    .btn-save { background: #16a34a; color: #fff; display: none; }
-    .btn-ars { background: #0ea5e9; color: #fff; margin-right: 10px; }
-
-    .content-area { flex: 1; padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; overflow-y: auto; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
-    .card h3 { font-size: 1.1rem; color: #1e293b; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
-    .profile-name { font-size: 1.4rem; font-weight: bold; color: #0f172a; margin-bottom: 4px; }
-    .profile-phone { color: #2563eb; font-weight: bold; margin-bottom: 4px; }
-    .profile-desc { font-size: 0.9rem; color: #64748b; margin-bottom: 16px; }
-    
-    .script-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 6px; line-height: 1.6; font-size: 0.95rem; color: #1e293b; margin-top: 10px; flex: 1; }
-    .btn-sms { margin-top: 12px; width: 100%; padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; border-radius: 6px; cursor: pointer; }
-    
-    .tendency-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-    .t-btn { padding: 10px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; color: #475569; }
-    .t-btn.selected { border: 2px solid #2563eb; background: #eff6ff; color: #1d4ed8; }
-    .memo-area { flex: 1; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; font-size: 0.9rem; resize: none; outline: none; }
-
-    /* 2. 관리자 관제 대시보드 */
-    .admin-view { width: 100%; padding: 24px; overflow-y: auto; background-color: #0f172a; color: #e2e8f0; display: flex; flex-direction: column; gap: 24px; }
-    .admin-title-box { display: flex; justify-content: space-between; align-items: center; }
-    .admin-title { font-size: 1.3rem; font-weight: bold; color: #f8fafc; }
-    
+    /* 지표 카드 영역 */
     .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .metric-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 18px; }
+    .metric-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .metric-label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px; }
-    .metric-val { font-size: 1.7rem; font-weight: bold; }
-    
-    .admin-layout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .admin-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; }
-    .admin-card h4 { font-size: 1.05rem; margin-bottom: 16px; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-    
-    .agent-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .agent-table th, .agent-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-    .agent-table th { color: #94a3b8; font-weight: normal; }
+    .metric-val { font-size: 1.8rem; font-weight: bold; color: #ffffff; }
+
+    /* 2단 상세 분석 영역 */
+    .content-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+    .panel { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
+    .panel h3 { font-size: 1.1rem; color: #38bdf8; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* 테이블 스타일 */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+    .data-table th { color: #94a3b8; font-weight: 600; }
     .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
     .badge-calling { background: #065f46; color: #34d399; }
     .badge-ready { background: #1e3a8a; color: #60a5fa; }
     .badge-wrapup { background: #854d0e; color: #facc15; }
+
+    /* 정책 제어 항목 */
+    .control-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #334155; font-size: 0.95rem; }
+    .control-desc { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
     
-    .control-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+    .btn-action { padding: 10px 16px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-action:hover { background: #0369a1; }
   </style>
 </head>
 <body>
 
-  <!-- 최상단 네비게이션 바 -->
-  <div class="top-nav">
-    <div class="nav-brand">
-      <span>이지콜 (EasyCall) PDS v2.0</span>
-      <span style="font-size: 0.75rem; background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 4px;">클라우드 통합</span>
+  <!-- 관리자 헤더 -->
+  <header class="admin-header">
+    <div class="header-title">
+      <span>🛡️ 이지콜(EasyCall) 선거 캠프 통합 관제 센터</span>
     </div>
-    <div class="nav-info">
-      <span>충전 잔액: <strong>45,536 원</strong></span>
-      <span>선충전: <strong>500 원/건</strong></span>
+    <div class="header-info">
+      <span>총괄 관리자: <strong>상황실장</strong></span>
+      <span>서버 상태: <strong style="color: #4ade80;">정상 가동중 (클라우드)</strong></span>
+      <span>발신 잔액: <strong>45,536 원</strong></span>
     </div>
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tab-agent" onclick="switchView('agent')">📱 요원 발신 워크스페이스</button>
-      <button class="tab-btn" id="tab-admin" onclick="switchView('admin')">📊 캠프 종합 관제 & 통계</button>
-    </div>
-  </div>
+  </header>
 
-  <!-- 1. 요원 발신 화면 -->
-  <div class="view-container active" id="view-agent">
-    <div class="sidebar">
-      <div class="side-status">
-        <div class="status-row">
-          <span>배정 유권자 명부</span>
-          <span class="status-count" id="progress-text">1 / 4 명</span>
-        </div>
-        <div class="auto-dial-box">
-          <input type="checkbox" id="auto-dial">
-          <label for="auto-dial">자동 연속 발신 (Progressive)</label>
-        </div>
+  <!-- 메인 대시보드 본문 -->
+  <div class="admin-body">
+    
+    <!-- 1. 상단 핵심 성과 지표 (KPI) -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">총 유권자 DB 접촉률</div>
+        <div class="metric-val" style="color: #38bdf8;">68.4% <span style="font-size: 0.9rem; color: #94a3b8;">(1,368 / 2,000명)</span></div>
       </div>
-      <div class="voter-list" id="voter-list"></div>
-    </div>
-
-    <div class="main">
-      <div class="call-bar">
-        <div class="status-indicator">
-          <div class="dot" id="status-dot"></div>
-          <span id="status-text">대기중</span>
-          <span class="timer" id="timer-text" style="display: none;">00:00</span>
-        </div>
-        <div>
-          <button class="btn btn-ars" id="btn-ars" onclick="playArsAudio()" style="display: none;">🔊 공약 육성 ARS 송출</button>
-          <button class="btn btn-call" id="btn-call" onclick="startCall()">전화 걸기 (SIP 발신)</button>
-          <button class="btn btn-end" id="btn-end" onclick="endCall()">통화 종료</button>
-          <button class="btn btn-save" id="btn-save" onclick="saveAndNext()">결과 저장 후 다음 번호</button>
-        </div>
+      <div class="metric-card">
+        <div class="metric-label">우호(지지) 성향 확보</div>
+        <div class="metric-val" style="color: #4ade80;">582명 <span style="font-size: 0.9rem; color: #94a3b8;">(42.5%)</span></div>
       </div>
-
-      <div class="content-area">
-        <div class="card">
-          <h3>유권자 프로필</h3>
-          <div class="profile-name" id="v-name">김철수 선생님</div>
-          <div class="profile-phone" id="v-phone">010-1234-5678</div>
-          <div class="profile-desc" id="v-desc">거주지역: 대천1동 | 연령대: 50대</div>
-          
-          <h4 style="font-size: 0.95rem; margin-top: 10px; color: #334155;">지역 맞춤 통화 스크립트</h4>
-          <div class="script-box" id="script-content">
-            "안녕하십니까, 김철수 선생님! 대천1동의 새로운 도약을 준비하는 후보 캠프 자원봉사자입니다. 주요 공약과 생활 민원에 관해 의견을 여쭙고자 연락드렸습니다."
-          </div>
-
-          <button class="btn-sms" id="btn-sms" onclick="sendSms()">📱 통화 중 공약 요약 문자(SMS) 즉시 전송</button>
-        </div>
-
-        <div class="card">
-          <h3>성향 판정 및 통화 기록</h3>
-          <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: #475569;">지지 성향 선택</div>
-          <div class="tendency-grid">
-            <button class="t-btn" onclick="setTendency('우호')">우호</button>
-            <button class="t-btn" onclick="setTendency('부동')">부동</button>
-            <button class="t-btn" onclick="setTendency('비우호')">비우호</button>
-            <button class="t-btn" onclick="setTendency('부재중')">부재중</button>
-          </div>
-
-          <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: #475569;">상세 통화 메모</div>
-          <textarea class="memo-area" id="v-memo" placeholder="유권자 관심 공약, 반응, 민원 사항을 입력하세요."></textarea>
-        </div>
+      <div class="metric-card">
+        <div class="metric-label">부동층 / 미결정 유권자</div>
+        <div class="metric-val" style="color: #facc15;">431명 <span style="font-size: 0.9rem; color: #94a3b8;">(31.5%)</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">투입 태블릿(요원) 가동 현황</div>
+        <div class="metric-val" style="color: #f472b6;">12대 가동중 <span style="font-size: 0.9rem; color: #94a3b8;">(총 15대)</span></div>
       </div>
     </div>
-  </div>
 
-  <!-- 2. 캠프 관리자 관제 대시보드 및 통계 -->
-  <div class="view-container" id="view-admin">
-    <div class="admin-view">
-      <div class="admin-title-box">
-        <div class="admin-title">캠프 총괄 실시간 관제 & 통계 대시보드</div>
-        <button style="padding: 8px 16px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-          📥 통계 및 녹음 리스트 엑셀(Excel) 다운로드
-        </button>
-      </div>
-
-      <!-- 핵심 지표 카드 -->
-      <div class="metric-grid">
-        <div class="metric-card">
-          <div class="metric-label">총 유권자 DB 접촉률</div>
-          <div class="metric-val" style="color: #38bdf8;">68.4% <span style="font-size: 0.9rem; color: #94a3b8;">(1,368 / 2,000건)</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">우호(지지) 유권자 확보</div>
-          <div class="metric-val" style="color: #4ade80;">582명 <span style="font-size: 0.9rem; color: #94a3b8;">(42.5%)</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">부동층 / 미결정 유권자</div>
-          <div class="metric-val" style="color: #facc15;">431명 <span style="font-size: 0.9rem; color: #94a3b8;">(31.5%)</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">투입 태블릿(요원) 가동 현황</div>
-          <div class="metric-val" style="color: #f472b6;">12대 가동중 <span style="font-size: 0.9rem; color: #94a3b8;">(총 15대)</span></div>
-        </div>
-      </div>
-
-      <div class="admin-layout-grid">
-        <!-- 요원별 실시간 통화 현황 -->
-        <div class="admin-card">
-          <h4>실시간 요원(태블릿) 통화 현황 및 녹음 관리</h4>
-          <table class="agent-table">
-            <thead>
-              <tr>
-                <th>요원 번호</th>
-                <th>담당 지역</th>
-                <th>현재 상태</th>
-                <th>통화 시간</th>
-                <th>금일 완료건</th>
-                <th>녹음 청취</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>태블릿 01 (김철민)</td>
-                <td>대천1동</td>
-                <td><span class="status-badge badge-calling">통화중</span></td>
-                <td>01:42</td>
-                <td>48건</td>
-                <td><button style="padding: 3px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 듣기</button></td>
-              </tr>
-              <tr>
-                <td>태블릿 02 (박선영)</td>
-                <td>대천2동</td>
-                <td><span class="status-badge badge-wrapup">후처리중</span></td>
-                <td>00:08</td>
-                <td>52건</td>
-                <td><button style="padding: 3px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 듣기</button></td>
-              </tr>
-              <tr>
-                <td>태블릿 03 (이동수)</td>
-                <td>동대동</td>
-                <td><span class="status-badge badge-ready">발신대기</span></td>
-                <td>-</td>
-                <td>45건</td>
-                <td><button style="padding: 3px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 듣기</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 캠프 운영 정책 제어 -->
-        <div class="admin-card">
-          <h4>캠프 발신 정책 제어</h4>
-          
-          <div class="control-item">
-            <div>
-              <div style="font-weight: bold;">선거법 야간 셧다운</div>
-              <div style="font-size: 0.8rem; color: #94a3b8;">20:00 이후 발신 자동 잠금</div>
-            </div>
-            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
-          </div>
-
-          <div class="control-item">
-            <div>
-              <div style="font-weight: bold;">자동 연속 발신(PDS) 강제</div>
-              <div style="font-size: 0.8rem; color: #94a3b8;">전체 태블릿 일괄 적용</div>
-            </div>
-            <input type="checkbox" style="width: 20px; height: 20px; cursor: pointer;">
-          </div>
-
-          <div class="control-item">
-            <div>
-              <div style="font-weight: bold;">후처리 제한 시간 설정</div>
-              <div style="font-size: 0.8rem; color: #94a3b8;">초과 시 자동 다음 번호 전환</div>
-            </div>
-            <select style="background: #334155; color: #fff; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px;">
-              <option>15초</option>
-              <option selected>30초</option>
-              <option>45초</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function switchView(mode) {
-      document.getElementById('view-agent').classList.toggle('active', mode === 'agent');
-      document.getElementById('view-admin').classList.toggle('active', mode === 'admin');
-      document.getElementById('tab-agent').classList.toggle('active', mode === 'agent');
-      document.getElementById('tab-admin').classList.toggle('active', mode === 'admin');
-    }
-
-    const voters = [
-      { id: 1, name: "김철수", phone: "010-1234-5678", region: "대천1동", age: "50대", tendency: "미분류", notes: "" },
-      { id: 2, name: "이영희", phone: "010-2345-6789", region: "대천2동", age: "40대", tendency: "우호", notes: "공약 문자 재발송 요청" },
-      { id: 3, name: "박민우", phone: "010-3456-7890", region: "동대동", age: "30대", tendency: "미분류", notes: "" },
-      { id: 4, name: "정순자", phone: "010-4567-8901", region: "죽정동", age: "60대", tendency: "부동", notes: "경로당 지원 정책 관심" }
-    ];
-
-    let currentIndex = 0;
-    let status = "대기중";
-    let timerSeconds = 0;
-    let timerInterval = null;
-    let currentTendency = "미분류";
-
-    function renderList() {
-      const listEl = document.getElementById("voter-list");
-      listEl.innerHTML = "";
-      voters.forEach((v, idx) => {
-        const item = document.createElement("div");
-        item.className = "voter-item " + (idx === currentIndex ? "active" : "");
-        item.onclick = () => { if(status === "대기중") selectVoter(idx); };
-        item.innerHTML = `
-          <div class="voter-top">
-            <span>${v.name}</span>
-            <span class="badge badge-${v.tendency}">${v.tendency}</span>
-          </div>
-          <div class="voter-info">${v.phone} · ${v.region}</div>
-        `;
-        listEl.appendChild(item);
-      });
-      document.getElementById("progress-text").innerText = `${currentIndex + 1} / ${voters.length} 명`;
-    }
-
-    function selectVoter(index) {
-      currentIndex = index;
-      const v = voters[currentIndex];
-      document.getElementById("v-name").innerText = `${v.name} 선생님`;
-      document.getElementById("v-phone").innerText = v.phone;
-      document.getElementById("v-desc").innerText = `거주지역: ${v.region} | 연령대: ${v.age}`;
-      document.getElementById("script-content").innerText = `"안녕하십니까, ${v.name} 선생님! ${v.region} 맞춤 복지와 지역 발전을 준비하는 후보 캠프 자원봉사자입니다. 잠시 의견을 여쭙고자 연락드렸습니다."`;
-      document.getElementById("v-memo").value = v.notes || "";
-      setTendency(v.tendency || "미분류");
-      renderList();
-    }
-
-    function setTendency(type) {
-      currentTendency = type;
-      document.querySelectorAll(".t-btn").forEach(btn => {
-        btn.classList.toggle("selected", btn.innerText === type);
-      });
-    }
-
-    function startCall() {
-      status = "통화중";
-      document.getElementById("status-text").innerText = "통화중 (녹음중 ⏺)";
-      document.getElementById("status-dot").className = "dot calling";
-      document.getElementById("btn-call").style.display = "none";
-      document.getElementById("btn-ars").style.display = "inline-block";
-      document.getElementById("btn-end").style.display = "inline-block";
-      document.getElementById("btn-save").style.display = "none";
+    <!-- 2. 하단 상세 관제 영역 -->
+    <div class="content-grid">
       
-      timerSeconds = 0;
-      const timerEl = document.getElementById("timer-text");
-      timerEl.style.display = "inline";
-      timerEl.innerText = "00:00";
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        timerSeconds++;
-        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-        const s = String(timerSeconds % 60).padStart(2, '0');
-        timerEl.innerText = `${m}:${s}`;
-      }, 1000);
-    }
+      <!-- 좌측: 실시간 요원 모니터링 및 녹음 관리 -->
+      <div class="panel">
+        <h3>
+          <span>📞 실시간 요원(태블릿) 통화 및 녹음 모니터링</span>
+          <button class="btn-action" style="font-size: 0.8rem; padding: 6px 12px;">📥 전체 통계 엑셀 다운로드</button>
+        </h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>요원 / 태블릿 ID</th>
+              <th>담당 지역</th>
+              <th>현재 상태</th>
+              <th>통화 시간</th>
+              <th>금일 완료건</th>
+              <th>통화 녹음 청취</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>태블릿 01 (김철민)</strong></td>
+              <td>대천1동</td>
+              <td><span class="status-badge badge-calling">통화중</span></td>
+              <td>01:42</td>
+              <td>48건</td>
+              <td><button style="padding: 4px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 녹음 듣기</button></td>
+            </tr>
+            <tr>
+              <td><strong>태블릿 02 (박선영)</strong></td>
+              <td>대천2동</td>
+              <td><span class="status-badge badge-wrapup">후처리중</span></td>
+              <td>00:08</td>
+              <td>52건</td>
+              <td><button style="padding: 4px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 녹음 듣기</button></td>
+            </tr>
+            <tr>
+              <td><strong>태블릿 03 (이동수)</strong></td>
+              <td>동대동</td>
+              <td><span class="status-badge badge-ready">발신대기</span></td>
+              <td>-</td>
+              <td>45건</td>
+              <td><button style="padding: 4px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 녹음 듣기</button></td>
+            </tr>
+            <tr>
+              <td><strong>태블릿 04 (최미경)</strong></td>
+              <td>죽정동</td>
+              <td><span class="status-badge badge-calling">통화중</span></td>
+              <td>00:54</td>
+              <td>50건</td>
+              <td><button style="padding: 4px 8px; background: #334155; color: #38bdf8; border: none; border-radius: 4px; cursor: pointer;">▶ 녹음 듣기</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    function playArsAudio() {
-      alert("🔊 [ARS 송출] 후보자 육성 공약 음성 파일이 유권자에게 송출됩니다.");
-    }
+      <!-- 우측: 캠프 발신 정책 제어 및 DB 관리 -->
+      <div class="panel">
+        <h3>⚙️ 캠프 운영 정책 통제 센터</h3>
+        
+        <div class="control-row">
+          <div>
+            <div style="font-weight: bold;">선거법 야간 발신 셧다운</div>
+            <div class="control-desc">오후 8시 이후 자동 발신 제한 (준수 필수)</div>
+          </div>
+          <input type="checkbox" checked style="width: 22px; height: 22px; cursor: pointer;">
+        </div>
 
-    function endCall() {
-      status = "후처리중";
-      clearInterval(timerInterval);
-      document.getElementById("status-text").innerText = "후처리중 (저장 대기)";
-      document.getElementById("status-dot").className = "dot post";
-      document.getElementById("btn-ars").style.display = "none";
-      document.getElementById("btn-end").style.display = "none";
-      document.getElementById("btn-save").style.display = "inline-block";
-    }
+        <div class="control-row">
+          <div>
+            <div style="font-weight: bold;">자동 연속 발신 (Progressive) 강제</div>
+            <div class="control-desc">전체 요원 태블릿 일괄 모드 적용</div>
+          </div>
+          <input type="checkbox" style="width: 22px; height: 22px; cursor: pointer;">
+        </div>
 
-    function saveAndNext() {
-      voters[currentIndex].tendency = currentTendency;
-      voters[currentIndex].notes = document.getElementById("v-memo").value;
-      
-      status = "대기중";
-      document.getElementById("status-text").innerText = "대기중";
-      document.getElementById("status-dot").className = "dot";
-      document.getElementById("timer-text").style.display = "none";
-      document.getElementById("btn-save").style.display = "none";
-      document.getElementById("btn-call").style.display = "inline-block";
+        <div class="control-row">
+          <div>
+            <div style="font-weight: bold;">후처리 제한 시간 설정</div>
+            <div class="control-desc">초과 시 다음 유권자 자동 강제 전환</div>
+          </div>
+          <select style="background: #334155; color: #fff; border: 1px solid #475569; padding: 6px 12px; border-radius: 4px; font-weight: bold;">
+            <option>15초</option>
+            <option selected>30초</option>
+            <option>45초</option>
+          </select>
+        </div>
 
-      if (currentIndex < voters.length - 1) {
-        selectVoter(currentIndex + 1);
-        if (document.getElementById("auto-dial").checked) {
-          setTimeout(startCall, 1500);
-        }
-      } else {
-        renderList();
-        alert("배정된 명부 통화가 모두 완료되었습니다!");
-      }
-    }
+        <div style="margin-top: 24px;">
+          <button style="width: 100%; padding: 14px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer;">
+            📊 새로운 유권자 명부(Excel) 대량 업로드
+          </button>
+        </div>
+      </div>
 
-    function sendSms() {
-      const btn = document.getElementById("btn-sms");
-      btn.innerText = "✓ 공약 요약 문자 발송 완료";
-      btn.style.background = "#94a3b8";
-      btn.style.color = "#ffffff";
-    }
+    </div>
 
-    selectVoter(0);
-  </script>
+  </div>
+
 </body>
 </html>
