@@ -358,7 +358,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (개인 통계 탭 기능 추가) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (자동 스킵 타이머 적용) ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -427,7 +427,6 @@
       </section>
     </main>
 
-    <!-- 요원 탭 2: 내 통화 이력 및 개인 통계 리포트 (신규 추가) -->
     <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-6">
       <div class="flex justify-between items-center">
         <div>
@@ -436,7 +435,6 @@
         </div>
       </div>
 
-      <!-- 요원 개인 실적 요약 카드 섹션 -->
       <div class="grid grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <span class="text-xs font-bold text-slate-400 block mb-1">총 완료 건수</span>
@@ -479,6 +477,7 @@
     let isAgentOnBreak = false;
     let isCampGlobalStopped = false;
     let callTimerInterval = null;
+    let wrapUpTimer = null;
     let currentAgentId = 'agent01';
     let currentAdminId = 'camp01';
     
@@ -591,7 +590,6 @@
       window.location.href = window.location.pathname;
     }
 
-    // --- 상황실 설정 함수들 ---
     function saveAdminScript() {
       const text = document.getElementById('admin-script-input').value.trim();
       if (!text) { alert("스크립트 내용을 입력하세요."); return; }
@@ -605,6 +603,7 @@
       const secs = document.getElementById('setting-wait-secs').value;
       localStorage.setItem('easycall_dial_mode', mode);
       localStorage.setItem('easycall_wait_secs', secs);
+      updateAgentButtonTextPreview();
       alert(`✅ 오토다이얼 설정 배포 완료!\n- 연결 방식: ${mode === 'auto' ? '자동 전환 ('+secs+'초 대기)' : '수동 전환'}`);
     }
 
@@ -801,7 +800,7 @@
       }
     }
 
-    // --- 요원 워크스페이스 기능 (개인 통계 연동) ---
+    // --- 요원 워크스페이스 기능 (자동 스킵 타이머 및 개인 통계 연동) ---
     function switchAgentTab(tabName) {
       const dialerTab = document.getElementById('agent-tab-dialer');
       const historyTab = document.getElementById('agent-tab-history');
@@ -826,7 +825,6 @@
       const tbody = document.getElementById('agent-history-tbody');
       const myLogs = globalCampCallLogs.filter(l => l.agentId === currentAgentId);
 
-      // 요원 개인 통계 수치 업데이트
       let myTotal = myLogs.length;
       let mySupport = myLogs.filter(l => l.status === 'SUPPORT').length;
       let myFavorable = myLogs.filter(l => l.status === 'FAVORABLE').length;
@@ -890,12 +888,28 @@
       document.getElementById('call-active-state').classList.remove('hidden');
     }
 
+    // --- 통화 종료 시 자동 스킵 타이머 도입 (저장 깜빡 방지) ---
     function endCallSimulation() {
+      clearInterval(callTimerInterval);
       document.getElementById('call-idle-state').classList.remove('hidden');
       document.getElementById('call-active-state').classList.add('hidden');
+
+      let remainingSecs = 5;
+      showToast(`⚠️ 통화 종료: ${remainingSecs}초 내 미저장 시 자동 저장 후 스킵됩니다.`);
+
+      clearInterval(wrapUpTimer);
+      wrapUpTimer = setInterval(() => {
+        remainingSecs--;
+        if (remainingSecs <= 0) {
+          clearInterval(wrapUpTimer);
+          saveResultToSupabase(selectedStatus || 'SUPPORT');
+        }
+      }, 1000);
     }
 
     function saveResultToSupabase(status) {
+      clearInterval(wrapUpTimer); // 직접 저장 시 자동 타이머 해제
+
       const v = sampleVoters[currentVoterIdx];
       globalCampCallLogs.unshift({
         agentId: currentAgentId,
