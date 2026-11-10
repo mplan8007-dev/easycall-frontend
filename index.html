@@ -97,7 +97,6 @@
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
                 <tr class="camp-row" data-keyword="보령시·서천군 선거캠프 camp01 충청남도 보령시 김본사">
                   <td class="py-3 text-xs text-slate-400 font-bold">충청남도 보령시</td>
-                  <!-- 인라인 onclick으로 확실하게 모달 호출 -->
                   <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" 
                       onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김본사 팀장', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
                     보령시·서천군 선거캠프 🔍
@@ -105,10 +104,10 @@
                   <td class="py-3 font-mono text-xs">camp01</td>
                   <td class="py-3 text-indigo-300 font-bold text-xs">김본사 팀장</td>
                   <td class="py-3 font-mono text-amber-400 font-bold">150,000원</td>
-                  <td class="py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
+                  <td class="py-3"><span id="camp-badge-camp01" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
                   <td class="py-3 flex gap-1">
                     <button onclick="masterResetCampPw('camp01')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
-                    <button onclick="toggleCampApproval(this)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
+                    <button id="btn-approval-camp01" onclick="masterToggleCampApproval('camp01')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
                   </td>
                 </tr>
               </tbody>
@@ -179,7 +178,7 @@
     </main>
   </div>
 
-  <!-- ==================== 캠프 상세 정보 모달 (표시 활성화 완료) ==================== -->
+  <!-- ==================== 캠프 상세 정보 모달 ==================== -->
   <div id="camp-detail-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 items-center justify-center">
     <div class="bg-slate-900 border border-slate-800 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
       <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
@@ -634,6 +633,32 @@
       });
     }
 
+    // --- 마스터 관제: 캠프 비밀번호 초기화 ---
+    function masterResetCampPw(campId) {
+      localStorage.setItem(`pw_${campId}`, '1234');
+      alert(`🔐 캠프 관리자 [${campId}] 비밀번호가 [1234]로 초기화되었습니다.`);
+    }
+
+    // --- 마스터 관제: 캠프 승인 및 중지 토글 ---
+    function masterToggleCampApproval(campId) {
+      const currentStatus = localStorage.getItem(`camp_${campId}_approved`) !== 'false';
+      const newStatus = !currentStatus;
+      localStorage.setItem(`camp_${campId}_approved`, newStatus);
+
+      const badgeEl = document.getElementById(`camp-badge-${campId}`);
+      const btnEl = document.getElementById(`btn-approval-${campId}`);
+
+      if (newStatus) {
+        if(badgeEl) { badgeEl.className = "px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800"; badgeEl.innerText = "승인됨"; }
+        if(btnEl) { btnEl.className = "bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold"; btnEl.innerText = "중지"; }
+        alert(`✅ 캠프 [${campId}] 사용 승인 처리되었습니다.`);
+      } else {
+        if(badgeEl) { badgeEl.className = "px-2 py-0.5 rounded-full text-xs font-bold bg-rose-950 text-rose-400 border border-rose-800"; badgeEl.innerText = "이용중지"; }
+        if(btnEl) { btnEl.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold"; btnEl.innerText = "승인재개"; }
+        alert(`🛑 캠프 [${campId}] 이용이 중지되었습니다.`);
+      }
+    }
+
     function registerNewCampByMaster() {
       const sido = document.getElementById('new-camp-sido').value;
       const sigungu = document.getElementById('new-camp-sigungu').value.trim();
@@ -672,10 +697,10 @@
         <td class="py-3 font-mono text-xs">${admin}</td>
         <td class="py-3 text-indigo-300 font-bold text-xs">${staff}</td>
         <td class="py-3 font-mono text-amber-400 font-bold">${balance}</td>
-        <td class="py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
+        <td class="py-3"><span id="camp-badge-${admin}" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
         <td class="py-3 flex gap-1">
           <button onclick="masterResetCampPw('${admin}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
-          <button onclick="toggleCampApproval(this)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
+          <button id="btn-approval-${admin}" onclick="masterToggleCampApproval('${admin}')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
         </td>
       `;
       tbody.appendChild(newRow);
