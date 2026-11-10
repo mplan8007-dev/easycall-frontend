@@ -4,16 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>이지콜 (EasyCall)</title>
+    <!-- React 및 Babel 브라우저 컴파일러 로드 -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   </head>
-  <body>
+  <body style="margin: 0; padding: 0;">
     <div id="root"></div>
-    <script type="module">
-      import React from 'https://esm.sh/react@18.2.0';
-      import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
-      import App from './App.jsx';
 
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(React.createElement(App));
+    <!-- App.jsx를 Babel로 변환하여 렌더링 -->
+    <script type="text/babel" data-type="module">
+      // 브라우저 전역 변수에서 React 추출
+      const { useState, useEffect } = window.React;
+
+      // App.jsx 로드
+      import('./App.jsx').then((module) => {
+        const EasyCallApp = module.default;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(EasyCallApp));
+      }).catch(err => {
+        console.error(err);
+      });
     </script>
   </body>
 </html>
