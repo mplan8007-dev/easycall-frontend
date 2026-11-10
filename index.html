@@ -45,7 +45,7 @@
         <div id="login-error" class="text-xs text-rose-500 font-bold text-center"></div>
       </div>
       <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-        <span>💡 마스터 계정: <strong>super</strong> 입력 시 어디서든 본사 관제 진입</span>
+        <span>💡 마스터 계정: <strong>super</strong> 입력 시 어느 곳에서든 본사 관제 진입</span>
       </div>
     </div>
   </div>
@@ -67,12 +67,13 @@
         </div>
         <table class="w-full text-left text-sm">
           <thead class="text-slate-400 border-b border-slate-800">
-            <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">잔여 예치금</th><th class="pb-3">상태</th><th class="pb-3">본사 마스터 제어</th></tr>
+            <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">잔여 예치금</th><th class="pb-3">상태</th><th class="pb-3">본사 마스터 제어</th></tr>
           </thead>
           <tbody id="super-camps-body" class="divide-y divide-slate-800">
             <tr>
               <td class="py-3 font-bold">보령시·서천군 선거캠프</td>
               <td class="py-3">camp01</td>
+              <td class="py-3 font-mono">15대</td>
               <td class="py-3 font-mono text-emerald-400">150,000원</td>
               <td class="py-3"><span class="text-emerald-400 font-bold">정상 🟢</span></td>
               <td class="py-3">
@@ -83,16 +84,18 @@
           </tbody>
         </table>
       </div>
+      <!-- 신규 캠프 개설 패널 (태블릿 가동 대수 입력 공간 복원) -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
         <div>
-          <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 초기 예치금 설정</h3>
+          <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 대수 설정</h3>
           <div class="space-y-4">
             <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="홍성군·예산군 캠프"></div>
             <div><label class="block text-xs text-slate-400 mb-1">관리자 아이디</label><input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="camp02"></div>
+            <div><label class="block text-xs text-slate-400 mb-1">태블릿 가동 라이선스 대수</label><input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="15"></div>
             <div><label class="block text-xs text-slate-400 mb-1">초기 예치금 (원)</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="100000"></div>
           </div>
         </div>
-        <button onclick="alert('신규 캠프 개설 및 마스터 승인 완료!')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition">캠프 개설 승인</button>
+        <button onclick="alert('신규 캠프 개설 및 태블릿 대수 라이선스 승인 완료!')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition">캠프 개설 승인</button>
       </div>
     </main>
   </div>
@@ -196,8 +199,8 @@
         <div class="space-y-4">
           <h3 class="text-sm font-bold text-slate-900 mb-2">지지 성향 및 선거 실무 세분화 태그</h3>
           <div class="grid grid-cols-2 gap-2.5" id="status-grid">
-            <button onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 text-left transition">👍 적극 지지</button>
-            <button onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white hover:border-cyan-400 text-left transition">😊 우호 / 호의</button>
+            <button onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">👍 적극 지지</button>
+            <button onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">😊 우호 / 호의</button>
           </div>
           <textarea id="memo-input" rows="2" placeholder="통화 메모 입력..." class="w-full p-2 border border-slate-200 rounded-xl text-xs"></textarea>
         </div>
@@ -210,26 +213,20 @@
     let selectedStatus = '';
     let isAgentOnBreak = false;
 
-    // --- 전능 최고관리자 계정 연동 간편 로그인 로직 ---
     function handleInstantLogin() {
       const idInput = document.getElementById('login-id').value.trim().toLowerCase();
       if (!idInput) { alert("아이디를 입력해 주세요."); return; }
 
       document.getElementById('login-view').classList.add('hidden');
 
-      // 1. 최고관리자(마스터) 전용 진입 조건 ("super" 입력 시 어느 곳에서든 관제센터 진입)
       if (idInput === 'super' || idInput === 'admin' || idInput.includes('master')) {
         document.getElementById('super-view').classList.remove('hidden');
         return;
       }
-
-      // 2. 캠프 관리자 진입 조건
       if (idInput.includes('camp')) {
         document.getElementById('admin-view').classList.remove('hidden');
         return;
       }
-
-      // 3. 일반 태블릿 요원 진입 조건
       document.getElementById('agent-view').classList.remove('hidden');
       document.getElementById('agent-display-id').innerText = idInput;
     }
