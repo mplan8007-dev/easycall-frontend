@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 고강도 보안 SaaS PDS 플랫폼</title>
+  <title>이지콜 (EasyCall) - 실무 완성형 선거 SaaS PDS 플랫폼</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -23,11 +23,11 @@
     <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-[420px] shadow-2xl">
       <div class="flex items-center gap-3 mb-6">
         <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl">
-          <i class="fa-solid fa-shield-cat"></i>
+          <i class="fa-solid fa-phone-volume"></i>
         </div>
         <div>
-          <h2 class="text-xl font-extrabold text-white">이지콜 (Secure Auth)</h2>
-          <p class="text-xs text-slate-400">클라우드 암호화 세션 로그인</p>
+          <h2 class="text-xl font-extrabold text-white">이지콜 (EasyCall) 상황실</h2>
+          <p class="text-xs text-slate-400">선거 전용 캠프 및 요원 보안 로그인</p>
         </div>
       </div>
       <div class="space-y-4">
@@ -40,12 +40,12 @@
           <input type="password" id="login-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="••••••••">
         </div>
         <button onclick="handleSecureLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg">
-          안전한 세션 로그인
+          상황실 / 태블릿 로그인
         </button>
         <div id="login-error" class="text-xs text-rose-500 font-bold text-center"></div>
       </div>
       <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs">
-        <span class="text-slate-500">본사 마스터 관리자이신가요?</span>
+        <span class="text-slate-500">본사 관리자이신가요?</span>
         <a href="?portal=super" class="text-indigo-400 hover:underline font-bold">최고관리자 보안 포털 ➔</a>
       </div>
     </div>
@@ -56,7 +56,7 @@
     <div class="bg-indigo-900 border border-indigo-800 p-8 rounded-2xl w-[420px] shadow-2xl">
       <div class="flex items-center gap-3 mb-6">
         <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl">
-          <i class="fa-solid fa-lock"></i>
+          <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
           <h2 class="text-xl font-extrabold text-white">이지콜 본사 관제센터</h2>
@@ -115,45 +115,72 @@
     </main>
   </div>
 
-  <!-- 2. 캠프관리자 화면 -->
+  <!-- 2. 캠프관리자 화면 (구역별 통계 및 판세 히트맵 포함) -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
-      <h1 class="text-lg font-bold text-blue-600">📊 선거 캠프 상황실 (보안 인증됨)</h1>
+      <h1 class="text-lg font-bold text-blue-600">📊 선거 캠프 상황실 (읍·면·동 실시간 판세 관제)</h1>
       <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">안전 로그아웃</button>
     </header>
-    <main class="flex-1 p-6 grid grid-cols-2 gap-6 overflow-y-auto">
-      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 mb-2">📥 엑셀(CSV) 유권자 명부 대량 업로드</h3>
-          <p class="text-xs text-slate-500 mb-4">안전한 Supabase RLS 정책에 따라 소속 캠프 DB에만 적재됩니다.</p>
+    <main class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto">
+      
+      <!-- 좌측 2칸: 명부 업로드 및 읍·면·동별 판세 통계 -->
+      <div class="col-span-2 space-y-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 mb-2">📥 읍·면·동별 엑셀(CSV) 유권자 명부 대량 업로드</h3>
+          <p class="text-xs text-slate-500 mb-4">선거 명부 파일을 업로드하면 자동으로 구역별 큐에 파싱 및 적재됩니다.</p>
           <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50 mb-4">
             <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUpload(event)" class="text-xs">
           </div>
           <div id="upload-status" class="text-xs font-bold text-emerald-600"></div>
         </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 mb-4">📈 실시간 지역구(읍·면·동) 판세 히트맵 통계</h3>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+              <span class="text-xs font-bold text-emerald-600 block mb-1">대천1동 (적극지지율)</span>
+              <span class="text-2xl font-black text-emerald-900">42.5%</span>
+            </div>
+            <div class="bg-cyan-50 border border-cyan-200 p-4 rounded-xl">
+              <span class="text-xs font-bold text-cyan-600 block mb-1">대천2동 (우호층 비율)</span>
+              <span class="text-2xl font-black text-cyan-900">31.8%</span>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+              <span class="text-xs font-bold text-amber-600 block mb-1">주포면 (부동층 비율)</span>
+              <span class="text-2xl font-black text-amber-900">24.2%</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- 우측 1칸: 요원 계정 발급 및 블랙리스트 관리 -->
       <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
         <div>
           <h3 class="text-base font-bold text-slate-900 mb-2">👤 요원(태블릿) 보안 계정 직접 발급</h3>
-          <p class="text-xs text-slate-500 mb-4">자원봉사자 태블릿 로그인용 암호화 계정을 생성합니다.</p>
+          <p class="text-xs text-slate-500 mb-4">자원봉사자 태블릿 로그인 계정을 생성합니다.</p>
           <div class="flex gap-2 mb-4">
             <input type="email" id="agent-email-input" class="flex-1 border border-slate-200 rounded-xl p-3 text-sm" placeholder="agent01@easycall.com">
-            <button onclick="createAgentAccount()" class="px-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">계정 발급</button>
+            <button onclick="createAgentAccount()" class="px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">계정 발급</button>
           </div>
-          <table class="w-full text-left text-xs">
+          <table class="w-full text-left text-xs mb-4">
             <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
-              <tr><th class="p-2.5">요원 이메일</th><th class="p-2.5">담당 구역</th><th class="p-2.5">보안 상태</th><th class="p-2.5">제어</th></tr>
+              <tr><th class="p-2.5">요원 이메일</th><th class="p-2.5">구역</th><th class="p-2.5">상태</th></tr>
             </thead>
             <tbody id="agent-list-body" class="divide-y divide-slate-100">
-              <tr><td class="p-2.5 font-bold">agent01@easycall.com</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">정상 세션</td><td class="p-2.5"><button class="text-red-500 font-bold">차단</button></td></tr>
+              <tr><td class="p-2.5 font-bold">agent01@easycall.com</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">세션 정상</td></tr>
             </tbody>
           </table>
+          <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl">
+            <span class="text-xs font-bold text-rose-700 block mb-1">🚫 전사 통합 블랙리스트 (수신거부)</span>
+            <span class="text-[11px] text-rose-600">항의 및 수신거부 번호는 모든 태블릿 큐에서 자동 차단됩니다. (총 12건 등록됨)</span>
+          </div>
         </div>
       </div>
+
     </main>
   </div>
 
-  <!-- 3. 태블릿 요원 워크스페이스 화면 -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (재통화 예약 기능 포함) ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -161,7 +188,7 @@
           <i class="fa-solid fa-phone-volume"></i>
         </div>
         <div>
-          <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">선거 전화홍보 시스템 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 font-semibold">JWT 보안 세션</span></h1>
+          <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">선거 전화홍보 시스템 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 font-semibold">재통화 예약 지원</span></h1>
           <p class="text-xs text-slate-500">이지콜 실시간 태블릿 CTI 워크스페이스</p>
         </div>
       </div>
@@ -225,12 +252,12 @@
         </div>
       </section>
 
-      <!-- 우측: 성향 판정 및 DB 저장 -->
+      <!-- 우측: 성향 판정, 재통화 예약 및 DB 저장 -->
       <section class="w-[60%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm custom-scrollbar overflow-y-auto">
-        <div class="space-y-6">
+        <div class="space-y-5">
           <div>
             <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-blue-600"></span>유권자 지지 성향 1-터치 판정 (실시간 암호화 저장)
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span>유권자 지지 성향 1-터치 판정
             </h3>
             <div class="grid grid-cols-2 gap-3" id="status-grid">
               <button onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-4 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 text-left transition relative">
@@ -251,18 +278,28 @@
               </button>
             </div>
           </div>
+
+          <!-- 재통화 예약 (Callback) 체크박스 및 시간 선택 추가 -->
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="callback-check" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+              <label for="callback-check" class="text-xs font-bold text-blue-900 cursor-pointer">⏰ 유권자 요청 재통화 예약 (Callback)</label>
+            </div>
+            <input type="time" id="callback-time" class="bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-xs text-blue-900 font-bold" value="19:00">
+          </div>
+
           <div>
-            <h3 class="text-sm font-bold text-slate-900 mb-2.5 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-blue-600"></span>상세 통화 메모 (보안 감사 로그 기록)
+            <h3 class="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span>상세 통화 메모
             </h3>
-            <textarea id="memo-input" rows="3" placeholder="유권자 요구사항 및 특이사항 입력..." class="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-slate-50/50"></textarea>
+            <textarea id="memo-input" rows="2" placeholder="유권자 요구사항 및 특이사항 입력..." class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-slate-50/50"></textarea>
           </div>
         </div>
-        <div class="flex gap-3 pt-4 mt-4 border-t border-slate-100">
-          <button onclick="saveResultToSupabase('수신거부')" class="w-[35%] py-4 bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-user-slash"></i><span>🚫 수신거부</span>
+        <div class="flex gap-3 pt-3 mt-3 border-t border-slate-100">
+          <button onclick="saveResultToSupabase('수신거부')" class="w-[35%] py-3.5 bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-slash"></i><span>🚫 수신거부 (블랙리스트)</span>
           </button>
-          <button onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+          <button onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl transition shadow-lg flex items-center justify-center gap-2">
             <i class="fa-solid fa-floppy-disk"></i><span>💾 보안 DB 저장 후 다음 ➔</span>
           </button>
         </div>
@@ -297,7 +334,6 @@
       }
     };
 
-    // --- Supabase 실제 Auth 세션 로그인 (일반 상황실 / 요원) ---
     async function handleSecureLogin() {
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-pw').value.trim();
@@ -326,7 +362,6 @@
       }
     }
 
-    // --- 최고관리자 전용 Supabase Auth 로그인 ---
     async function handleSuperSecureLogin() {
       const email = document.getElementById('super-login-email').value.trim();
       const password = document.getElementById('super-login-pw').value.trim();
@@ -393,7 +428,7 @@
       const agentEmail = document.getElementById('agent-email-input').value.trim();
       if (!agentEmail) { alert("요원 이메일을 입력하세요."); return; }
       const tbody = document.getElementById('agent-list-body');
-      tbody.innerHTML += `<tr><td class="p-2.5 font-bold">${agentEmail}</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">정상 세션</td><td class="p-2.5"><button class="text-red-500 font-bold">차단</button></td></tr>`;
+      tbody.innerHTML += `<tr><td class="p-2.5 font-bold">${agentEmail}</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">정상 세션</td></tr>`;
       alert(`보안 요원 계정 [${agentEmail}] 발급 완료!`);
       document.getElementById('agent-email-input').value = '';
     }
@@ -413,13 +448,13 @@
             await supabaseClient.from('voters').insert([{
               voter_name: cols[0] || '유권자',
               phone: cols[1] || '010-0000-0000',
-              dong: cols[2] || '중앙동',
+              dong: cols[2] || '대천1동',
               support_status: '미분류'
             }]);
             count++;
           }
         }
-        document.getElementById('upload-status').innerText = `✓ 총 ${count}건의 명부가 Supabase RLS DB에 안전하게 적재되었습니다!`;
+        document.getElementById('upload-status').innerText = `✓ 총 ${count}건의 명부가 읍·면·동별 큐에 안전하게 적재되었습니다!`;
       };
       reader.readAsText(file, 'utf-8');
     }
@@ -443,11 +478,12 @@
         return;
       }
       const v = currentVoterList[currentVoterIndex];
-      document.getElementById('voter-dong').innerText = v.dong || '중앙동';
-      document.getElementById('voter-id').innerText = `ID #${v.id.substring(0,6)}`;
+      document.getElementById('voter-dong').innerText = v.dong || '대천1동';
+      document.getElementById('voter-id').innerText = `ID #${v.id ? v.id.substring(0,6) : '1042'}`;
       document.getElementById('voter-name').innerText = v.voter_name;
       document.getElementById('voter-phone').innerText = v.phone;
       document.getElementById('memo-input').value = '';
+      document.getElementById('callback-check').checked = false;
       resetStatusButtons();
     }
 
@@ -493,9 +529,13 @@
       }
       const v = currentVoterList[currentVoterIndex];
       const memoText = document.getElementById('memo-input').value;
+      const isCallback = document.getElementById('callback-check').checked;
+      const callbackTime = document.getElementById('callback-time').value;
+
+      const finalStatus = isCallback ? `재통화예약(${callbackTime})` : status;
 
       const { error } = await supabaseClient.from('voters').update({
-        support_status: status,
+        support_status: finalStatus,
         memo: memoText,
         agent_id: currentAgentEmail,
         called_at: new Date().toISOString()
@@ -506,7 +546,7 @@
       } else {
         completedCount++;
         document.getElementById('completed-count').innerText = completedCount;
-        showToast('🛡️ 암호화 및 DB 감사 로그 저장 완료!');
+        showToast(isCallback ? `⏰ ${callbackTime} 재통화 예약 및 DB 저장 완료!` : '💾 보안 DB 저장 완료!');
         currentVoterIndex++;
         endCallSimulation();
         displayCurrentVoter();
@@ -514,7 +554,7 @@
     }
 
     function skipUnreachable() {
-      saveResultToSupabase('부재중 (보안 스킵)');
+      saveResultToSupabase('부재중 (스킵)');
     }
 
     function showToast(msg) {
