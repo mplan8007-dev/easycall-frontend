@@ -163,7 +163,7 @@
           <div class="grid grid-cols-2 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">연결 방식</label>
-              <select id="setting-dial-mode" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold">
+              <select id="setting-dial-mode" onchange="updateAgentButtonTextPreview()" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold">
                 <option value="manual">수동 전환 (직접 다음 클릭)</option>
                 <option value="auto">자동 전환 (오토다이얼)</option>
               </select>
@@ -206,7 +206,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (오토다이얼 자동연결 완비) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (동적 버튼 텍스트 완비) ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -303,7 +303,10 @@
 
         <div class="flex gap-3 pt-3 border-t border-slate-100">
           <button onclick="saveResultToSupabase('수신거부')" class="w-[35%] py-3.5 bg-slate-700 text-white font-bold text-xs rounded-xl">🚫 수신거부</button>
-          <button onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-3.5 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-lg">💾 저장 후 다음 유권자 ➔</button>
+          <!-- 상황실 설정에 따라 텍스트가 동적으로 변경되는 저장 버튼 -->
+          <button id="btn-save-next" onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition">
+            💾 저장 후 다음 유권자 ➔
+          </button>
         </div>
       </section>
     </main>
@@ -322,7 +325,6 @@
     let callTimerInterval = null;
     let callSeconds = 0;
     
-    // 시뮬레이션용 유권자 명부 큐 데이터 배열
     const sampleVoters = [
       { name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", id: "1042" },
       { name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", id: "1043" },
@@ -341,10 +343,16 @@
           document.getElementById('super-view').classList.remove('hidden');
         } else if (savedRole === 'admin') {
           document.getElementById('admin-view').classList.remove('hidden');
+          // 관리자 화면 설정값 복원
+          const savedMode = localStorage.getItem('easycall_dial_mode');
+          const savedWait = localStorage.getItem('easycall_wait_secs');
+          if (savedMode) document.getElementById('setting-dial-mode').value = savedMode;
+          if (savedWait) document.getElementById('setting-wait-secs').value = savedWait;
         } else if (savedRole === 'agent') {
           document.getElementById('agent-view').classList.remove('hidden');
           document.getElementById('agent-display-id').innerText = savedId || 'agent01';
-          loadNextVoter(); // 요원 화면 진입 시 첫 유권자 로드
+          loadNextVoter();
+          updateAgentButtonTextPreview();
         }
       }
 
@@ -378,6 +386,7 @@
       document.getElementById('agent-view').classList.remove('hidden');
       document.getElementById('agent-display-id').innerText = idInput;
       loadNextVoter();
+      updateAgentButtonTextPreview();
     }
 
     function handleLogout() {
@@ -399,7 +408,23 @@
       const secs = document.getElementById('setting-wait-secs').value;
       localStorage.setItem('easycall_dial_mode', mode);
       localStorage.setItem('easycall_wait_secs', secs);
-      alert(`✅ 오토다이얼 설정 완료 (${mode === 'auto' ? secs+'초 대기 자동' : '수동'})`);
+      alert(`✅ 오토다이얼 설정 배포 완료!\n- 방식: ${mode === 'auto' ? '자동 전환 ('+secs+'초 대기)' : '수동 전환'}`);
+    }
+
+    // --- 상황실 모드에 따라 요원 화면의 버튼 텍스트를 실시간 동기화하는 함수 ---
+    function updateAgentButtonTextPreview() {
+      const mode = localStorage.getItem('easycall_dial_mode') || 'manual';
+      const secs = localStorage.getItem('easycall_wait_secs') || '3';
+      const btn = document.getElementById('btn-save-next');
+      if (!btn) return;
+
+      if (mode === 'auto') {
+        btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> 저장 후 ${secs}초 뒤 다음 유권자 자동 연결 ➔`;
+        btn.className = "w-[65%] py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
+      } else {
+        btn.innerHTML = `💾 저장 후 다음 유권자 ➔`;
+        btn.className = "w-[65%] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
+      }
     }
 
     function toggleCampGlobalCalling() {
@@ -433,16 +458,16 @@
       document.getElementById('upload-status').innerText = `✓ 명부 파일 업로드 및 구역별 큐 적재 완료!`;
     }
 
-    // --- 홍보 요원 워크스페이스 및 오토다이얼 자동 연결 로직 ---
     function loadNextVoter() {
       if (currentVoterIdx >= sampleVoters.length) {
-        currentVoterIdx = 0; // 순환 큐
+        currentVoterIdx = 0;
       }
       const v = sampleVoters[currentVoterIdx];
       document.getElementById('voter-name').innerText = v.name;
       document.getElementById('voter-phone').innerText = v.phone;
       document.getElementById('voter-dong').innerText = v.dong;
       document.getElementById('voter-id').innerText = `ID #${v.id}`;
+      updateAgentButtonTextPreview(); // 뷰 갱신 시 버튼 텍스트 동기화
     }
 
     function toggleAgentBreak() {
@@ -498,7 +523,6 @@
     function saveResultToSupabase(status) {
       const currentCount = parseInt(document.getElementById('completed-count').innerText, 10) + 1;
       document.getElementById('completed-count').innerText = currentCount;
-      showToast('💾 DB 저장 완료. 다음 유권자 전환 중...');
       
       endCallSimulation();
       document.getElementById('memo-input').value = '';
@@ -506,11 +530,10 @@
       document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition");
       selectedStatus = '';
 
-      // --- 오토다이얼 설정에 따른 자동 전환 처리 ---
       const dialMode = localStorage.getItem('easycall_dial_mode') || 'manual';
       const waitSecs = parseInt(localStorage.getItem('easycall_wait_secs') || '3', 10);
 
-      currentVoterIdx++; // 다음 유권자 인덱스로 이동
+      currentVoterIdx++;
 
       if (dialMode === 'auto' && !isCampGlobalStopped && !isAgentOnBreak) {
         showToast(`⚡ 오토다이얼 활성화: ${waitSecs}초 후 다음 유권자 자동 연결...`);
@@ -519,13 +542,13 @@
           showToast('📞 다음 유권자 자동 연결 완료!');
         }, waitSecs * 1000);
       } else {
-        // 수동 모드일 경우 즉시 다음 유권자 명부 렌더링
         loadNextVoter();
+        showToast('💾 DB 저장 완료. 다음 유권자 대기중.');
       }
     }
 
     function skipUnreachable() {
-      saveResultTypeSupabase('부재중 (스킵)');
+      saveResultToSupabase('부재중 (스킵)');
     }
 
     function showToast(msg) {
