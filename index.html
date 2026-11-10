@@ -1,91 +1,255 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>이지콜 (EasyCall) - 캠프 선거전화 시스템</title>
-    <!-- React 및 Babel 브라우저 단독 실행 스크립트 -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-      body { margin: 0; padding: 0; box-sizing: border-box; background-color: #f1f5f9; }
-      * { box-sizing: border-box; }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이지콜 (EasyCall) - 선거 PDS 시스템</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", dotum, sans-serif; background-color: #f1f5f9; height: 100vh; overflow: hidden; }
+    .layout { display: flex; height: 100vh; }
+    
+    /* 좌측 명부 */
+    .sidebar { width: 320px; background: #ffffff; border-right: 1px solid #cbd5e1; display: flex; flex-direction: column; }
+    .side-header { background: #1e293b; color: #fff; padding: 16px; }
+    .side-header h2 { font-size: 1.2rem; margin-bottom: 4px; }
+    .side-header p { font-size: 0.8rem; color: #94a3b8; }
+    .side-status { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+    .status-row { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; }
+    .status-count { color: #2563eb; }
+    .auto-dial-box { margin-top: 10px; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+    .voter-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .voter-item { padding: 12px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e2e8f0; cursor: pointer; background: #fff; }
+    .voter-item.active { border: 2px solid #2563eb; background: #eff6ff; }
+    .voter-top { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px; }
+    .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: normal; }
+    .badge-우호 { background: #dcfce7; color: #15803d; }
+    .badge-부동 { background: #fef9c3; color: #854d0e; }
+    .badge-미분류 { background: #f1f5f9; color: #64748b; }
+    .badge-비우호 { background: #fee2e2; color: #b91c1c; }
+    .voter-info { font-size: 0.8rem; color: #64748b; }
 
-    <script type="text/babel">
-      const { useState, useEffect } = React;
+    /* 우측 작업영역 */
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .call-bar { height: 70px; background: #fff; border-bottom: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .status-indicator { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; }
+    .dot.calling { background: #22c55e; }
+    .dot.post { background: #eab308; }
+    .timer { font-size: 1.2rem; color: #ef4444; font-weight: bold; margin-left: 10px; }
+    
+    .btn { padding: 10px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+    .btn-call { background: #2563eb; color: #fff; }
+    .btn-end { background: #dc2626; color: #fff; display: none; }
+    .btn-save { background: #16a34a; color: #fff; display: none; }
 
-      const initialVoters = [
-        { id: 1, name: "김철수", phone: "010-1234-5678", region: "대천1동", age: "50대", tendency: "미분류", notes: "" },
-        { id: 2, name: "이영희", phone: "010-2345-6789", region: "대천2동", age: "40대", tendency: "우호", notes: "공약 문자 재발송 요청" },
-        { id: 3, name: "박민우", phone: "010-3456-7890", region: "동대동", age: "30대", tendency: "미분류", notes: "" },
-        { id: 4, name: "정순자", phone: "010-4567-8901", region: "죽정동", age: "60대", tendency: "부동", notes: "경로당 지원 정책 관심" },
-      ];
+    .content-area { flex: 1; padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; overflow-y: auto; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
+    .card h3 { font-size: 1.1rem; color: #1e293b; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+    .profile-name { font-size: 1.4rem; font-weight: bold; color: #0f172a; margin-bottom: 4px; }
+    .profile-phone { color: #2563eb; font-weight: bold; margin-bottom: 4px; }
+    .profile-desc { font-size: 0.9rem; color: #64748b; margin-bottom: 16px; }
+    
+    .script-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 6px; line-height: 1.6; font-size: 0.95rem; color: #1e293b; margin-top: 10px; flex: 1; }
+    .btn-sms { margin-top: 16px; width: 100%; padding: 12px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; border-radius: 6px; cursor: pointer; }
+    
+    .tendency-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .t-btn { padding: 10px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; color: #475569; }
+    .t-btn.selected { border: 2px solid #2563eb; background: #eff6ff; color: #1d4ed8; }
+    
+    .memo-area { flex: 1; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; font-size: 0.9rem; resize: none; outline: none; }
+  </style>
+</head>
+<body>
 
-      function EasyCallApp() {
-        const [voters, setVoters] = useState(initialVoters);
-        const [currentIndex, setCurrentIndex] = useState(0);
-        const [callStatus, setCallStatus] = useState("대기중"); // 대기중, 통화중, 후처리중
-        const [callTimer, setCallTimer] = useState(0);
-        const [autoDial, setAutoDial] = useState(false);
-        const [selectedTendency, setSelectedTendency] = useState("미분류");
-        const [memo, setMemo] = useState("");
-        const [sentSms, setSentSms] = useState(false);
+<div class="layout">
+  <!-- 좌측 명부 -->
+  <div class="sidebar">
+    <div class="side-header">
+      <h2>이지콜 (EasyCall)</h2>
+      <p>캠프 선거 PDS 관제 워크스페이스</p>
+    </div>
+    <div class="side-status">
+      <div class="status-row">
+        <span>유권자 명부</span>
+        <span class="status-count" id="progress-text">1 / 4 명</span>
+      </div>
+      <div class="auto-dial-box">
+        <input type="checkbox" id="auto-dial">
+        <label for="auto-dial">자동 연속 발신 (Progressive)</label>
+      </div>
+    </div>
+    <div class="voter-list" id="voter-list"></div>
+  </div>
 
-        const currentVoter = voters[currentIndex] || {};
+  <!-- 우측 작업창 -->
+  <div class="main">
+    <div class="call-bar">
+      <div class="status-indicator">
+        <div class="dot" id="status-dot"></div>
+        <span id="status-text">대기중</span>
+        <span class="timer" id="timer-text" style="display: none;">00:00</span>
+      </div>
+      <div>
+        <button class="btn btn-call" id="btn-call" onclick="startCall()">전화 걸기 (통화 시작)</button>
+        <button class="btn btn-end" id="btn-end" onclick="endCall()">통화 종료</button>
+        <button class="btn btn-save" id="btn-save" onclick="saveAndNext()">결과 저장 후 다음 유권자</button>
+      </div>
+    </div>
 
-        useEffect(() => {
-          let interval = null;
-          if (callStatus === "통화중") {
-            interval = setInterval(() => setCallTimer((prev) => prev + 1), 1000);
-          } else {
-            clearInterval(interval);
-          }
-          return () => clearInterval(interval);
-        }, [callStatus]);
+    <div class="content-area">
+      <!-- 유권자 정보 및 스크립트 -->
+      <div class="card">
+        <h3>유권자 프로필</h3>
+        <div class="profile-name" id="v-name">김철수 선생님</div>
+        <div class="profile-phone" id="v-phone">010-1234-5678</div>
+        <div class="profile-desc" id="v-desc">거주지역: 대천1동 | 연령대: 50대</div>
+        
+        <h4 style="font-size: 0.95rem; margin-top: 10px; color: #334155;">지역 맞춤 통화 스크립트</h4>
+        <div class="script-box" id="script-content">
+          "안녕하십니까, 김철수 선생님! 대천1동의 더 큰 발전을 위해 뛰는 기호 1번 캠프 자원봉사자입니다. 대천1동 주민 복지 개선 공약과 관련하여 의견을 나누고자 연락드렸습니다."
+        </div>
 
-        const handleStartCall = () => {
-          setCallStatus("통화중");
-          setCallTimer(0);
-          setSentSms(false);
-          setSelectedTendency(currentVoter.tendency || "미분류");
-          setMemo(currentVoter.notes || "");
-        };
+        <button class="btn-sms" id="btn-sms" onclick="sendSms()">📱 통화 중 공약 요약 문자(SMS) 즉시 전송</button>
+      </div>
 
-        const handleEndCall = () => {
-          setCallStatus("후처리중");
-        };
+      <!-- 성향 판정 및 메모 -->
+      <div class="card">
+        <h3>성향 판정 및 통화 기록</h3>
+        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: #475569;">지지 성향 선택</div>
+        <div class="tendency-grid">
+          <button class="t-btn" onclick="setTendency('우호')">우호</button>
+          <button class="t-btn" onclick="setTendency('부동')">부동</button>
+          <button class="t-btn" onclick="setTendency('비우호')">비우호</button>
+          <button class="t-btn" onclick="setTendency('부재중')">부재중</button>
+        </div>
 
-        const handleSaveAndNext = () => {
-          setVoters((prev) =>
-            prev.map((v, idx) =>
-              idx === currentIndex ? { ...v, tendency: selectedTendency, notes: memo } : v
-            )
-          );
+        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: #475569;">상세 통화 메모</div>
+        <textarea class="memo-area" id="v-memo" placeholder="유권자 주요 관심사, 민원, 재통화 요청 시간 등을 기재하세요."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
 
-          setCallStatus("대기중");
-          setCallTimer(0);
-          setSentSms(false);
+<script>
+  const voters = [
+    { id: 1, name: "김철수", phone: "010-1234-5678", region: "대천1동", age: "50대", tendency: "미분류", notes: "" },
+    { id: 2, name: "이영희", phone: "010-2345-6789", region: "대천2동", age: "40대", tendency: "우호", notes: "공약 문자 재발송 요청" },
+    { id: 3, name: "박민우", phone: "010-3456-7890", region: "동대동", age: "30대", tendency: "미분류", notes: "" },
+    { id: 4, name: "정순자", phone: "010-4567-8901", region: "죽정동", age: "60대", tendency: "부동", notes: "경로당 지원 정책 관심" }
+  ];
 
-          if (currentIndex < voters.length - 1) {
-            setCurrentIndex((prev) => prev + 1);
-            if (autoDial) {
-              setTimeout(() => handleStartCall(), 1500);
-            }
-          } else {
-            alert("배정된 유권자 명부 통화가 모두 완료되었습니다.");
-          }
-        };
+  let currentIndex = 0;
+  let status = "대기중";
+  let timerSeconds = 0;
+  let timerInterval = null;
+  let currentTendency = "미분류";
 
-        const formatTime = (seconds) => {
-          const mins = Math.floor(seconds / 60);
-          const secs = seconds % 60;
-          return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-        };
+  function renderList() {
+    const listEl = document.getElementById("voter-list");
+    listEl.innerHTML = "";
+    voters.forEach((v, idx) => {
+      const item = document.createElement("div");
+      item.className = "voter-item " + (idx === currentIndex ? "active" : "");
+      item.onclick = () => { if(status === "대기중") selectVoter(idx); };
+      item.innerHTML = `
+        <div class="voter-top">
+          <span>${v.name}</span>
+          <span class="badge badge-${v.tendency}">${v.tendency}</span>
+        </div>
+        <div class="voter-info">${v.phone} · ${v.region}</div>
+      `;
+      listEl.appendChild(item);
+    });
+    document.getElementById("progress-text").innerText = `${currentIndex + 1} / ${voters.length} 명`;
+  }
 
-        return (
-          <div style={{ display: "flex", height: "100vh", fontFamily: "
+  function selectVoter(index) {
+    currentIndex = index;
+    const v = voters[currentIndex];
+    document.getElementById("v-name").innerText = `${v.name} 선생님`;
+    document.getElementById("v-phone").innerText = v.phone;
+    document.getElementById("v-desc").innerText = `거주지역: ${v.region} | 연령대: ${v.age}`;
+    document.getElementById("script-content").innerText = `"안녕하십니까, ${v.name} 선생님! ${v.region} 맞춤 복지와 지역 발전을 준비하는 기호 1번 캠프 자원봉사자입니다. 잠시 의견을 여쭙고자 연락드렸습니다."`;
+    document.getElementById("v-memo").value = v.notes || "";
+    setTendency(v.tendency || "미분류");
+    
+    const btnSms = document.getElementById("btn-sms");
+    btnSms.innerText = "📱 통화 중 공약 요약 문자(SMS) 즉시 전송";
+    btnSms.style.background = "#f8fafc";
+    btnSms.style.color = "#1e293b";
+    
+    renderList();
+  }
+
+  function setTendency(type) {
+    currentTendency = type;
+    document.querySelectorAll(".t-btn").forEach(btn => {
+      btn.classList.toggle("selected", btn.innerText === type);
+    });
+  }
+
+  function startCall() {
+    status = "통화중";
+    document.getElementById("status-text").innerText = "통화중";
+    document.getElementById("status-dot").className = "dot calling";
+    document.getElementById("btn-call").style.display = "none";
+    document.getElementById("btn-end").style.display = "inline-block";
+    document.getElementById("btn-save").style.display = "none";
+    
+    timerSeconds = 0;
+    const timerEl = document.getElementById("timer-text");
+    timerEl.style.display = "inline";
+    timerEl.innerText = "00:00";
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+      const s = String(timerSeconds % 60).padStart(2, '0');
+      timerEl.innerText = `${m}:${s}`;
+    }, 1000);
+  }
+
+  function endCall() {
+    status = "후처리중";
+    clearInterval(timerInterval);
+    document.getElementById("status-text").innerText = "후처리중";
+    document.getElementById("status-dot").className = "dot post";
+    document.getElementById("btn-end").style.display = "none";
+    document.getElementById("btn-save").style.display = "inline-block";
+  }
+
+  function saveAndNext() {
+    voters[currentIndex].tendency = currentTendency;
+    voters[currentIndex].notes = document.getElementById("v-memo").value;
+    
+    status = "대기중";
+    document.getElementById("status-text").innerText = "대기중";
+    document.getElementById("status-dot").className = "dot";
+    document.getElementById("timer-text").style.display = "none";
+    document.getElementById("btn-save").style.display = "none";
+    document.getElementById("btn-call").style.display = "inline-block";
+
+    if (currentIndex < voters.length - 1) {
+      selectVoter(currentIndex + 1);
+      if (document.getElementById("auto-dial").checked) {
+        setTimeout(startCall, 1500);
+      }
+    } else {
+      renderList();
+      alert("배정된 명부 통화가 모두 완료되었습니다!");
+    }
+  }
+
+  function sendSms() {
+    const btn = document.getElementById("btn-sms");
+    btn.innerText = "✓ 공약 요약 문자 발송 완료";
+    btn.style.background = "#94a3b8";
+    btn.style.color = "#ffffff";
+  }
+
+  selectVoter(0);
+</script>
+
+</body>
+</html>
