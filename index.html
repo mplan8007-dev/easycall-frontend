@@ -124,7 +124,7 @@
     </main>
   </div>
 
-  <!-- ==================== 2. 캠프관리자 화면 (상황실 완비) ==================== -->
+  <!-- ==================== 2. 캠프관리자 화면 ==================== -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
       <h1 class="text-lg font-bold text-blue-600">📊 선거 캠프 상황실 (명부관리, 스크립트 배포, 오토다이얼 설정)</h1>
@@ -132,10 +132,7 @@
     </header>
     <main class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto">
       
-      <!-- 좌측 2칸: 명부 업로드, 스크립트 배포, 오토다이얼 및 일괄 제어 -->
       <div class="col-span-2 space-y-6">
-        
-        <!-- 캠프 전체 전화 업무 일괄 제어 스위치 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div>
             <h3 class="text-base font-bold text-slate-900 mb-1">🚨 캠프 전체 전화 홍보 업무 일괄 제어</h3>
@@ -149,21 +146,18 @@
           </div>
         </div>
 
-        <!-- 엑셀 CSV 명부 업로드 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">📥 읍·면·동별 엑셀(CSV) 유권자 명부 대량 업로드</h3>
           <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUpload(event)" class="text-xs">
           <div id="upload-status" class="text-xs font-bold text-emerald-600 mt-2"></div>
         </div>
 
-        <!-- 스크립트 실시간 배포 패널 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">📝 전화홍보 스크립트 및 공약 가이드 등록</h3>
           <textarea id="admin-script-input" rows="3" class="w-full p-3 border border-slate-200 rounded-xl text-xs bg-slate-50 mb-3" placeholder="예: 안녕하십니까, 기호 1번 후보 자원봉사자입니다..."></textarea>
           <button onclick="saveAdminScript()" class="px-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl">전체 태블릿 요원 화면에 스크립트 배포</button>
         </div>
 
-        <!-- 오토다이얼 설정 패널 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">⚙️ 태블릿 요원 오토다이얼 및 대기시간 설정</h3>
           <div class="grid grid-cols-2 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
@@ -181,15 +175,13 @@
           </div>
           <button onclick="saveDialSettings()" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl">설정 배포</button>
         </div>
-
       </div>
 
-      <!-- 우측 1칸: 예치금 충전 신청, 요원 계정 발급 및 리더보드 -->
       <div class="space-y-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div>
             <h3 class="text-base font-bold text-slate-900 mb-1">💳 예치금 충전 신청</h3>
-            <p class="text-xs text-slate-500">국민은행 123-456 입금 후 신청</p>
+            <p class="text-xs text-slate-500">국민은행 입금 후 신청</p>
           </div>
           <button onclick="requestBankTransfer()" class="px-3 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl">10만 원 신청</button>
         </div>
@@ -209,24 +201,12 @@
             </tbody>
           </table>
         </div>
-
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 mb-2"><i class="fa-solid fa-trophy text-amber-500 mr-1"></i> 요원 성과 리더보드</h3>
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
-              <tr><th class="p-2">순위</th><th class="p-2">요원 ID</th><th class="p-2">완료</th><th class="p-2">지지확보</th></tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr><td class="p-2 font-bold text-amber-600">🥇 1</td><td class="p-2 font-bold">agent01</td><td class="p-2 font-mono">142건</td><td class="p-2 font-mono text-emerald-600">38건</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
 
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (오토다이얼 자동연결 완비) ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -234,7 +214,6 @@
         <div><h1 class="text-lg font-extrabold text-slate-900 tracking-tight">선거 전화홍보 시스템 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 font-semibold">태블릿 워크스페이스</span></h1></div>
       </div>
       <div class="flex items-center gap-3">
-        <!-- 요원 개인별 휴식 및 업무 중지/시작 버튼 -->
         <button id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식/업무 중지</span>
         </button>
@@ -287,7 +266,6 @@
       <section class="w-[60%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm custom-scrollbar overflow-y-auto">
         <div class="space-y-4">
           
-          <!-- 상황실 실시간 하달 스크립트 박스 -->
           <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-extrabold text-indigo-700 flex items-center gap-1.5">
@@ -309,7 +287,6 @@
             </div>
           </div>
 
-          <!-- 재통화 예약 (Callback) 큐 패널 -->
           <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <input type="checkbox" id="callback-check" class="w-4 h-4 text-blue-600 rounded border-slate-300">
@@ -339,14 +316,21 @@
   </div>
 
   <script>
-    let completedCount = 0;
     let selectedStatus = '';
     let isAgentOnBreak = false;
     let isCampGlobalStopped = false;
     let callTimerInterval = null;
     let callSeconds = 0;
+    
+    // 시뮬레이션용 유권자 명부 큐 데이터 배열
+    const sampleVoters = [
+      { name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", id: "1042" },
+      { name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", id: "1043" },
+      { name: "박민수 유권자", phone: "010-5555-4444", dong: "오천면", id: "1044" },
+      { name: "이지은 유권자", phone: "010-7777-8888", dong: "주포면", id: "1045" }
+    ];
+    let currentVoterIdx = 0;
 
-    // --- 페이지 로드 시 세션 복원 및 실시간 스크립트 동기화 ---
     window.onload = function() {
       const savedRole = localStorage.getItem('easycall_role');
       const savedId = localStorage.getItem('easycall_id');
@@ -360,10 +344,10 @@
         } else if (savedRole === 'agent') {
           document.getElementById('agent-view').classList.remove('hidden');
           document.getElementById('agent-display-id').innerText = savedId || 'agent01';
+          loadNextVoter(); // 요원 화면 진입 시 첫 유권자 로드
         }
       }
 
-      // 상황실 등록 스크립트 실시간 반영
       const savedScript = localStorage.getItem('easycall_current_script');
       if (savedScript) {
         document.getElementById('agent-script-display').innerText = savedScript;
@@ -393,6 +377,7 @@
       localStorage.setItem('easycall_id', idInput);
       document.getElementById('agent-view').classList.remove('hidden');
       document.getElementById('agent-display-id').innerText = idInput;
+      loadNextVoter();
     }
 
     function handleLogout() {
@@ -401,7 +386,6 @@
       window.location.href = window.location.pathname;
     }
 
-    // --- 관리자 기능들 ---
     function saveAdminScript() {
       const text = document.getElementById('admin-script-input').value.trim();
       if (!text) { alert("스크립트 내용을 입력하세요."); return; }
@@ -446,12 +430,21 @@
     }
 
     async function handleCsvUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
       document.getElementById('upload-status').innerText = `✓ 명부 파일 업로드 및 구역별 큐 적재 완료!`;
     }
 
-    // --- 요원 기능들 ---
+    // --- 홍보 요원 워크스페이스 및 오토다이얼 자동 연결 로직 ---
+    function loadNextVoter() {
+      if (currentVoterIdx >= sampleVoters.length) {
+        currentVoterIdx = 0; // 순환 큐
+      }
+      const v = sampleVoters[currentVoterIdx];
+      document.getElementById('voter-name').innerText = v.name;
+      document.getElementById('voter-phone').innerText = v.phone;
+      document.getElementById('voter-dong').innerText = v.dong;
+      document.getElementById('voter-id').innerText = `ID #${v.id}`;
+    }
+
     function toggleAgentBreak() {
       isAgentOnBreak = !isAgentOnBreak;
       const btn = document.getElementById('btn-agent-break');
@@ -468,7 +461,7 @@
         btn.className = "bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition";
         txt.innerText = "휴식/업무 중지";
         dialBtn.disabled = false;
-        dialBtn.className = "w-full py-4 bg-blue-600 text-white font-bold text-lg rounded-xl shadow-lg transition flex items-center justify-center gap-3";
+        dialBtn.className = "w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl shadow-lg transition flex items-center justify-center gap-3";
         showToast('🚀 업무에 복귀하셨습니다.');
       }
     }
@@ -503,25 +496,36 @@
     }
 
     function saveResultToSupabase(status) {
-      completedCount++;
-      document.getElementById('completed-count').innerText = completedCount;
-      showToast('💾 보안 DB 저장 및 다음 유권자 호출 완료!');
+      const currentCount = parseInt(document.getElementById('completed-count').innerText, 10) + 1;
+      document.getElementById('completed-count').innerText = currentCount;
+      showToast('💾 DB 저장 완료. 다음 유권자 전환 중...');
+      
       endCallSimulation();
       document.getElementById('memo-input').value = '';
       document.getElementById('callback-check').checked = false;
       document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition");
       selectedStatus = '';
 
-      // 오토다이얼 자동 전환 모드 반영
+      // --- 오토다이얼 설정에 따른 자동 전환 처리 ---
       const dialMode = localStorage.getItem('easycall_dial_mode') || 'manual';
       const waitSecs = parseInt(localStorage.getItem('easycall_wait_secs') || '3', 10);
+
+      currentVoterIdx++; // 다음 유권자 인덱스로 이동
+
       if (dialMode === 'auto' && !isCampGlobalStopped && !isAgentOnBreak) {
-        showToast(`⚡ 오토다이얼 작동: ${waitSecs}초 후 다음 유권자 자동 연결...`);
+        showToast(`⚡ 오토다이얼 활성화: ${waitSecs}초 후 다음 유권자 자동 연결...`);
+        setTimeout(() => {
+          loadNextVoter();
+          showToast('📞 다음 유권자 자동 연결 완료!');
+        }, waitSecs * 1000);
+      } else {
+        // 수동 모드일 경우 즉시 다음 유권자 명부 렌더링
+        loadNextVoter();
       }
     }
 
     function skipUnreachable() {
-      saveResultToSupabase('부재중 (스킵)');
+      saveResultTypeSupabase('부재중 (스킵)');
     }
 
     function showToast(msg) {
