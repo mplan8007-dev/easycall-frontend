@@ -3,193 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 실시간 SaaS 통합 플랫폼</title>
+  <title>이지콜 (EasyCall) - 멀티테넌트 SaaS PDS 플랫폼</title>
   <!-- Supabase 라이브러리 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    .super-header { height: 60px; background: #1e1b4b; border-bottom: 1px solid #312e81; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-    .header-title { font-size: 1.25rem; font-weight: bold; color: #818cf8; display: flex; align-items: center; gap: 10px; }
-    .header-info { display: flex; gap: 20px; font-size: 0.9rem; color: #c7d2fe; }
-    .header-info strong { color: #facc15; }
-
-    .super-body { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+    /* 공통 레이아웃 */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
     
-    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .metric-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; }
-    .metric-label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px; }
-    .metric-val { font-size: 1.8rem; font-weight: bold; color: #ffffff; }
-
-    .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .panel { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
-    .panel h3 { font-size: 1.1rem; color: #818cf8; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-    .data-table th { color: #94a3b8; font-weight: 600; }
-    .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-    .badge-active { background: #065f46; color: #34d399; }
-    .badge-expired { background: #7f1d1d; color: #fca5a5; }
-    
-    .form-group { margin-bottom: 14px; }
+    /* 로그인 화면 스타일 */
+    #login-container { flex: 1; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); }
+    .login-box { background: #1e293b; border: 1px solid #334155; padding: 40px; border-radius: 12px; width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .login-box h2 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 24px; text-align: center; }
+    .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
-    .form-input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; font-size: 0.9rem; }
+    .form-input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; font-size: 0.95rem; }
+    .btn-primary { width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+    .btn-primary:hover { background: #1d4ed8; }
+
+    /* 대시보드 공통 헤더 */
+    .app-header { height: 60px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .header-title { font-size: 1.2rem; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
+    .header-info { display: flex; gap: 20px; font-size: 0.9rem; color: #94a3b8; }
+    .btn-logout { background: #dc2626; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+    /* 워크스페이스 본문 */
+    .app-body { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #f1f5f9; color: #1e293b; }
+    .super-body { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #0f172a; color: #f8fafc; }
+
+    /* 카드 및 패널 */
+    .card { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; }
+    .card-dark { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; color: #f8fafc; }
+    
+    /* 테이블 */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .data-table th { color: #64748b; font-weight: 600; }
+    .data-table-dark th, .data-table-dark td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; color: #f8fafc; }
+    
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .badge-우호 { background: #dcfce7; color: #15803d; }
+    .badge-부동 { background: #fef9c3; color: #854d0e; }
+    .badge-미분류 { background: #f1f5f9; color: #64748b; }
   </style>
 </head>
 <body>
 
-  <header class="super-header">
-    <div class="header-title">
-      <span>🌐 이지콜(EasyCall) Supabase 실동작 연동 완료</span>
-    </div>
-    <div class="header-info">
-      <span>상태: <strong style="color: #4ade80;">클라우드 DB 연결됨</strong></span>
-    </div>
-  </header>
-
-  <div class="super-body">
-    <div class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-label">등록된 총 선거 캠프</div>
-        <div class="metric-val" id="total-camps" style="color: #818cf8;">0개</div>
+  <!-- ================= 1. 통합 로그인 화면 ================= -->
+  <div id="login-container">
+    <div class="login-box">
+      <h2>이지콜 (EasyCall) 로그인</h2>
+      <div class="form-group">
+        <label>계정 아이디</label>
+        <input type="text" id="login-id" class="form-input" placeholder="super 또는 camp01 또는 agent01">
       </div>
-      <div class="metric-card">
-        <div class="metric-label">플랫폼 태블릿 라이선스 합계</div>
-        <div class="metric-val" id="total-tablets" style="color: #38bdf8;">0대</div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="login-pw" class="form-input" placeholder="••••••••">
       </div>
-      <div class="metric-card">
-        <div class="metric-label">플랫폼 총 충전 예치금</div>
-        <div class="metric-val" id="total-balance" style="color: #4ade80;">₩ 0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">시스템 모드</div>
-        <div class="metric-val" style="color: #facc15;">Live SaaS</div>
-      </div>
-    </div>
-
-    <div class="content-grid">
-      <div class="panel">
-        <h3>
-          <span>📋 실시간 선거 캠프 DB 목록</span>
-        </h3>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>캠프명</th>
-              <th>관리자 ID</th>
-              <th>태블릿 대수</th>
-              <th>상태</th>
-              <th>충전 잔액</th>
-            </tr>
-          </thead>
-          <tbody id="camp-table-body">
-            <tr>
-              <td colspan="5" style="text-align: center; color: #94a3b8;">데이터베이스에서 캠프 정보를 불러오는 중...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="panel">
-        <h3>➕ 신규 선거 캠프 실시간 등록</h3>
-        <div class="form-group">
-          <label>선거 캠프명 (지역구)</label>
-          <input type="text" id="input-name" class="form-input" placeholder="예: 보령시·서천군 캠프">
-        </div>
-        <div class="form-group">
-          <label>관리자 로그인 ID</label>
-          <input type="text" id="input-admin" class="form-input" placeholder="예: boryeong01">
-        </div>
-        <div class="form-group">
-          <label>비밀번호</label>
-          <input type="password" id="input-pw" class="form-input" placeholder="••••••••">
-        </div>
-        <div class="form-group">
-          <label>허용 태블릿 대수</label>
-          <input type="number" id="input-limit" class="form-input" value="10">
-        </div>
-        <div style="margin-top: 10px;">
-          <button onclick="registerCamp()" style="width: 100%; padding: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-            🚀 Supabase DB에 캠프 즉시 등록
-          </button>
-        </div>
+      <button class="btn-primary" onclick="handleLogin()">로그인 및 역할 분기</button>
+      <div style="margin-top: 16px; font-size: 0.8rem; color: #64748b; text-align: center; line-height: 1.4;">
+        * 테스트 계정:<br>
+        슈퍼관리자: <strong>super</strong> / 캠프관리자: <strong>camp01</strong> / 요원: <strong>agent01</strong>
       </div>
     </div>
   </div>
 
-  <script>
-    // 💡 Supabase 프로젝트 URL 및 Publishable Key 입력
-    const SUPABASE_URL = 'https://odtyiuhjyvowikodcvym.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_kb51-2LmeL8yl3Z_G_k-fQ_uH8fxqU-';
-    
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function fetchCamps() {
-      const { data, error } = await supabaseClient.from('camps').select('*');
-      if (error) {
-        console.error('DB 조회 에러:', error);
-        document.getElementById('camp-table-body').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #f87171;">DB 테이블(camps)을 찾을 수 없습니다. SQL Editor에서 테이블을 생성해 주세요.</td></tr>`;
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        document.getElementById('camp-table-body').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">등록된 캠프가 없습니다. 우측에서 신규 캠프를 등록해 보세요!</td></tr>`;
-        return;
-      }
-
-      let totalTablets = 0;
-      let totalBalance = 0;
-      let html = '';
-
-      data.forEach(camp => {
-        totalTablets += camp.tablet_limit;
-        totalBalance += camp.balance || 0;
-        html += `
-          <tr>
-            <td><strong>${camp.camp_name}</strong></td>
-            <td>${camp.admin_id}</td>
-            <td>${camp.tablet_limit}대</td>
-            <td><span class="status-badge ${camp.is_active ? 'badge-active' : 'badge-expired'}">${camp.is_active ? '정상 이용중' : '이용 정지'}</span></td>
-            <td>${(camp.balance || 0).toLocaleString()}원</td>
-          </tr>
-        `;
-      });
-
-      document.getElementById('total-camps').innerText = `${data.length}개`;
-      document.getElementById('total-tablets').innerText = `${totalTablets}대`;
-      document.getElementById('total-balance').innerText = `₩ ${totalBalance.toLocaleString()}`;
-      document.getElementById('camp-table-body').innerHTML = html;
-    }
-
-    async function registerCamp() {
-      const name = document.getElementById('input-name').value;
-      const admin = document.getElementById('input-admin').value;
-      const pw = document.getElementById('input-pw').value;
-      const limit = parseInt(document.getElementById('input-limit').value);
-
-      if (!name || !admin || !pw) {
-        alert("모든 정보를 입력해 주세요.");
-        return;
-      }
-
-      const { error } = await supabaseClient.from('camps').insert([
-        { camp_name: name, admin_id: admin, admin_password: pw, tablet_limit: limit, balance: 50000, is_active: true }
-      ]);
-
-      if (error) {
-        alert("등록 실패: " + error.message);
-      } else {
-        alert("신규 캠프가 Supabase DB에 성공적으로 등록되었습니다!");
-        document.getElementById('input-name').value = '';
-        document.getElementById('input-admin').value = '';
-        document.getElementById('input-pw').value = '';
-        fetchCamps();
-      }
-    }
-
-    fetchCamps();
-  </script>
-</body>
-</html>
+  <!-- ================= 2. 슈퍼 관리자 (SaaS 본사) 화면 ================= -->
+  <div id="view-super" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
+    <header class="app-header" style="background: #1e1b4b; border-color: #312e81;">
+      <div class="header-title"><span style="color: #818cf8;">🌐 이지콜 SaaS 플랫폼 본사 (슈퍼 관리자)</span></div>
+      <div class="header-info">
