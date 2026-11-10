@@ -77,3 +77,179 @@
     <header class="app-header" style="background: #1e1b4b; border-color: #312e81;">
       <div class="header-title"><span style="color: #818cf8;">🌐 이지콜 SaaS 플랫폼 본사 (슈퍼 관리자)</span></div>
       <div class="header-info">
+        <span>활성 캠프: <strong>1개</strong></span>
+        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+      </div>
+    </header>
+    <div class="super-body">
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+        <div class="card-dark">
+          <h3 style="color: #818cf8; margin-bottom: 16px;">📋 전체 선거 캠프 라이선스 현황</h3>
+          <table class="data-table-dark">
+            <thead>
+              <tr><th>캠프명</th><th>관리자 ID</th><th>허용 태블릿</th><th>상태</th><th>충전 잔액</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>보령시·서천군 선거캠프</strong></td><td>camp01</td><td>15대</td><td><span style="color:#34d399; font-weight:bold;">정상 이용중</span></td><td>45,536원</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-dark">
+          <h3 style="color: #818cf8; margin-bottom: 16px;">➕ 신규 캠프 승인 및 생성</h3>
+          <div class="form-group"><label>캠프명</label><input type="text" class="form-input" placeholder="홍성·예산 캠프"></div>
+          <div class="form-group"><label>관리자 ID</label><input type="text" class="form-input" placeholder="hongseong01"></div>
+          <div class="form-group"><label>태블릿 대수</label><input type="number" class="form-input" value="10"></div>
+          <button class="btn-primary" style="background: #4f46e5;" onclick="alert('신규 캠프가 승인되었습니다!')">캠프 생성 승인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 3. 캠프 관리자 (상황실장) 화면 ================= -->
+  <div id="view-admin" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
+    <header class="app-header">
+      <div class="header-title"><span>📊 보령시·서천군 캠프 상황실 (관리자 대시보드)</span></div>
+      <div class="header-info">
+        <span>접속자: <strong>상황실장</strong></span>
+        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+      </div>
+    </header>
+    <div class="app-body">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        
+        <!-- 엑셀 명부 업로드 카드 -->
+        <div class="card">
+          <h3 style="color: #2563eb; margin-bottom: 16px;">📥 엑셀(CSV) 유권자 명부 대량 업로드</h3>
+          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 14px;">
+            선거 명부 CSV 파일을 업로드하면 읍·면·동별로 자동 파싱되어 요원 태블릿 큐에 즉시 배포됩니다.
+          </p>
+          <div style="border: 2px dashed #cbd5e1; padding: 24px; text-align: center; border-radius: 8px; background: #f8fafc; margin-bottom: 14px;">
+            <input type="file" id="csv-file-input" accept=".csv" style="font-size: 0.9rem;" onchange="handleCsvUpload(event)">
+          </div>
+          <div id="upload-status" style="font-size: 0.85rem; font-weight: bold; color: #16a34a;"></div>
+        </div>
+
+        <!-- 실시간 요원 현황 -->
+        <div class="card">
+          <h3 style="color: #2563eb; margin-bottom: 16px;">👥 투입 요원(태블릿) 실시간 모니터링</h3>
+          <table class="data-table">
+            <thead>
+              <tr><th>요원 ID</th><th>담당 지역</th><th>상태</th><th>금일 완료</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>agent01 (김철민)</strong></td><td>대천1동</td><td><span style="color:#16a34a; font-weight:bold;">통화중</span></td><td>48건</td></tr>
+              <tr><td><strong>agent02 (박선영)</strong></td><td>대천2동</td><td><span style="color:#ca8a04; font-weight:bold;">후처리중</span></td><td>52건</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 4. 요원 발신 (태블릿) 화면 ================= -->
+  <div id="view-agent" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
+    <header class="app-header">
+      <div class="header-title"><span>📱 이지콜 태블릿 요원 워크스페이스</span></div>
+      <div class="header-info">
+        <span>요원 ID: <strong id="agent-display-id">agent01</strong></span>
+        <span>오늘 성과: <strong id="completed-count">0</strong>건</span>
+        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+      </div>
+    </header>
+    <div class="app-body" style="display: flex; flex-direction: row; gap: 20px; padding: 20px;">
+      
+      <!-- 좌측 유권자 정보 -->
+      <div class="card" style="flex: 4; display: flex; flex-direction: column;">
+        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;" id="v-dong">중앙동</div>
+        <h2 style="font-size: 2rem; color: #0f172a; margin-bottom: 8px;" id="v-name">김철수 선생님</h2>
+        <div style="background: #e0f2fe; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+          <span style="font-size: 0.8rem; color: #0369a1; display: block;">전화번호</span>
+          <strong style="font-size: 1.8rem; color: #0284c7;" id="v-phone">010-1234-5678</strong>
+        </div>
+        <button class="btn-primary" style="padding: 16px; font-size: 1.2rem;" onclick="alert('📞 실제 통신사망 연결 시뮬레이션 중...')">전화 발신 시작</button>
+      </div>
+
+      <!-- 우측 성향 입력 패널 -->
+      <div class="card" style="flex: 6; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h3 style="margin-bottom: 12px;">지지 성향 1-터치 판정</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <button onclick="saveResult('우호')" style="padding: 16px; font-size: 1rem; font-weight: bold; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px; cursor: pointer;">👍 우호 / 지지</button>
+            <button onclick="saveResult('부동')" style="padding: 16px; font-size: 1rem; font-weight: bold; background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; border-radius: 8px; cursor: pointer;">😐 부동층 (고민)</button>
+          </div>
+        </div>
+        <div>
+          <button class="btn-primary" style="background: #16a34a;" onclick="nextVoter()">💾 저장 후 다음 유권자 ➔</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- 로그인 및 역할 분기 처리 로직 ---
+    function handleLogin() {
+      const id = document.getElementById('login-id').value.trim();
+      const pw = document.getElementById('login-pw').value.trim();
+
+      document.getElementById('login-container').classList.add('hidden');
+      document.getElementById('view-super').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById('view-agent').classList.add('hidden');
+
+      if (id === 'super') {
+        document.getElementById('view-super').classList.remove('hidden');
+      } else if (id === 'camp01') {
+        document.getElementById('view-admin').classList.remove('hidden');
+      } else {
+        // 기본 요원 로그인
+        document.getElementById('view-agent').classList.remove('hidden');
+        document.getElementById('agent-display-id').innerText = id || 'agent01';
+      }
+    }
+
+    function handleLogout() {
+      document.getElementById('view-super').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById('view-agent').classList.add('hidden');
+      document.getElementById('login-container').classList.remove('hidden');
+      document.getElementById('login-id').value = '';
+      document.getElementById('login-pw').value = '';
+    }
+
+    // --- 엑셀(CSV) 명부 업로드 및 파싱 시뮬레이션 ---
+    function handleCsvUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        document.getElementById('upload-status').innerText = `✓ 총 ${lines.length - 1}건의 유권자 명부가 성공적으로 업로드 및 읍·면·동별 자동 분배되었습니다!`;
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    // --- 요원 화면 콜 결과 저장 ---
+    let completedCount = 0;
+    function saveResult(tendency) {
+      completedCount++;
+      document.getElementById('completed-count').innerText = completedCount;
+      alert(`성향 [${tendency}] 저장 완료! 다음 유권자로 이동합니다.`);
+      nextVoter();
+    }
+
+    function nextVoter() {
+      const sampleNames = ["이영희", "박민수", "정수진", "한지민"];
+      const sampleDongs = ["대천1동", "대천2동", "동대동", "죽정동"];
+      const rand = Math.floor(Math.random() * sampleNames.length);
+      
+      document.getElementById('v-name').innerText = `${sampleNames[rand]} 선생님`;
+      document.getElementById('v-dong').innerText = sampleDongs[rand];
+      document.getElementById('v-phone').innerText = `010-${Math.floor(1000+Math.random()*9000)}-${Math.floor(1000+Math.random()*9000)}`;
+    }
+  </script>
+</body>
+</html>
