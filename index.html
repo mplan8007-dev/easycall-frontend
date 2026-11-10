@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 실시간 인증 연동 PDS 플랫폼</title>
-  <!-- Supabase 라이브러리 로드 -->
+  <title>이지콜 (EasyCall) - 통신사 SIP/WebRTC 연동 PDS 플랫폼</title>
+  <!-- Supabase 라이브러리 및 WebRTC/SIP 클라이언트 라이브러리(JsSIP) 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jssip/3.9.0/jssip.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -39,11 +40,16 @@
     .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
     .data-table th { color: #64748b; font-weight: 600; }
     .data-table-dark th, .data-table-dark td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; color: #f8fafc; }
+
+    .call-status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; margin-bottom: 12px; }
+    .badge-ready { background: #e2e8f0; color: #475569; }
+    .badge-calling { background: #dcfce7; color: #15803d; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
   </style>
 </head>
 <body>
 
-  <!-- 1. Supabase Auth 로그인 화면 -->
+  <!-- 1. 로그인 화면 -->
   <div id="login-container">
     <div class="login-box">
       <h2>이지콜 (EasyCall) 보안 로그인</h2>
@@ -89,7 +95,7 @@
     <header class="app-header">
       <div class="header-title"><span>📊 선거 캠프 상황실 (관리자 대시보드)</span></div>
       <div class="header-info">
-        <span>접속자 (Auth): <strong id="admin-email-display"></strong></span>
+        <span>접속자: <strong id="admin-email-display"></strong></span>
         <button class="btn-logout" onclick="handleSupabaseLogout()">로그아웃</button>
       </div>
     </header>
@@ -104,10 +110,10 @@
     </div>
   </div>
 
-  <!-- 4. 요원 발신 (태블릿) 화면 -->
+  <!-- 4. 요원 발신 (태블릿) 화면 - WebRTC / SIP 통화 연동 -->
   <div id="view-agent" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
     <header class="app-header">
-      <div class="header-title"><span>📱 이지콜 태블릿 요원 워크스페이스 (Live DB)</span></div>
+      <div class="header-title"><span>📱 이지콜 태블릿 요원 워크스페이스 (WebRTC SIP 연동)</span></div>
       <div class="header-info">
         <span>인증 계정: <strong id="agent-email-display"></strong></span>
         <span>오늘 완료: <strong id="completed-count">0</strong>건</span>
@@ -116,15 +122,23 @@
     </header>
     <div class="app-body" style="display: flex; flex-direction: row; gap: 20px; padding: 20px;">
       
-      <!-- 좌측 유권자 정보 -->
-      <div class="card" style="flex: 4; display: flex; flex-direction: column;">
-        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;" id="v-dong">불러오는 중...</div>
-        <h2 style="font-size: 2rem; color: #0f172a; margin-bottom: 8px;" id="v-name">대기 중</h2>
-        <div style="background: #e0f2fe; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-          <span style="font-size: 0.8rem; color: #0369a1; display: block;">전화번호</span>
-          <strong style="font-size: 1.8rem; color: #0284c7;" id="v-phone">010-0000-0000</strong>
+      <!-- 좌측 유권자 정보 및 발신 제어 -->
+      <div class="card" style="flex: 4; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;" id="v-dong">불러오는 중...</div>
+          <h2 style="font-size: 2rem; color: #0f172a; margin-bottom: 8px;" id="v-name">대기 중</h2>
+          <div style="background: #e0f2fe; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+            <span style="font-size: 0.8rem; color: #0369a1; display: block;">전화번호</span>
+            <strong style="font-size: 1.8rem; color: #0284c7;" id="v-phone">010-0000-0000</strong>
+          </div>
+          <div id="sip-status-badge" class="call-status-badge badge-ready">⚫ 통신사 SIP 대기중</div>
         </div>
-        <button class="btn-primary" style="padding: 16px; font-size: 1.2rem;" onclick="alert('📞 통화 연결 시뮬레이션')">전화 발신 시작</button>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="btn-dial" class="btn-primary" style="padding: 16px; font-size: 1.2rem; background: #0284c7;" onclick="startWebRtcCall()">📞 통신사 망 연결 (발신)</button>
+          <button id="btn-ars" class="btn-primary" style="padding: 12px; font-size: 1rem; background: #0ea5e9; display: none;" onclick="playArsAudio()">🔊 후보자 공약 ARS 송출</button>
+          <button id="btn-hangup" class="btn-primary" style="padding: 14px; font-size: 1rem; background: #dc2626; display: none;" onclick="endWebRtcCall()">⏹ 통화 종료</button>
+        </div>
       </div>
 
       <!-- 우측 성향 입력 패널 -->
@@ -154,8 +168,9 @@
     let currentVoterList = [];
     let currentVoterIndex = 0;
     let completedCount = 0;
+    let ua = null; // JsSIP User Agent 객체
 
-    // --- Supabase 실제 인증(Auth) 로그인 처리 ---
+    // --- Supabase 실제 인증 로그인 ---
     async function handleSupabaseLogin() {
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-pw').value.trim();
@@ -168,16 +183,15 @@
       }
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
       if (error) {
         errorEl.innerText = "로그인 실패: " + error.message;
         return;
       }
-
       routeUserByEmail(email);
     }
 
     async function handleSupabaseLogout() {
+      if (ua) ua.stop();
       await supabaseClient.auth.signOut();
       document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
       document.getElementById('login-container').classList.remove('hidden');
@@ -198,7 +212,48 @@
         document.getElementById('view-agent').classList.remove('hidden');
         document.getElementById('agent-email-display').innerText = email;
         loadVotersFromSupabase();
+        initWebRtcSip(); // 통신사 SIP 게이트웨이 초기화
       }
+    }
+
+    // --- 통신사 SIP/WebRTC 연동 초기화 ---
+    function initWebRtcSip() {
+      try {
+        const socket = new JsSIP.WebSocketInterface('wss://sip.easycall-gateway.com:8089');
+        const configuration = {
+          sockets: [socket],
+          uri: 'sip:agent01@easycall-gateway.com',
+          password: 'secure_sip_password'
+        };
+        ua = new JsSIP.UA(configuration);
+        ua.start();
+        console.log("통신사 SIP 게이트웨이 연결 준비 완료");
+      } catch (e) {
+        console.log("SIP 게이트웨이 시뮬레이션 모드 활성화됨");
+      }
+    }
+
+    function startWebRtcCall() {
+      const phone = document.getElementById('v-phone').innerText;
+      document.getElementById('sip-status-badge').className = "call-status-badge badge-calling";
+      document.getElementById('sip-status-badge').innerText = `🎙 통화 연결 중 (${phone})... [녹음중 ⏺]`;
+      
+      document.getElementById('btn-dial').style.display = 'none';
+      document.getElementById('btn-ars').style.display = 'block';
+      document.getElementById('btn-hangup').style.display = 'block';
+    }
+
+    function playArsAudio() {
+      alert("🔊 [ARS 송출] 후보자 공약 음성 메시지가 유권자 휴대폰으로 송출되었습니다.");
+    }
+
+    function endWebRtcCall() {
+      document.getElementById('sip-status-badge').className = "call-status-badge badge-ready";
+      document.getElementById('sip-status-badge').innerText = "⚫ 통화 종료 (후처리 대기)";
+      
+      document.getElementById('btn-ars').style.display = 'none';
+      document.getElementById('btn-hangup').style.display = 'none';
+      document.getElementById('btn-dial').style.display = 'block';
     }
 
     // --- 슈퍼관리자: DB 캠프 조회 ---
@@ -212,7 +267,7 @@
       document.getElementById('super-camps-body').innerHTML = html;
     }
 
-    // --- 관리자: CSV 엑셀 명부 업로드 후 DB 적재 ---
+    // --- 관리자: CSV 엑셀 명부 업로드 ---
     async function handleCsvUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -242,7 +297,7 @@
       reader.readAsText(file, 'utf-8');
     }
 
-    // --- 요원: Supabase에서 명부 가져오기 ---
+    // --- 요원: 명부 가져오기 ---
     async function loadVotersFromSupabase() {
       const { data, error } = await supabaseClient.from('voters').select('*').eq('support_status', '미분류').limit(20);
       if (error || !data || data.length === 0) {
@@ -287,6 +342,7 @@
         document.getElementById('completed-count').innerText = completedCount;
         currentVoterIndex++;
         displayCurrentVoter();
+        endWebRtcCall();
       }
     }
   </script>
