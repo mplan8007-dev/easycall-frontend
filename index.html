@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- ==================== 1. 최고관리자 관제 대시보드 ==================== -->
+  <!-- ==================== 1. 최고관리자 관제 대시보드 (검색 및 시도/시군구 입력 완비) ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -64,11 +64,11 @@
       <div class="grid grid-cols-4 gap-5">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 block mb-1">총 가동 캠프 수</span>
-          <div class="flex items-baseline justify-between"><span class="text-3xl font-black text-white font-mono">12개</span><span class="text-xs text-emerald-400 font-bold">+2개</span></div>
+          <div class="flex items-baseline justify-between"><span class="text-3xl font-black text-white font-mono" id="stat-total-camps">1개</span><span class="text-xs text-emerald-400 font-bold">안정</span></div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 block mb-1">활성 태블릿 총 대수</span>
-          <div class="flex items-baseline justify-between"><span class="text-3xl font-black text-indigo-400 font-mono">185대</span><span class="text-xs text-slate-400">한도 내</span></div>
+          <div class="flex items-baseline justify-between"><span class="text-3xl font-black text-indigo-400 font-mono">15대</span><span class="text-xs text-slate-400">한도 내</span></div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 block mb-1">금일 전사 누적 통화 건수</span>
@@ -76,7 +76,7 @@
         </div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 block mb-1">플랫폼 총 잔여 예치금</span>
-          <div class="flex items-baseline justify-between"><span class="text-3xl font-black text-amber-400 font-mono">6,450,000원</span><span class="text-xs text-amber-400 font-bold">안전</span></div>
+          <div class="flex items-baseline justify-between"><span class="text-3xl font-black text-amber-400 font-mono">150,000원</span><span class="text-xs text-amber-400 font-bold">안전</span></div>
         </div>
       </div>
 
@@ -85,25 +85,29 @@
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스 및 잔여 예치금 관제</h3>
-              <span class="text-xs text-slate-400">💡 캠프명을 클릭하면 상세 정보 및 요금 내역을 조회할 수 있습니다.</span>
+              <!-- 실시간 검색 입력창 -->
+              <div class="relative w-64">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
+                <input type="text" id="camp-search-input" onkeyup="filterCampsTable()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="캠프명 또는 ID 검색...">
+              </div>
             </div>
             <table class="w-full text-left text-sm">
               <thead class="text-slate-400 border-b border-slate-800">
-                <tr><th class="pb-3">캠프명 (상세조회)</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿</th><th class="pb-3">누적 통화요금</th><th class="pb-3 text-amber-400">잔여 예치금 💰</th><th class="pb-3">상태</th><th class="pb-3">제어</th></tr>
+                <tr><th class="pb-3">관할 지역 (시도/시군구)</th><th class="pb-3">캠프명 (상세조회)</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿</th><th class="pb-3 text-amber-400">잔여 예치금 💰</th><th class="pb-3">상태</th><th class="pb-3">제어</th></tr>
               </thead>
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
-                <tr>
-                  <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
+                <tr class="camp-row" data-keyword="보령시·서천군 선거캠프 camp01 충청남도 보령시">
+                  <td class="py-3 text-xs text-slate-400 font-bold">충청남도 보령시</td>
+                  <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
                     보령시·서천군 선거캠프 🔍
                   </td>
                   <td class="py-3 font-mono text-xs">camp01</td>
                   <td class="py-3 font-mono">15대</td>
-                  <td class="py-3 font-mono text-slate-300">350,000원</td>
                   <td class="py-3 font-mono text-amber-400 font-bold">150,000원</td>
-                  <td class="py-3"><span id="camp-status-badge-1" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
+                  <td class="py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
                   <td class="py-3 flex gap-1">
                     <button onclick="masterResetCampPw('camp01')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
-                    <button id="btn-toggle-approval-1" onclick="toggleCampApproval(1)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
+                    <button onclick="toggleCampApproval(this)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
                   </td>
                 </tr>
               </tbody>
@@ -112,10 +116,28 @@
         </div>
 
         <div class="space-y-6 flex flex-col justify-between">
+          <!-- 신규 캠프 개설 패널 (시도 / 시군구 구분 입력 추가) -->
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 class="text-base font-bold text-indigo-300 mb-3">➕ 신규 캠프 개설 및 계약 등록</h3>
             <div class="space-y-2.5">
-              <div><label class="block text-[11px] text-slate-400 mb-0.5">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="홍성군 선거캠프"></div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-0.5">시·도 구분</label>
+                  <select id="new-camp-sido" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-bold">
+                    <option value="충청남도">충청남도</option>
+                    <option value="서울특별시">서울특별시</option>
+                    <option value="경기도">경기도</option>
+                    <option value="인천광역시">인천광역시</option>
+                    <option value="부산광역시">부산광역시</option>
+                    <option value="강원특별자치도">강원특별자치도</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-0.5">시·군·구 구분</label>
+                  <input type="text" id="new-camp-sigungu" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="보령시">
+                </div>
+              </div>
+              <div><label class="block text-[11px] text-slate-400 mb-0.5">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="보령시·서천군 선거캠프"></div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="block text-[11px] text-slate-400 mb-0.5">관리자 ID</label>
@@ -166,6 +188,10 @@
       </div>
       <div class="space-y-3.5 text-sm">
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">관할 지역</span>
+          <span id="modal-camp-region" class="font-bold text-indigo-300">충청남도 보령시</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
           <span class="text-slate-400">관리자 아이디</span>
           <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
         </div>
@@ -180,10 +206,6 @@
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
           <span class="text-slate-400">할당 태블릿 라이선스</span>
           <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">누적 전화 통화 요금</span>
-          <span id="modal-camp-fee" class="font-mono font-bold text-slate-300">350,000원</span>
         </div>
         <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
           <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
@@ -358,7 +380,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (자동 스킵 타이머 적용) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -590,6 +612,77 @@
       window.location.href = window.location.pathname;
     }
 
+    // --- [신규 기능] 전체 캠프 리스트 실시간 검색 필터링 ---
+    function filterCampsTable() {
+      const query = document.getElementById('camp-search-input').value.trim().toLowerCase();
+      const rows = document.querySelectorAll('.camp-row');
+      
+      rows.forEach(row => {
+        const keyword = row.getAttribute('data-keyword').toLowerCase();
+        if (keyword.includes(query)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // --- [확장] 신규 캠프 개설 시 시도/시군구 반영 ---
+    function registerNewCampByMaster() {
+      const sido = document.getElementById('new-camp-sido').value;
+      const sigungu = document.getElementById('new-camp-sigungu').value.trim();
+      const name = document.getElementById('new-camp-name').value.trim();
+      const admin = document.getElementById('new-camp-admin').value.trim().toLowerCase();
+      const pw = document.getElementById('new-camp-pw').value.trim() || '1234';
+      const manager = document.getElementById('new-camp-manager').value.trim();
+      const start = document.getElementById('new-camp-start').value;
+      const end = document.getElementById('new-camp-end').value;
+
+      if (!sigungu || !name || !admin || !manager) {
+        alert("시·군·구, 캠프명, 관리자 아이디, 담당자 성명은 필수 입력입니다.");
+        return;
+      }
+
+      localStorage.setItem(`pw_${admin}`, pw);
+      localStorage.setItem(`camp_${admin}_approved`, 'true');
+
+      // 새로운 행 생성하여 테이블에 추가 (실시간 반영)
+      const tbody = document.getElementById('super-camps-body');
+      const regionStr = `${sido} ${sigungu}`;
+      
+      const newRow = document.createElement('tr');
+      newRow.className = 'camp-row';
+      newRow.setAttribute('data-keyword', `${name} ${admin} ${regionStr}`.toLowerCase());
+      newRow.innerHTML = `
+        <td class="py-3 text-xs text-slate-400 font-bold">${regionStr}</td>
+        <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" onclick="openCampDetailModal('${name}', '${admin}', '${regionStr}', '${manager}', '${document.getElementById('new-camp-phone').value}', '${document.getElementById('new-camp-email').value}', '${start} ~ ${end}', '${document.getElementById('new-camp-limit').value}대', '0원', '${Number(document.getElementById('new-camp-balance').value).toLocaleString()}원')">
+          ${name} 🔍
+        </td>
+        <td class="py-3 font-mono text-xs">${admin}</td>
+        <td class="py-3 font-mono">15대</td>
+        <td class="py-3 font-mono text-slate-300">0원</td>
+        <td class="py-3 font-mono text-amber-400 font-bold">${Number(document.getElementById('new-camp-balance').value).toLocaleString()}원</td>
+        <td class="py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
+        <td class="py-3 flex gap-1">
+          <button onclick="masterResetCampPw('${admin}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
+          <button onclick="toggleCampApproval(this)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
+        </td>
+      `;
+      tbody.appendChild(newRow);
+
+      // 총 가동 캠프 수 업데이트
+      const totalCampsEl = document.getElementById('stat-total-camps');
+      let currentTotal = parseInt(totalCampsEl.innerText) || 1;
+      totalCampsEl.innerText = `${currentTotal + 1}개`;
+
+      alert(`🎉 [신규 캠프 개설 완료]\n- 관할 지역: ${regionStr}\n- 캠프명: ${name}\n- 관리자 ID: ${admin} (비번: ${pw})`);
+      
+      // 입력창 초기화
+      document.getElementById('new-camp-name').value = '';
+      document.getElementById('new-camp-admin').value = '';
+      document.getElementById('new-camp-manager').value = '';
+    }
+
     function saveAdminScript() {
       const text = document.getElementById('admin-script-input').value.trim();
       if (!text) { alert("스크립트 내용을 입력하세요."); return; }
@@ -637,9 +730,10 @@
       }
     }
 
-    function openCampDetailModal(campName, campId, managerName, managerPhone, managerEmail, period, tablets, fee, balance) {
+    function openCampDetailModal(campName, campId, region, managerName, managerPhone, managerEmail, period, tablets, fee, balance) {
       document.getElementById('modal-camp-title').innerText = campName;
       document.getElementById('modal-camp-id').innerText = campId;
+      document.getElementById('modal-camp-region').innerText = region;
       document.getElementById('modal-camp-manager').innerText = `${managerName} (${managerPhone} / ${managerEmail})`;
       document.getElementById('modal-camp-period').innerText = period;
       document.getElementById('modal-camp-tablet').innerText = tablets;
@@ -800,7 +894,7 @@
       }
     }
 
-    // --- 요원 워크스페이스 기능 (자동 스킵 타이머 및 개인 통계 연동) ---
+    // --- 요원 워크스페이스 기능 ---
     function switchAgentTab(tabName) {
       const dialerTab = document.getElementById('agent-tab-dialer');
       const historyTab = document.getElementById('agent-tab-history');
@@ -888,7 +982,6 @@
       document.getElementById('call-active-state').classList.remove('hidden');
     }
 
-    // --- 통화 종료 시 자동 스킵 타이머 도입 (저장 깜빡 방지) ---
     function endCallSimulation() {
       clearInterval(callTimerInterval);
       document.getElementById('call-idle-state').classList.remove('hidden');
@@ -908,7 +1001,7 @@
     }
 
     function saveResultToSupabase(status) {
-      clearInterval(wrapUpTimer); // 직접 저장 시 자동 타이머 해제
+      clearInterval(wrapUpTimer);
 
       const v = sampleVoters[currentVoterIdx];
       globalCampCallLogs.unshift({
