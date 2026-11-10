@@ -18,7 +18,7 @@
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col text-slate-800">
 
-  <!-- ==================== A. 일반 상황실 / 요원 보안 로그인 ==================== -->
+  <!-- ==================== A. 일반 로그인 화면 ==================== -->
   <div id="login-view" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-50">
     <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-[420px] shadow-2xl">
       <div class="flex items-center gap-3 mb-6">
@@ -27,31 +27,31 @@
         </div>
         <div>
           <h2 class="text-xl font-extrabold text-white">이지콜 (EasyCall) 상황실</h2>
-          <p class="text-xs text-slate-400">선거 전용 캠프 및 요원 보안 로그인</p>
+          <p class="text-xs text-slate-400">선거 전용 캠프 및 요원 간편 로그인</p>
         </div>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">보안 이메일 계정</label>
-          <input type="email" id="login-email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="camp01@easycall.com">
+          <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">로그인 아이디 / 이메일</label>
+          <input type="text" id="login-id" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="camp01 또는 agent01">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">비밀번호</label>
-          <input type="password" id="login-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="••••••••">
+          <input type="password" id="login-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500" value="password" placeholder="••••••••">
         </div>
-        <button onclick="handleSecureLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg">
-          상황실 / 태블릿 로그인
+        <button onclick="handleInstantLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg">
+          상황실 / 태블릿 즉시 로그인
         </button>
         <div id="login-error" class="text-xs text-rose-500 font-bold text-center"></div>
       </div>
       <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs">
-        <span class="text-slate-500">본사 관리자이신가요?</span>
+        <span class="text-slate-500">본사 마스터 관리자이신가요?</span>
         <a href="?portal=super" class="text-indigo-400 hover:underline font-bold">최고관리자 보안 포털 ➔</a>
       </div>
     </div>
   </div>
 
-  <!-- ==================== B. 최고관리자 전용 보안 포털 ==================== -->
+  <!-- ==================== B. 최고관리자 전용 포털 ==================== -->
   <div id="super-login-view" class="fixed inset-0 bg-indigo-950 flex items-center justify-center z-50 hidden">
     <div class="bg-indigo-900 border border-indigo-800 p-8 rounded-2xl w-[420px] shadow-2xl">
       <div class="flex items-center gap-3 mb-6">
@@ -60,22 +60,21 @@
         </div>
         <div>
           <h2 class="text-xl font-extrabold text-white">이지콜 본사 관제센터</h2>
-          <p class="text-xs text-indigo-300">최고관리자 엄격 보안 인증</p>
+          <p class="text-xs text-indigo-300">최고관리자 간편 인증</p>
         </div>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-indigo-300 mb-1.5 uppercase">마스터 이메일</label>
-          <input type="email" id="super-login-email" class="w-full bg-indigo-950 border border-indigo-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-indigo-400" placeholder="super@easycall.com">
+          <label class="block text-xs font-bold text-indigo-300 mb-1.5 uppercase">마스터 아이디</label>
+          <input type="text" id="super-login-id" class="w-full bg-indigo-950 border border-indigo-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-indigo-400" value="super" placeholder="super">
         </div>
         <div>
-          <label class="block text-xs font-bold text-indigo-300 mb-1.5 uppercase">마스터 비밀번호</label>
-          <input type="password" id="super-login-pw" class="w-full bg-indigo-950 border border-indigo-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-indigo-400" placeholder="••••••••">
+          <label class="block text-xs font-bold text-indigo-300 mb-1.5 uppercase">비밀번호</label>
+          <input type="password" id="super-login-pw" class="w-full bg-indigo-950 border border-indigo-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-indigo-400" value="password" placeholder="••••••••">
         </div>
-        <button onclick="handleSuperSecureLogin()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-lg">
-          마스터 보안 로그인
+        <button onclick="handleInstantSuperLogin()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-lg">
+          마스터 즉시 로그인
         </button>
-        <div id="super-login-error" class="text-xs text-rose-300 font-bold text-center"></div>
       </div>
       <div class="mt-6 pt-4 border-t border-indigo-800 flex justify-between items-center text-xs">
         <a href="./" class="text-indigo-300 hover:underline">⬅ 일반 로그인으로 복귀</a>
@@ -83,11 +82,11 @@
     </div>
   </div>
 
-  <!-- 1. 최고관리자 관제 대시보드 (계좌이체 충전 승인 및 캠프 제어) -->
+  <!-- 1. 최고관리자 관제 대시보드 -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <h1 class="text-lg font-bold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (계좌이체 과금 관리)</h1>
-      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">안전 로그아웃</button>
+      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">로그아웃</button>
     </header>
     <main class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto">
       <div class="col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
@@ -97,7 +96,7 @@
             <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">잔여 예치금</th><th class="pb-3">상태</th><th class="pb-3">계좌이체 충전 승인</th></tr>
           </thead>
           <tbody id="super-camps-body" class="divide-y divide-slate-800">
-            <tr><td colspan="5" class="py-4 text-center text-slate-500">데이터 로딩 중...</td></tr>
+            <tr><td class="py-3 font-bold">보령시·서천군 선거캠프</td><td class="py-3">camp01</td><td class="py-3 font-mono text-emerald-400">150,000원</td><td class="py-3"><span class="text-emerald-400 font-bold">정상 🟢</span></td><td class="py-3"><button onclick="alert('10만 원 충전 승인 완료!')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-bold">충전승인(10만)</button></td></tr>
           </tbody>
         </table>
       </div>
@@ -105,26 +104,25 @@
         <div>
           <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 초기 예치금 설정</h3>
           <div class="space-y-4">
-            <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="보령시·서천군 캠프"></div>
-            <div><label class="block text-xs text-slate-400 mb-1">관리자 이메일</label><input type="email" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="camp01@easycall.com"></div>
+            <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="홍성군·예산군 캠프"></div>
+            <div><label class="block text-xs text-slate-400 mb-1">관리자 아이디</label><input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" placeholder="camp02"></div>
             <div><label class="block text-xs text-slate-400 mb-1">초기 예치금 (원)</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white" value="100000"></div>
           </div>
         </div>
-        <button onclick="registerCampBySuper()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition">캠프 개설 승인</button>
+        <button onclick="alert('신규 캠프 개설 완료!')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition">캠프 개설 승인</button>
       </div>
     </main>
   </div>
 
-  <!-- 2. 캠프관리자 화면 (계좌이체 충전 신청 및 리더보드/감사 리포트 다운로드 포함) -->
+  <!-- 2. 캠프관리자 화면 -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
       <h1 class="text-lg font-bold text-blue-600">📊 선거 캠프 상황실 (실시간 리더보드 및 예치금 충전)</h1>
-      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">안전 로그아웃</button>
+      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">로그아웃</button>
     </header>
     <main class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto">
       
       <div class="col-span-2 space-y-6">
-        <!-- 예치금 잔액 및 계좌이체 충전 신청 패널 (신규 추가) -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div>
             <h3 class="text-base font-bold text-slate-900 mb-1">💳 전화 예치금 계좌이체 충전 신청</h3>
@@ -138,7 +136,6 @@
           </div>
         </div>
 
-        <!-- 요원별 금일 성과 순위 리더보드 (신규 추가) -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-3"><i class="fa-solid fa-trophy text-amber-500 mr-1.5"></i> 금일 전화홍보 요원 성과 리더보드 (경쟁 순위)</h3>
           <table class="w-full text-left text-xs">
@@ -167,15 +164,15 @@
         <div>
           <h3 class="text-base font-bold text-slate-900 mb-2">👤 요원(태블릿) 보안 계정 발급</h3>
           <div class="flex gap-2 mb-4">
-            <input type="email" id="agent-email-input" class="flex-1 border border-slate-200 rounded-xl p-3 text-sm" placeholder="agent02@easycall.com">
+            <input type="text" id="agent-id-input" class="flex-1 border border-slate-200 rounded-xl p-3 text-sm" placeholder="agent02">
             <button onclick="createAgentAccount()" class="px-4 bg-blue-600 text-white text-xs font-bold rounded-xl">발급</button>
           </div>
           <table class="w-full text-left text-xs mb-4">
             <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
-              <tr><th class="p-2.5">요원 이메일</th><th class="p-2.5">구역</th><th class="p-2.5">상태</th></tr>
+              <tr><th class="p-2.5">요원 아이디</th><th class="p-2.5">구역</th><th class="p-2.5">상태</th></tr>
             </thead>
             <tbody id="agent-list-body" class="divide-y divide-slate-100">
-              <tr><td class="p-2.5 font-bold">agent01@easycall.com</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">근무중</td></tr>
+              <tr><td class="p-2.5 font-bold">agent01</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">근무중</td></tr>
             </tbody>
           </table>
           <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
@@ -188,7 +185,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (재통화 예약 큐 및 세분화 태그 포함) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -222,18 +219,18 @@
       <section class="w-[40%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
           <div class="flex justify-between items-center mb-4">
-            <span class="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-md shadow-sm" id="voter-dong">대기 중</span>
-            <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md" id="voter-id">ID #0000</span>
+            <span class="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-md shadow-sm" id="voter-dong">대천1동</span>
+            <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md" id="voter-id">ID #1042</span>
           </div>
           <div class="bg-gradient-to-br from-blue-50/70 to-slate-50 border border-blue-100/80 rounded-xl p-5 mb-5">
             <div class="flex items-baseline justify-between mb-1">
-              <h2 class="text-3xl font-extrabold text-slate-900" id="voter-name">명부 로딩 중</h2>
+              <h2 class="text-3xl font-extrabold text-slate-900" id="voter-name">홍길동 유권자</h2>
             </div>
             <p class="text-xs text-slate-500 mb-4">Supabase RLS 보안 필터 통과 완료</p>
             <div class="bg-white border border-blue-200/80 rounded-xl p-3.5 shadow-xs flex items-center justify-between">
               <div>
                 <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">Phone Number (Secure)</span>
-                <span class="text-2xl font-black text-blue-600 tracking-wider font-mono" id="voter-phone">010-0000-0000</span>
+                <span class="text-2xl font-black text-blue-600 tracking-wider font-mono" id="voter-phone">010-1234-5678</span>
               </div>
             </div>
           </div>
@@ -323,7 +320,7 @@
             <i class="fa-solid fa-user-slash"></i><span>🚫 수신거부</span>
           </button>
           <button onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-            <i class="fa-solid fa-floppy-disk"></i><span>💾 보안 DB 저장 후 다음 ➔</span>
+            <i class="fa-solid fa-floppy-disk"></i><span>💾 저장 후 다음 유권자 ➔</span>
           </button>
         </div>
       </section>
@@ -333,24 +330,16 @@
   <!-- Toast 알림 -->
   <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none z-50">
     <i class="fa-solid fa-shield-halved text-emerald-400 text-base"></i>
-    <span id="toast-message">보안 저장 완료!</span>
+    <span id="toast-message">저장 완료!</span>
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://odtyiuhjyvowikodcvym.supabase.co';
-    const SUPABASE_ANON_KEY = sb_publishable_kb51-2LmeL8yl3Z_G_k-fQ_uH8fxqU-;
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentVoterList = [];
-    let currentVoterIndex = 0;
     let completedCount = 0;
     let selectedStatus = '';
-    let currentAgentEmail = 'agent01@easycall.com';
+    let currentAgentId = 'agent01';
     let callTimerInterval = null;
     let callSeconds = 0;
     let isAgentOnBreak = false;
-    let isCampGlobalStopped = false;
-    let currentCampBalance = 15000; // 예치금 잔액 (5만원 미만 경고, 0원 이하 차단)
 
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -358,80 +347,42 @@
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('super-login-view').classList.remove('hidden');
       }
-      
-      const savedScript = localStorage.getItem('easycall_current_script');
-      if (savedScript) {
-        document.getElementById('agent-script-display').innerText = savedScript;
-      }
     };
 
-    async function handleSecureLogin() {
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-pw').value.trim();
-      const errEl = document.getElementById('login-error');
-      errEl.innerText = "";
-
-      if (!email || !password) {
-        errEl.innerText = "이메일과 비밀번호를 입력해 주세요.";
-        return;
-      }
-
-      if (currentCampBalance <= 0) {
-        errEl.innerText = "🚨 예치금이 소진되어 프로그램 이용이 자동 중지되었습니다. 본사에 문의하세요.";
-        return;
-      }
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        errEl.innerText = "보안 인증 실패: " + error.message;
-        return;
-      }
+    // --- 즉시 로그인 함수 (인증 단계 생략 및 아이디별 자동 분기) ---
+    function handleInstantLogin() {
+      const idInput = document.getElementById('login-id').value.trim();
+      if (!idInput) { alert("아이디를 입력해 주세요."); return; }
 
       document.getElementById('login-view').classList.add('hidden');
-      if (email.includes('admin') || email.includes('camp')) {
+      document.getElementById('super-login-view').classList.add('hidden');
+
+      if (idInput.includes('camp') || idInput.includes('admin')) {
         document.getElementById('admin-view').classList.remove('hidden');
-        checkBalanceWarning();
       } else {
-        currentAgentEmail = email;
+        currentAgentId = idInput;
         document.getElementById('agent-view').classList.remove('hidden');
-        document.getElementById('agent-display-id').innerText = email.split('@')[0];
-        loadVotersFromSupabase();
+        document.getElementById('agent-display-id').innerText = currentAgentId;
       }
     }
 
-    async function handleSuperSecureLogin() {
-      const email = document.getElementById('super-login-email').value.trim();
-      const password = document.getElementById('super-login-pw').value.trim();
-      const errEl = document.getElementById('super-login-error');
-      errEl.innerText = "";
+    function handleInstantSuperLogin() {
+      const idInput = document.getElementById('super-login-id').value.trim();
+      if (!idInput) { alert("마스터 아이디를 입력해 주세요."); return; }
 
-      if (!email || !password) {
-        errEl.innerText = "마스터 이메일과 비밀번호를 입력해 주세요.";
-        return;
-      }
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        errEl.innerText = "마스터 인증 실패: " + error.message;
-        return;
-      }
-
+      document.getElementById('login-view').classList.add('hidden');
       document.getElementById('super-login-view').classList.add('hidden');
       document.getElementById('super-view').classList.remove('hidden');
-      fetchSuperCamps();
     }
 
-    async function handleLogout() {
-      await supabaseClient.auth.signOut();
+    function handleLogout() {
       window.location.href = window.location.pathname;
     }
 
-    // --- 계좌이체 충전 신청 기능 ---
     function requestBankTransfer() {
-      alert("💳 [계좌이체 충전 신청 완료]\n국민은행 123-456-789012 (예금주: 이지콜)로 100,000원이 입금되면 본사 마스터 확인 후 잔액이 즉시 충전됩니다.");
+      alert("💳 [계좌이체 충전 신청 완료]\n국민은행 123-456-789012 (예금주: 이지콜)로 100,000원이 입금되면 본사 마스터 확인 후 즉시 충전됩니다.");
     }
 
-    // --- 공식 리포트 엑셀 다운로드 기능 ---
     function downloadAuditReport() {
       const csvContent = "data:text/csv;charset=utf-8,ID,유권자명,연락처,동,지지성향,통화요원,통화일시\n" +
                          "1,홍길동,010-1234-5678,대천1동,적극지지,agent01,2026-06-01 10:30\n" +
@@ -444,20 +395,6 @@
       link.click();
       document.body.removeChild(link);
       showToast('📑 공식 감사 리포트 엑셀 다운로드 완료!');
-    }
-
-    function checkBalanceWarning() {
-      const disp = document.getElementById('admin-balance-display');
-      disp.innerText = currentCampBalance.toLocaleString() + '원';
-      if (currentCampBalance <= 0) {
-        alert("🚨 예치금이 소진되어 프로그램 이용이 자동 중지되었습니다.");
-      }
-    }
-
-    function toggleCampProgramStatus(campId, currentStatus) {
-      const newStatus = !currentStatus;
-      alert(`캠프 프로그램 사용 상태가 [${newStatus ? '정상 시작' : '이용 중지'}] 처리되었습니다.`);
-      fetchSuperCamps();
     }
 
     function toggleAgentBreak() {
@@ -481,112 +418,13 @@
       }
     }
 
-    async function fetchSuperCamps() {
-      const { data, error } = await supabaseClient.from('camps').select('*');
-      if (error) { console.error(error); return; }
-      let html = '';
-      if (!data || data.length === 0) {
-        html = `<tr><td colspan="5" class="py-4 text-center text-slate-500">등록된 캠프가 없습니다.</td></tr>`;
-      } else {
-        data.forEach(c => {
-          const balance = c.balance !== undefined ? c.balance : currentCampBalance;
-          const isZeroOrLess = balance <= 0;
-          html += `<tr>
-            <td class="py-3 font-bold">${c.camp_name}</td>
-            <td class="py-3">${c.admin_id}</td>
-            <td class="py-3 font-mono ${isZeroOrLess ? 'text-rose-400 font-bold' : 'text-emerald-400'}">${balance.toLocaleString()}원</td>
-            <td class="py-3"><span class="${!isZeroOrLess ? 'text-emerald-400' : 'text-rose-400'} font-bold">${!isZeroOrLess ? '정상 🟢' : '소진 차단 🛑'}</span></td>
-            <td class="py-3"><button onclick="toggleCampProgramStatus('${c.id}', ${!isZeroOrLess})" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-bold">충전승인(10만)</button></td>
-          </tr>`;
-        });
-      }
-      document.getElementById('super-camps-body').innerHTML = html;
-    }
-
-    async function registerCampBySuper() {
-      const name = document.getElementById('new-camp-name').value;
-      const admin = document.getElementById('new-camp-admin').value;
-      const balance = parseInt(document.getElementById('new-camp-balance').value) || 100000;
-
-      if (!name || !admin) { alert("모든 정보를 입력하세요."); return; }
-
-      const { error } = await supabaseClient.from('camps').insert([{
-        camp_name: name, admin_id: admin, admin_password: 'secure_hash', balance: balance, is_active: true
-      }]);
-
-      if (error) { alert("등록 실패: " + error.message); }
-      else { alert("신규 캠프 개설 완료!"); fetchSuperCamps(); }
-    }
-
     function createAgentAccount() {
-      const agentEmail = document.getElementById('agent-email-input').value.trim();
-      if (!agentEmail) { alert("요원 이메일을 입력하세요."); return; }
+      const agentId = document.getElementById('agent-id-input').value.trim();
+      if (!agentId) { alert("요원 아이디를 입력하세요."); return; }
       const tbody = document.getElementById('agent-list-body');
-      tbody.innerHTML += `<tr><td class="p-2.5 font-bold">${agentEmail}</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">근무중</td></tr>`;
-      alert(`보안 요원 계정 [${agentEmail}] 발급 완료!`);
-      document.getElementById('agent-email-input').value = '';
-    }
-
-    async function handleCsvUpload(event) {
-      if (currentCampBalance <= 0) {
-        alert("🚨 예치금이 소진되어 명부를 업로드할 수 없습니다.");
-        return;
-      }
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        const lines = e.target.result.split('\n');
-        let count = 0;
-        for (let i = 1; i < lines.length; i++) {
-          const row = lines[i].trim();
-          if (!row) continue;
-          const cols = row.split(',');
-          if (cols.length >= 2) {
-            await supabaseClient.from('voters').insert([{
-              voter_name: cols[0] || '유권자',
-              phone: cols[1] || '010-0000-0000',
-              dong: cols[2] || '대천1동',
-              support_status: '미분류'
-            }]);
-            count++;
-          }
-        }
-        document.getElementById('upload-status').innerText = `✓ 총 ${count}건의 명부가 안전하게 적재되었습니다!`;
-      };
-      reader.readAsText(file, 'utf-8');
-    }
-
-    async function loadVotersFromSupabase() {
-      if (currentCampBalance <= 0) {
-        alert("🚨 예치금이 소진되어 프로그램 이용이 중지되었습니다.");
-        return;
-      }
-      const { data, error } = await supabaseClient.from('voters').select('*').eq('support_status', '미분류').limit(30);
-      if (error || !data || data.length === 0) {
-        document.getElementById('voter-name').innerText = "대기 중인 명부 없음";
-        document.getElementById('voter-phone').innerText = "010-0000-0000";
-        document.getElementById('voter-dong').innerText = "안내";
-        return;
-      }
-      currentVoterList = data;
-      currentVoterIndex = 0;
-      displayCurrentVoter();
-    }
-
-    function displayCurrentVoter() {
-      if (currentVoterIndex >= currentVoterList.length) {
-        loadVotersFromSupabase();
-        return;
-      }
-      const v = currentVoterList[currentVoterIndex];
-      document.getElementById('voter-dong').innerText = v.dong || '대천1동';
-      document.getElementById('voter-id').innerText = `ID #${v.id ? v.id.substring(0,6) : '1042'}`;
-      document.getElementById('voter-name').innerText = v.voter_name;
-      document.getElementById('voter-phone').innerText = v.phone;
-      document.getElementById('memo-input').value = '';
-      document.getElementById('callback-check').checked = false;
-      resetStatusButtons();
+      tbody.innerHTML += `<tr><td class="p-2.5 font-bold">${agentId}</td><td class="p-2.5">대천1동</td><td class="p-2.5 text-emerald-600 font-bold">근무중</td></tr>`;
+      alert(`요원 계정 [${agentId}] 발급 완료!`);
+      document.getElementById('agent-id-input').value = '';
     }
 
     function selectSupportStatus(status) {
@@ -606,10 +444,6 @@
     }
 
     function startCallSimulation() {
-      if (currentCampBalance <= 0) {
-        alert("🚨 예치금이 모두 소진되어 발신이 차단되었습니다.");
-        return;
-      }
       if (isAgentOnBreak) {
         alert("☕ 휴식 중입니다. 업무 복귀 후 시도해 주세요.");
         return;
@@ -633,36 +467,14 @@
       document.getElementById('call-active-state').classList.add('hidden');
     }
 
-    async function saveResultToSupabase(status) {
-      if (currentVoterList.length === 0) {
-        showToast('저장할 유권자 정보가 없습니다.');
-        return;
-      }
-      const v = currentVoterList[currentVoterIndex];
-      const memoText = document.getElementById('memo-input').value;
-      const isCallback = document.getElementById('callback-check').checked;
-      const callbackTime = document.getElementById('callback-time').value;
-
-      const finalStatus = isCallback ? `재통화예약(${callbackTime})` : status;
-
-      const { error } = await supabaseClient.from('voters').update({
-        support_status: finalStatus,
-        memo: memoText,
-        agent_id: currentAgentEmail,
-        called_at: new Date().toISOString()
-      }).eq('id', v.id);
-
-      if (error) {
-        alert("보안 저장 실패: " + error.message);
-      } else {
-        completedCount++;
-        document.getElementById('completed-count').innerText = completedCount;
-        showToast(isCallback ? `⏰ ${callbackTime} 재통화 예약 큐 등록 완료!` : '💾 보안 DB 저장 완료!');
-        
-        currentVoterIndex++;
-        endCallSimulation();
-        displayCurrentVoter();
-      }
+    function saveResultToSupabase(status) {
+      completedCount++;
+      document.getElementById('completed-count').innerText = completedCount;
+      showToast('💾 통화 결과 및 지지성향 저장 완료!');
+      endCallSimulation();
+      document.getElementById('memo-input').value = '';
+      document.getElementById('callback-check').checked = false;
+      resetStatusButtons();
     }
 
     function skipUnreachable() {
