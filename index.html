@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- ==================== 1. 최고관리자 관제 대시보드 (잔여 예치금 표기 완비) ==================== -->
+  <!-- ==================== 1. 최고관리자 관제 대시보드 ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -194,7 +194,7 @@
     </div>
   </div>
 
-  <!-- ==================== 2. 캠프관리자 화면 ==================== -->
+  <!-- ==================== 2. 캠프관리자 화면 (모든 실무 설정 패널 완전 복원) ==================== -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -207,8 +207,11 @@
       <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">로그아웃</button>
     </header>
 
+    <!-- 상황실 설정 탭 메인 (완전 복원된 설정 컨트롤러들) -->
     <main id="admin-pane-config" class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto">
       <div class="col-span-2 space-y-6">
+        
+        <!-- 1. 전체 전화 일괄 제어 스위치 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div>
             <h3 class="text-base font-bold text-slate-900 mb-1">🚨 캠프 전체 전화 홍보 업무 일괄 제어</h3>
@@ -220,6 +223,7 @@
           </div>
         </div>
 
+        <!-- 2. 유권자 명부 대량 업로드 및 표준 템플릿 다운로드 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-3">
             <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 대량 업로드 (CSV)</h3>
@@ -234,13 +238,35 @@
           <div id="upload-status" class="text-xs font-bold text-emerald-600 mt-3"></div>
         </div>
 
+        <!-- 3. 전화홍보 스크립트 실시간 배포 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">📝 전화홍보 스크립트 및 공약 가이드 등록</h3>
           <textarea id="admin-script-input" rows="3" class="w-full p-3 border border-slate-200 rounded-xl text-xs bg-slate-50 mb-3" placeholder="예: 안녕하십니까, 기호 1번 후보 자원봉사자입니다..."></textarea>
           <button onclick="saveAdminScript()" class="px-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl">전체 태블릿 요원 화면에 스크립트 배포</button>
         </div>
+
+        <!-- 4. 태블릿 오토다이얼 설정 -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 mb-2">⚙️ 태블릿 요원 오토다이얼 및 대기시간 설정</h3>
+          <div class="grid grid-cols-2 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">연결 방식</label>
+              <select id="setting-dial-mode" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold">
+                <option value="manual">수동 전환</option>
+                <option value="auto">자동 전환 (오토다이얼)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">대기 시간 (초)</label>
+              <input type="number" id="setting-wait-secs" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold" value="3" min="1" max="15">
+            </div>
+          </div>
+          <button onclick="saveDialSettings()" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl">설정 배포</button>
+        </div>
+
       </div>
 
+      <!-- 우측 패널 (비밀번호 변경, 예치금 충전, 요원 계정 발급) -->
       <div class="space-y-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2"><i class="fa-solid fa-key mr-1 text-blue-600"></i> 상황실 관리자 비밀번호 변경</h3>
@@ -288,6 +314,7 @@
       </div>
     </main>
 
+    <!-- 상황실 관제 탭 (통화 기록 및 녹음 청취) -->
     <main id="admin-pane-logs" class="hidden flex-1 p-6 overflow-y-auto bg-white m-5 rounded-2xl border border-slate-200 shadow-sm space-y-6">
       <div class="flex justify-between items-center">
         <div>
@@ -496,7 +523,38 @@
       window.location.href = window.location.pathname;
     }
 
-    // --- 캠프명 클릭 시 상세 모달 (잔여 예치금 포함) ---
+    // --- 캠프 상황실 설정 컨트롤러 함수들 ---
+    function saveAdminScript() {
+      const text = document.getElementById('admin-script-input').value.trim();
+      if (!text) { alert("스크립트 내용을 입력하세요."); return; }
+      localStorage.setItem('easycall_current_script', text);
+      document.getElementById('agent-script-display').innerText = `"${text}"`;
+      alert("✅ 전화홍보 스크립트가 모든 태블릿 요원 화면에 실시간 배포되었습니다!");
+    }
+
+    function saveDialSettings() {
+      const mode = document.getElementById('setting-dial-mode').value;
+      const secs = document.getElementById('setting-wait-secs').value;
+      localStorage.setItem('easycall_dial_mode', mode);
+      localStorage.setItem('easycall_wait_secs', secs);
+      alert(`✅ 오토다이얼 설정 배포 완료 (${mode === 'auto' ? secs+'초 대기 자동' : '수동'})`);
+    }
+
+    function toggleCampGlobalCalling() {
+      isCampGlobalStopped = !isCampGlobalStopped;
+      const badge = document.getElementById('camp-global-status-badge');
+      const btn = document.getElementById('btn-toggle-camp-call');
+      if (isCampGlobalStopped) {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800";
+        badge.innerText = "전화 업무 일괄 중지됨 🛑";
+        btn.innerText = "전체 전화 시작 (재개)";
+      } else {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800";
+        badge.innerText = "전화 업무 진행 중 🟢";
+        btn.innerText = "전체 전화 중지";
+      }
+    }
+
     function openCampDetailModal(campName, campId, managerName, managerPhone, managerEmail, period, tablets, fee, balance) {
       document.getElementById('modal-camp-title').innerText = campName;
       document.getElementById('modal-camp-id').innerText = campId;
@@ -703,7 +761,7 @@
     }
 
     function endCallSimulation() {
-      document.getElementById('call-idle-state').classList.add('hidden');
+      document.getElementById('call-idle-state').classList.remove('hidden');
       document.getElementById('call-active-state').classList.add('hidden');
     }
 
