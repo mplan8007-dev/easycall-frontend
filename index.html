@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- ==================== 1. 최고관리자 관제 대시보드 ==================== -->
+  <!-- ==================== 1. 최고관리자 관제 대시보드 (캠프명 클릭 상세조회 및 요금 관제) ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -83,20 +83,25 @@
       <div class="grid grid-cols-3 gap-6">
         <div class="col-span-2 space-y-6">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 class="text-base font-bold text-indigo-300 mb-4">📋 전체 선거 캠프 라이선스 및 비밀번호 초기화 관제</h3>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스 및 전화 요금 과금 관제</h3>
+              <span class="text-xs text-slate-400">💡 캠프명을 클릭하면 상세 정보 및 요금 내역을 조회할 수 있습니다.</span>
+            </div>
             <table class="w-full text-left text-sm">
               <thead class="text-slate-400 border-b border-slate-800">
-                <tr><th class="pb-3">캠프명</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">상태</th><th class="pb-3">마스터 제어</th></tr>
+                <tr><th class="pb-3">캠프명 (클릭 시 상세)</th><th class="pb-3">관리자 ID</th><th class="pb-3">태블릿 대수</th><th class="pb-3">누적 전화 요금</th><th class="pb-3">상태</th><th class="pb-3">마스터 제어</th></tr>
               </thead>
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
                 <tr>
-                  <td class="py-3 font-bold">보령시·서천군 선거캠프</td>
+                  <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원')">
+                    보령시·서천군 선거캠프 🔍
+                  </td>
                   <td class="py-3 font-mono text-xs">camp01</td>
                   <td class="py-3 font-mono">15대</td>
+                  <td class="py-3 font-mono text-amber-400 font-bold">350,000원</td>
                   <td class="py-3"><span id="camp-status-badge-1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
                   <td class="py-3 flex gap-1.5">
                     <button onclick="masterResetCampPw('camp01')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold">비번초기화</button>
-                    <button onclick="approveCampCharge(this)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-[11px] font-bold">충전승인</button>
                     <button id="btn-toggle-approval-1" onclick="toggleCampApproval(1)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[11px] font-bold">중지</button>
                   </td>
                 </tr>
@@ -106,36 +111,83 @@
         </div>
 
         <div class="space-y-6 flex flex-col justify-between">
+          <!-- 신규 캠프 개설 패널 (담당자 정보 및 서비스 기간 입력 추가) -->
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 class="text-base font-bold text-indigo-300 mb-4">➕ 신규 캠프 개설 및 자동 승인</h3>
-            <div class="space-y-3">
-              <div><label class="block text-xs text-slate-400 mb-1">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white" placeholder="홍성군 캠프"></div>
-              <div>
-                <label class="block text-xs text-slate-400 mb-1">관리자 아이디</label>
-                <div class="flex gap-2">
-                  <input type="text" id="new-camp-admin" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white" placeholder="camp02">
-                  <button onclick="checkCampIdDuplicate()" class="px-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold text-xs rounded-xl border border-slate-700 transition">중복확인</button>
+            <h3 class="text-base font-bold text-indigo-300 mb-3">➕ 신규 캠프 개설 및 계약 등록</h3>
+            <div class="space-y-2.5">
+              <div><label class="block text-[11px] text-slate-400 mb-0.5">캠프명</label><input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="홍성군 선거캠프"></div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-0.5">관리자 ID</label>
+                  <input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="camp02">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-0.5">비밀번호</label>
+                  <input type="text" id="new-camp-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" value="1234">
                 </div>
               </div>
-              <div><label class="block text-xs text-slate-400 mb-1">관리자 비밀번호</label><input type="text" id="new-camp-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-mono" value="1234"></div>
-              <div><label class="block text-xs text-slate-400 mb-1">태블릿 대수</label><input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white" value="15"></div>
-              <div><label class="block text-xs text-slate-400 mb-1">초기 예치금</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white" value="100000"></div>
+              <div class="grid grid-cols-2 gap-2">
+                <div><label class="block text-[11px] text-slate-400 mb-0.5">담당자 성명</label><input type="text" id="new-camp-manager" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="홍길동"></div>
+                <div><label class="block text-[11px] text-slate-400 mb-0.5">담당자 연락처</label><input type="text" id="new-camp-phone" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" placeholder="010-0000-0000"></div>
+              </div>
+              <div><label class="block text-[11px] text-slate-400 mb-0.5">담당자 이메일</label><input type="email" id="new-camp-email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="admin@camp.com"></div>
+              <div class="grid grid-cols-2 gap-2">
+                <div><label class="block text-[11px] text-slate-400 mb-0.5">서비스 시작일</label><input type="date" id="new-camp-start" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="2026-05-01"></div>
+                <div><label class="block text-[11px] text-slate-400 mb-0.5">서비스 종료일</label><input type="date" id="new-camp-end" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="2026-06-03"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div><label class="block text-[11px] text-slate-400 mb-0.5">태블릿 대수</label><input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="15"></div>
+                <div><label class="block text-[11px] text-slate-400 mb-0.5">초기 예치금</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="500000"></div>
+              </div>
             </div>
-            <button onclick="registerNewCampByMaster()" class="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">신규 캠프 개설 및 사용 승인</button>
+            <button onclick="registerNewCampByMaster()" class="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">신규 캠프 개설 승인</button>
           </div>
 
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 class="text-base font-bold text-indigo-300 mb-3"><i class="fa-solid fa-university mr-1"></i> 본사 입금 계좌 관리</h3>
-            <div class="space-y-3">
-              <div><label class="block text-xs text-slate-400 mb-1">은행명</label><input type="text" id="master-bank-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold" value="국민은행"></div>
-              <div><label class="block text-xs text-slate-400 mb-1">계좌번호</label><input type="text" id="master-bank-account" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-mono font-bold" value="123-456-789012"></div>
-              <div><label class="block text-xs text-slate-400 mb-1">예금주명</label><input type="text" id="master-bank-holder" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-bold" value="(주)이지콜"></div>
+            <div class="space-y-2.5">
+              <div><label class="block text-[11px] text-slate-400 mb-0.5">은행명</label><input type="text" id="master-bank-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-bold" value="국민은행"></div>
+              <div><label class="block text-[11px] text-slate-400 mb-0.5">계좌번호</label><input type="text" id="master-bank-account" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono font-bold" value="123-456-789012"></div>
+              <div><label class="block text-[11px] text-slate-400 mb-0.5">예금주명</label><input type="text" id="master-bank-holder" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-bold" value="(주)이지콜"></div>
             </div>
-            <button onclick="saveMasterBankInfo()" class="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">계좌 정보 실시간 배포</button>
+            <button onclick="saveMasterBankInfo()" class="w-full mt-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">계좌 정보 배포</button>
           </div>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- ==================== 캠프 상세 정보 및 요금 모달 (팝업) ==================== -->
+  <div id="camp-detail-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-slate-900 border border-slate-800 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
+      <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+        <h3 id="modal-camp-title" class="text-lg font-extrabold text-indigo-400">캠프 상세 정보</h3>
+        <button onclick="closeCampDetailModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3.5 text-sm">
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">관리자 아이디</span>
+          <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">담당자 (연락처 / 이메일)</span>
+          <span id="modal-camp-manager" class="font-bold text-white">김철수 (010-9999-8888)</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">계약 서비스 기간</span>
+          <span id="modal-camp-period" class="font-mono font-bold text-emerald-400">2026-04-01 ~ 2026-06-03</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">할당 태블릿 라이선스</span>
+          <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">누적 전화 통화 요금 (과금)</span>
+          <span id="modal-camp-fee" class="font-mono font-black text-amber-400 text-base">350,000원</span>
+        </div>
+      </div>
+      <button onclick="closeCampDetailModal()" class="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">확인 완료</button>
+    </div>
   </div>
 
   <!-- ==================== 2. 캠프관리자 화면 ==================== -->
@@ -188,15 +240,12 @@
       <div class="space-y-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2"><i class="fa-solid fa-key mr-1 text-blue-600"></i> 상황실 관리자 비밀번호 변경</h3>
-          <p class="text-xs text-slate-500 mb-3">현재 계정의 보안 비밀번호를 새롭게 변경합니다.</p>
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">새로운 비밀번호</label>
               <input type="password" id="admin-new-pw" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900" placeholder="새 비밀번호 입력">
             </div>
-            <button onclick="changeAdminPassword()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-sm">
-              비밀번호 변경 저장
-            </button>
+            <button onclick="changeAdminPassword()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-sm">비밀번호 변경 저장</button>
           </div>
         </div>
 
@@ -213,9 +262,7 @@
                 <option value="1000000">1,000,000원 (100만 원)</option>
               </select>
             </div>
-            <button onclick="requestBankTransferCustom()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-sm">
-              선택한 금액 계좌이체 충전 신청하기
-            </button>
+            <button onclick="requestBankTransferCustom()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-sm">선택한 금액 계좌이체 충전 신청하기</button>
           </div>
         </div>
 
@@ -258,7 +305,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (상세 다이얼러 및 성향 태그 UI 복원) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -283,7 +330,6 @@
       </div>
     </header>
 
-    <!-- 요원 탭 1: 상세 다이얼러 메인 -->
     <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
       <section class="w-[40%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
@@ -302,83 +348,34 @@
               </button>
             </div>
             <div id="call-active-state" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
-              <div class="flex items-center justify-center gap-2 mb-2">
-                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse-red"></span>
-                <span class="text-emerald-800 font-bold text-base">🎙 보안 통화 중...</span>
-                <span class="font-mono font-extrabold text-emerald-900 text-lg ml-1" id="call-timer">00:00</span>
-              </div>
-              <button onclick="endCallSimulation()" class="w-full py-2.5 bg-red-500 text-white font-bold text-sm rounded-lg">통화 종료</button>
+              <span class="text-emerald-800 font-bold text-base">🎙 보안 통화 중...</span>
+              <button onclick="endCallSimulation()" class="w-full mt-2 py-2.5 bg-red-500 text-white font-bold text-sm rounded-lg">통화 종료</button>
             </div>
           </div>
-        </div>
-        <div class="pt-4 border-t border-slate-100">
-          <button onclick="skipUnreachable()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-forward-step text-slate-500"></i><span>부재중 / 미응답 (다음 유권자 전환)</span>
-          </button>
         </div>
       </section>
-
-      <section class="w-[60%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm custom-scrollbar overflow-y-auto">
+      <section class="w-[60%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm">
         <div class="space-y-4">
           <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-extrabold text-indigo-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-bullhorn text-indigo-500"></i> 상황실 실시간 공약 및 전화 가이드
-              </span>
-            </div>
-            <p id="agent-script-display" class="text-xs text-indigo-950 font-medium leading-relaxed">
-              "안녕하십니까! 기호 1번 선거 캠프 자원봉사자입니다. 금일 보령·서천 해양 관광단지 조성 공약에 대해 설명드리고자 전화드렸습니다."
-            </p>
+            <p id="agent-script-display" class="text-xs text-indigo-950 font-medium">캠프 공약 가이드...</p>
           </div>
-
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 mb-2">지지 성향 및 선거 실무 세분화 태그</h3>
-            <div class="grid grid-cols-2 gap-2.5" id="status-grid">
-              <button onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">👍 적극 지지</button>
-              <button onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">😊 우호 / 호의</button>
-              <button onclick="selectSupportStatus('VOLUNTEER')" id="btn-status-VOLUNTEER" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">🙋 자원봉사 희망</button>
-              <button onclick="selectSupportStatus('OPPOSE')" id="btn-status-OPPOSE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">👎 비지지 / 거부</button>
-            </div>
+          <div class="grid grid-cols-2 gap-2.5" id="status-grid">
+            <button onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">👍 적극 지지</button>
+            <button onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition">😊 우호 / 호의</button>
           </div>
-
-          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <input type="checkbox" id="callback-check" class="w-4 h-4 text-blue-600 rounded border-slate-300">
-              <label for="callback-check" class="text-xs font-bold text-blue-900 cursor-pointer">⏰ 재통화 예약 큐 등록 (타임라인 알림)</label>
-            </div>
-            <input type="time" id="callback-time" class="bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-xs text-blue-900 font-bold" value="19:00">
-          </div>
-
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 mb-1">상세 통화 메모</h3>
-            <textarea id="memo-input" rows="2" placeholder="유권자 요구사항 및 특이사항 입력..." class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-slate-50/50"></textarea>
-          </div>
+          <textarea id="memo-input" rows="2" placeholder="통화 메모 입력..." class="w-full p-2.5 border border-slate-200 rounded-xl text-xs"></textarea>
         </div>
-
-        <div class="flex gap-3 pt-3 border-t border-slate-100">
-          <button onclick="saveResultToSupabase('수신거부')" class="w-[35%] py-3.5 bg-slate-700 text-white font-bold text-xs rounded-xl">🚫 수신거부</button>
-          <button id="btn-save-next" onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition">
-            💾 저장 후 다음 유권자 ➔
-          </button>
-        </div>
+        <button id="btn-save-next" onclick="saveResultToSupabase('무응답')" class="w-full py-3.5 bg-emerald-600 text-white font-bold text-sm rounded-xl">💾 저장 후 다음 유권자 ➔</button>
       </section>
     </main>
 
-    <!-- 요원 탭 2: 내 통화 이력 -->
     <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-white m-5 rounded-2xl border border-slate-200 shadow-sm">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-lg font-extrabold text-slate-900">📋 내가 수행한 전화홍보 이력 및 성과 리스트</h2>
-          <p class="text-xs text-slate-500">오늘 금일 통화 완료된 유권자 목록과 부여된 성향 태그, 메모를 실시간으로 조회합니다.</p>
-        </div>
-      </div>
+      <h2 class="text-lg font-extrabold text-slate-900 mb-4">📋 내 통화 이력</h2>
       <table class="w-full text-left text-xs">
         <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
-          <tr><th class="p-3">순번</th><th class="p-3">유권자명</th><th class="p-3">연락처</th><th class="p-3">구역</th><th class="p-3">성향 태그</th><th class="p-3">메모</th><th class="p-3">시간</th></tr>
+          <tr><th class="p-3">순번</th><th class="p-3">유권자명</th><th class="p-3">연락처</th><th class="p-3">성향</th><th class="p-3">시간</th></tr>
         </thead>
-        <tbody id="agent-history-tbody" class="divide-y divide-slate-100">
-          <tr><td colspan="7" class="py-8 text-center text-slate-400">아직 통화 이력이 없습니다.</td></tr>
-        </tbody>
+        <tbody id="agent-history-tbody"></tbody>
       </table>
     </main>
   </div>
@@ -394,14 +391,12 @@
     let isAgentOnBreak = false;
     let isCampGlobalStopped = false;
     let callTimerInterval = null;
-    let callSeconds = 0;
     let currentAgentId = 'agent01';
     let currentAdminId = 'camp01';
     
     const sampleVoters = [
       { name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", id: "1042" },
-      { name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", id: "1043" },
-      { name: "박민수 유권자", phone: "010-5555-4444", dong: "오천면", id: "1044" }
+      { name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", id: "1043" }
     ];
     let currentVoterIdx = 0;
     let globalCampCallLogs = [];
@@ -439,11 +434,6 @@
           document.getElementById('agent-display-id').innerText = currentAgentId;
           loadNextVoter();
         }
-      }
-
-      const savedScript = localStorage.getItem('easycall_current_script');
-      if (savedScript) {
-        document.getElementById('agent-script-display').innerText = `"${savedScript}"`;
       }
     };
 
@@ -497,16 +487,22 @@
       window.location.href = window.location.pathname;
     }
 
-    function checkCampIdDuplicate() {
-      const adminId = document.getElementById('new-camp-admin').value.trim().toLowerCase();
-      if (!adminId) { alert("중복 확인할 관리자 아이디를 입력해 주세요."); return; }
-      const existingPw = localStorage.getItem(`pw_${adminId}`);
-      if (existingPw || adminId === 'super' || adminId === 'camp01') {
-        alert(`❌ [중복] '${adminId}'은(는) 이미 사용 중이거나 시스템 예약된 아이디입니다.`);
-        document.getElementById('new-camp-admin').value = '';
-      } else {
-        alert(`✅ [사용 가능] '${adminId}'은(는) 사용하실 수 있습니다.`);
-      }
+    // --- [신규 기능] 캠프명 클릭 시 상세 모달 오픈 ---
+    function openCampDetailModal(campName, campId, managerName, managerPhone, managerEmail, period, tablets, fee) {
+      document.getElementById('modal-camp-title').innerText = campName;
+      document.getElementById('modal-camp-id').innerText = campId;
+      document.getElementById('modal-camp-manager').innerText = `${managerName} (${managerPhone} / ${managerEmail})`;
+      document.getElementById('modal-camp-period').innerText = period;
+      document.getElementById('modal-camp-tablet').innerText = tablets;
+      document.getElementById('modal-camp-fee').innerText = fee;
+      
+      document.getElementById('camp-detail-modal').classList.remove('hidden');
+      document.getElementById('camp-detail-modal').classList.add('flex');
+    }
+
+    function closeCampDetailModal() {
+      document.getElementById('camp-detail-modal').classList.remove('flex');
+      document.getElementById('camp-detail-modal').classList.add('hidden');
     }
 
     function masterResetCampPw(campId) {
@@ -531,14 +527,25 @@
       window.location.reload();
     }
 
+    // --- [확장] 신규 캠프 개설 시 담당자 및 서비스 기간 반영 ---
     function registerNewCampByMaster() {
       const name = document.getElementById('new-camp-name').value.trim();
       const admin = document.getElementById('new-camp-admin').value.trim().toLowerCase();
       const pw = document.getElementById('new-camp-pw').value.trim() || '1234';
-      if (!name || !admin) { alert("캠프명과 관리자 아이디를 입력하세요."); return; }
+      const manager = document.getElementById('new-camp-manager').value.trim();
+      const phone = document.getElementById('new-camp-phone').value.trim();
+      const email = document.getElementById('new-camp-email').value.trim();
+      const start = document.getElementById('new-camp-start').value;
+      const end = document.getElementById('new-camp-end').value;
+      const limit = document.getElementById('new-camp-limit').value;
+
+      if (!name || !admin || !manager) { alert("캠프명, 관리자 아이디, 담당자 성명은 필수 입력입니다."); return; }
+
       localStorage.setItem(`pw_${admin}`, pw);
       localStorage.setItem(`camp_${admin}_approved`, 'true');
-      alert(`🎉 신규 캠프 [${name}] 개설 완료!\n- 아이디: ${admin} / 비번: ${pw}`);
+
+      alert(`🎉 신규 캠프 [${name}] 개설 및 계약 등록 완료!\n- 관리자 ID: ${admin} (비번: ${pw})\n- 담당자: ${manager} (${phone})\n- 서비스 기간: ${start} ~ ${end}`);
+      window.location.reload();
     }
 
     function saveMasterBankInfo() {
