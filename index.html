@@ -48,7 +48,7 @@
   </div>
 
   <!-- ==================== 1. 최고관리자 관제 대시보드 ==================== -->
-  <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100">
+  <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100 relative">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <h1 class="text-lg font-bold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (엔터프라이즈 마스터)</h1>
@@ -176,46 +176,46 @@
         </div>
       </div>
     </main>
-  </div>
 
-  <!-- ==================== 캠프 상세 정보 모달 ==================== -->
-  <div id="camp-detail-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 items-center justify-center">
-    <div class="bg-slate-900 border border-slate-800 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
-      <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
-        <h3 id="modal-camp-title" class="text-lg font-extrabold text-indigo-400">캠프 상세 정보</h3>
-        <button onclick="closeCampDetailModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
+    <!-- ==================== 캠프 상세 정보 모달 (최고관리자 뷰 내부로 이동하여 렌더링 보장) ==================== -->
+    <div id="camp-detail-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden z-50 items-center justify-center">
+      <div class="bg-slate-900 border border-slate-800 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+          <h3 id="modal-camp-title" class="text-lg font-extrabold text-indigo-400">캠프 상세 정보</h3>
+          <button onclick="closeCampDetailModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-3.5 text-sm">
+          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400">관할 지역</span>
+            <span id="modal-camp-region" class="font-bold text-indigo-300">충청남도 보령시</span>
+          </div>
+          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400">본사 담당 직원 (CS)</span>
+            <span id="modal-camp-staff" class="font-bold text-amber-300">김본사 팀장</span>
+          </div>
+          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400">관리자 아이디</span>
+            <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
+          </div>
+          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400">캠프 담당자 (연락처 / 이메일)</span>
+            <span id="modal-camp-manager" class="font-bold text-white">김철수 (010-9999-8888)</span>
+          </div>
+          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400">계약 서비스 기간</span>
+            <span id="modal-camp-period" class="font-mono font-bold text-emerald-400">2026-04-01 ~ 2026-06-03</span>
+          </div>
+          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400">할당 태블릿 라이선스</span>
+            <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
+          </div>
+          <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
+            <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
+            <span id="modal-camp-balance" class="font-mono font-black text-amber-400 text-base">150,000원</span>
+          </div>
+        </div>
+        <button onclick="closeCampDetailModal()" class="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">확인 완료</button>
       </div>
-      <div class="space-y-3.5 text-sm">
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">관할 지역</span>
-          <span id="modal-camp-region" class="font-bold text-indigo-300">충청남도 보령시</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">본사 담당 직원 (CS)</span>
-          <span id="modal-camp-staff" class="font-bold text-amber-300">김본사 팀장</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">관리자 아이디</span>
-          <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">캠프 담당자 (연락처 / 이메일)</span>
-          <span id="modal-camp-manager" class="font-bold text-white">김철수 (010-9999-8888)</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">계약 서비스 기간</span>
-          <span id="modal-camp-period" class="font-mono font-bold text-emerald-400">2026-04-01 ~ 2026-06-03</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">할당 태블릿 라이선스</span>
-          <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
-          <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
-          <span id="modal-camp-balance" class="font-mono font-black text-amber-400 text-base">150,000원</span>
-        </div>
-      </div>
-      <button onclick="closeCampDetailModal()" class="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">확인 완료</button>
     </div>
   </div>
 
