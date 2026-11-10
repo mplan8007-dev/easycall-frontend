@@ -206,7 +206,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (동적 버튼 텍스트 완비) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (내 통화 이력 보기 탭 추가) ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -214,6 +214,12 @@
         <div><h1 class="text-lg font-extrabold text-slate-900 tracking-tight">선거 전화홍보 시스템 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 font-semibold">태블릿 워크스페이스</span></h1></div>
       </div>
       <div class="flex items-center gap-3">
+        <!-- 탭 전환 버튼 (콜투어 / 내 통화 이력) -->
+        <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+          <button id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition">전화 다이얼러</button>
+          <button id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">내 통화 이력 및 실적</button>
+        </div>
+
         <button id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식/업무 중지</span>
         </button>
@@ -223,12 +229,12 @@
         <div class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
           <span>오늘 완료: <strong id="completed-count">0</strong>건</span>
         </div>
-        <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition">로그아웃</button>
+        <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">로그아웃</button>
       </div>
     </header>
 
-    <main class="flex-1 flex gap-5 p-5 overflow-hidden">
-      <!-- 좌측: 유권자 프로필 및 통화 제어 -->
+    <!-- [탭 1] 다이얼러 메인 화면 -->
+    <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
       <section class="w-[40%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
           <div class="flex justify-between items-center mb-4">
@@ -262,10 +268,8 @@
         </div>
       </section>
 
-      <!-- 우측: 실시간 상황실 스크립트 연동 & 지지 성향 태그 -->
       <section class="w-[60%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm custom-scrollbar overflow-y-auto">
         <div class="space-y-4">
-          
           <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-extrabold text-indigo-700 flex items-center gap-1.5">
@@ -303,12 +307,45 @@
 
         <div class="flex gap-3 pt-3 border-t border-slate-100">
           <button onclick="saveResultToSupabase('수신거부')" class="w-[35%] py-3.5 bg-slate-700 text-white font-bold text-xs rounded-xl">🚫 수신거부</button>
-          <!-- 상황실 설정에 따라 텍스트가 동적으로 변경되는 저장 버튼 -->
           <button id="btn-save-next" onclick="saveResultToSupabase(selectedStatus || '무응답')" class="w-[65%] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition">
             💾 저장 후 다음 유권자 ➔
           </button>
         </div>
       </section>
+    </main>
+
+    <!-- [탭 2] 내 통화 이력 및 실적 조회 화면 (신규 추가) -->
+    <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-white m-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">📋 내가 수행한 전화홍보 이력 및 성과 리스트</h2>
+          <p class="text-xs text-slate-500">오늘 금일 통화 완료된 유권자 목록과 부여된 성향 태그, 메모를 실시간으로 조회합니다.</p>
+        </div>
+        <div class="flex gap-3">
+          <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-900">
+            총 통화: <span id="history-total-count" class="text-blue-600 font-mono text-sm">0건</span>
+          </div>
+          <div class="px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-900">
+            적극지지 확보: <span id="history-support-count" class="text-emerald-600 font-mono text-sm">0건</span>
+          </div>
+        </div>
+      </div>
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
+          <tr>
+            <th class="p-3">순번</th>
+            <th class="p-3">유권자명</th>
+            <th class="p-3">연락처</th>
+            <th class="p-3">구역 (동)</th>
+            <th class="p-3">판정 성향 태그</th>
+            <th class="p-3">통화 메모</th>
+            <th class="p-3">완료 시간</th>
+          </tr>
+        </thead>
+        <tbody id="agent-history-tbody" class="divide-y divide-slate-100">
+          <tr><td colspan="7" class="py-8 text-center text-slate-400">아직 통화 완료된 이력이 없습니다. 다이얼러에서 전화를 진행해 주세요.</td></tr>
+        </tbody>
+      </table>
     </main>
   </div>
 
@@ -332,6 +369,9 @@
       { name: "이지은 유권자", phone: "010-7777-8888", dong: "주포면", id: "1045" }
     ];
     let currentVoterIdx = 0;
+    
+    // 요원 개인별 통화 이력 저장 배열
+    let agentCallHistory = [];
 
     window.onload = function() {
       const savedRole = localStorage.getItem('easycall_role');
@@ -343,7 +383,6 @@
           document.getElementById('super-view').classList.remove('hidden');
         } else if (savedRole === 'admin') {
           document.getElementById('admin-view').classList.remove('hidden');
-          // 관리자 화면 설정값 복원
           const savedMode = localStorage.getItem('easycall_dial_mode');
           const savedWait = localStorage.getItem('easycall_wait_secs');
           if (savedMode) document.getElementById('setting-dial-mode').value = savedMode;
@@ -395,6 +434,62 @@
       window.location.href = window.location.pathname;
     }
 
+    // --- 홍보요원 화면 탭 전환 함수 (다이얼러 <-> 통화 이력) ---
+    function switchAgentTab(tabName) {
+      const dialerTab = document.getElementById('agent-tab-dialer');
+      const historyTab = document.getElementById('agent-tab-history');
+      const dialerBtn = document.getElementById('tab-dialer-btn');
+      const historyBtn = document.getElementById('tab-history-btn');
+
+      if (tabName === 'dialer') {
+        dialerTab.classList.remove('hidden');
+        historyTab.classList.add('hidden');
+        dialerBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
+        historyBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      } else {
+        dialerTab.classList.add('hidden');
+        historyTab.classList.remove('hidden');
+        historyBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
+        dialerBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+        renderAgentHistoryTable();
+      }
+    }
+
+    function renderAgentHistoryTable() {
+      const tbody = document.getElementById('agent-history-tbody');
+      document.getElementById('history-total-count').innerText = agentCallHistory.length + '건';
+      
+      const supportCount = agentCallHistory.filter(h => h.status === 'SUPPORT').length;
+      document.getElementById('history-support-count').innerText = supportCount + '건';
+
+      if (agentCallHistory.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">아직 통화 완료된 이력이 없습니다. 다이얼러에서 전화를 진행해 주세요.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      agentCallHistory.forEach((h, idx) => {
+        let badgeColor = "bg-slate-100 text-slate-700";
+        let statusName = h.status;
+        if (h.status === 'SUPPORT') { badgeColor = "bg-emerald-100 text-emerald-800 font-bold"; statusName = "👍 적극 지지"; }
+        else if (h.status === 'FAVORABLE') { badgeColor = "bg-cyan-100 text-cyan-800"; statusName = "😊 우호/호의"; }
+        else if (h.status === 'VOLUNTEER') { badgeColor = "bg-purple-100 text-purple-800"; statusName = "🙋 자원봉사 희망"; }
+        else if (h.status === 'OPPOSE') { badgeColor = "bg-rose-100 text-rose-800"; statusName = "👎 비지지"; }
+        else if (h.status === '수신거부') { badgeColor = "bg-slate-800 text-white"; statusName = "🚫 수신거부"; }
+
+        html += `<tr>
+          <td class="p-3 font-mono font-bold">${idx + 1}</td>
+          <td class="p-3 font-bold">${h.voterName}</td>
+          <td class="p-3 font-mono">${h.voterPhone}</td>
+          <td class="p-3">${h.dong}</td>
+          <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[11px] ${badgeColor}">${statusName}</span></td>
+          <td class="p-3 text-slate-600">${h.memo || '(메모 없음)'}</td>
+          <td class="p-3 font-mono text-slate-400">${h.time}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
     function saveAdminScript() {
       const text = document.getElementById('admin-script-input').value.trim();
       if (!text) { alert("스크립트 내용을 입력하세요."); return; }
@@ -411,7 +506,6 @@
       alert(`✅ 오토다이얼 설정 배포 완료!\n- 방식: ${mode === 'auto' ? '자동 전환 ('+secs+'초 대기)' : '수동 전환'}`);
     }
 
-    // --- 상황실 모드에 따라 요원 화면의 버튼 텍스트를 실시간 동기화하는 함수 ---
     function updateAgentButtonTextPreview() {
       const mode = localStorage.getItem('easycall_dial_mode') || 'manual';
       const secs = localStorage.getItem('easycall_wait_secs') || '3';
@@ -467,7 +561,7 @@
       document.getElementById('voter-phone').innerText = v.phone;
       document.getElementById('voter-dong').innerText = v.dong;
       document.getElementById('voter-id').innerText = `ID #${v.id}`;
-      updateAgentButtonTextPreview(); // 뷰 갱신 시 버튼 텍스트 동기화
+      updateAgentButtonTextPreview();
     }
 
     function toggleAgentBreak() {
@@ -521,6 +615,20 @@
     }
 
     function saveResultToSupabase(status) {
+      const v = sampleVoters[currentVoterIdx];
+      const memoText = document.getElementById('memo-input').value;
+      const nowTime = new Date().toLocaleTimeString();
+
+      // 요원 개인 이력 배열에 현재 통화 결과 푸시
+      agentCallHistory.unshift({
+        voterName: v.name,
+        voterPhone: v.phone,
+        dong: v.dong,
+        status: status,
+        memo: memoText,
+        time: nowTime
+      });
+
       const currentCount = parseInt(document.getElementById('completed-count').innerText, 10) + 1;
       document.getElementById('completed-count').innerText = currentCount;
       
