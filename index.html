@@ -3,18 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>이지콜 (EasyCall) - 멀티테넌트 SaaS PDS 플랫폼</title>
+  <title>이지콜 (EasyCall) - 실시간 DB 연동 PDS 플랫폼</title>
   <!-- Supabase 라이브러리 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* 공통 레이아웃 */
     .hidden { display: none !important; }
-    .flex { display: flex; }
     
-    /* 로그인 화면 스타일 */
+    /* 로그인 화면 */
     #login-container { flex: 1; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); }
     .login-box { background: #1e293b; border: 1px solid #334155; padding: 40px; border-radius: 12px; width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
     .login-box h2 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 24px; text-align: center; }
@@ -34,25 +32,18 @@
     .app-body { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #f1f5f9; color: #1e293b; }
     .super-body { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #0f172a; color: #f8fafc; }
 
-    /* 카드 및 패널 */
     .card { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; }
     .card-dark { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; color: #f8fafc; }
     
-    /* 테이블 */
     .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
     .data-table th { color: #64748b; font-weight: 600; }
     .data-table-dark th, .data-table-dark td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; color: #f8fafc; }
-    
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-    .badge-우호 { background: #dcfce7; color: #15803d; }
-    .badge-부동 { background: #fef9c3; color: #854d0e; }
-    .badge-미분류 { background: #f1f5f9; color: #64748b; }
   </style>
 </head>
 <body>
 
-  <!-- ================= 1. 통합 로그인 화면 ================= -->
+  <!-- 1. 로그인 화면 -->
   <div id="login-container">
     <div class="login-box">
       <h2>이지콜 (EasyCall) 로그인</h2>
@@ -72,88 +63,59 @@
     </div>
   </div>
 
-  <!-- ================= 2. 슈퍼 관리자 (SaaS 본사) 화면 ================= -->
+  <!-- 2. 슈퍼 관리자 화면 -->
   <div id="view-super" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
     <header class="app-header" style="background: #1e1b4b; border-color: #312e81;">
       <div class="header-title"><span style="color: #818cf8;">🌐 이지콜 SaaS 플랫폼 본사 (슈퍼 관리자)</span></div>
       <div class="header-info">
-        <span>활성 캠프: <strong>1개</strong></span>
         <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
       </div>
     </header>
     <div class="super-body">
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-        <div class="card-dark">
-          <h3 style="color: #818cf8; margin-bottom: 16px;">📋 전체 선거 캠프 라이선스 현황</h3>
-          <table class="data-table-dark">
-            <thead>
-              <tr><th>캠프명</th><th>관리자 ID</th><th>허용 태블릿</th><th>상태</th><th>충전 잔액</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>보령시·서천군 선거캠프</strong></td><td>camp01</td><td>15대</td><td><span style="color:#34d399; font-weight:bold;">정상 이용중</span></td><td>45,536원</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="card-dark">
-          <h3 style="color: #818cf8; margin-bottom: 16px;">➕ 신규 캠프 승인 및 생성</h3>
-          <div class="form-group"><label>캠프명</label><input type="text" class="form-input" placeholder="홍성·예산 캠프"></div>
-          <div class="form-group"><label>관리자 ID</label><input type="text" class="form-input" placeholder="hongseong01"></div>
-          <div class="form-group"><label>태블릿 대수</label><input type="number" class="form-input" value="10"></div>
-          <button class="btn-primary" style="background: #4f46e5;" onclick="alert('신규 캠프가 승인되었습니다!')">캠프 생성 승인</button>
-        </div>
+      <div class="card-dark">
+        <h3 style="color: #818cf8; margin-bottom: 16px;">📋 Supabase 실시간 캠프 목록</h3>
+        <table class="data-table-dark">
+          <thead>
+            <tr><th>캠프명</th><th>관리자 ID</th><th>허용 태블릿</th><th>충전 잔액</th></tr>
+          </thead>
+          <tbody id="super-camps-body">
+            <tr><td colspan="4" style="text-align:center; color:#94a3b8;">데이터 로딩중...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= 3. 캠프 관리자 (상황실장) 화면 ================= -->
+  <!-- 3. 캠프 관리자 화면 -->
   <div id="view-admin" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
     <header class="app-header">
-      <div class="header-title"><span>📊 보령시·서천군 캠프 상황실 (관리자 대시보드)</span></div>
+      <div class="header-title"><span>📊 선거 캠프 상황실 (관리자 대시보드)</span></div>
       <div class="header-info">
         <span>접속자: <strong>상황실장</strong></span>
         <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
       </div>
     </header>
     <div class="app-body">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        
-        <!-- 엑셀 명부 업로드 카드 -->
-        <div class="card">
-          <h3 style="color: #2563eb; margin-bottom: 16px;">📥 엑셀(CSV) 유권자 명부 대량 업로드</h3>
-          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 14px;">
-            선거 명부 CSV 파일을 업로드하면 읍·면·동별로 자동 파싱되어 요원 태블릿 큐에 즉시 배포됩니다.
-          </p>
-          <div style="border: 2px dashed #cbd5e1; padding: 24px; text-align: center; border-radius: 8px; background: #f8fafc; margin-bottom: 14px;">
-            <input type="file" id="csv-file-input" accept=".csv" style="font-size: 0.9rem;" onchange="handleCsvUpload(event)">
-          </div>
-          <div id="upload-status" style="font-size: 0.85rem; font-weight: bold; color: #16a34a;"></div>
+      <div class="card">
+        <h3 style="color: #2563eb; margin-bottom: 16px;">📥 엑셀(CSV) 유권자 명부 대량 업로드 (DB 연동)</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 14px;">
+          CSV 파일을 업로드하면 Supabase <code>voters</code> 테이블에 실시간으로 적재됩니다.
+        </p>
+        <div style="border: 2px dashed #cbd5e1; padding: 24px; text-align: center; border-radius: 8px; background: #f8fafc; margin-bottom: 14px;">
+          <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUpload(event)">
         </div>
-
-        <!-- 실시간 요원 현황 -->
-        <div class="card">
-          <h3 style="color: #2563eb; margin-bottom: 16px;">👥 투입 요원(태블릿) 실시간 모니터링</h3>
-          <table class="data-table">
-            <thead>
-              <tr><th>요원 ID</th><th>담당 지역</th><th>상태</th><th>금일 완료</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>agent01 (김철민)</strong></td><td>대천1동</td><td><span style="color:#16a34a; font-weight:bold;">통화중</span></td><td>48건</td></tr>
-              <tr><td><strong>agent02 (박선영)</strong></td><td>대천2동</td><td><span style="color:#ca8a04; font-weight:bold;">후처리중</span></td><td>52건</td></tr>
-            </tbody>
-          </table>
-        </div>
-
+        <div id="upload-status" style="font-size: 0.85rem; font-weight: bold; color: #16a34a;"></div>
       </div>
     </div>
   </div>
 
-  <!-- ================= 4. 요원 발신 (태블릿) 화면 ================= -->
+  <!-- 4. 요원 발신 (태블릿) 화면 - DB 실시간 연동 -->
   <div id="view-agent" class="hidden" style="flex: 1; flex-direction: column; height: 100vh;">
     <header class="app-header">
-      <div class="header-title"><span>📱 이지콜 태블릿 요원 워크스페이스</span></div>
+      <div class="header-title"><span>📱 이지콜 태블릿 요원 워크스페이스 (Live DB)</span></div>
       <div class="header-info">
         <span>요원 ID: <strong id="agent-display-id">agent01</strong></span>
-        <span>오늘 성과: <strong id="completed-count">0</strong>건</span>
+        <span>오늘 완료: <strong id="completed-count">0</strong>건</span>
         <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
       </div>
     </header>
@@ -161,26 +123,27 @@
       
       <!-- 좌측 유권자 정보 -->
       <div class="card" style="flex: 4; display: flex; flex-direction: column;">
-        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;" id="v-dong">중앙동</div>
-        <h2 style="font-size: 2rem; color: #0f172a; margin-bottom: 8px;" id="v-name">김철수 선생님</h2>
+        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;" id="v-dong">불러오는 중...</div>
+        <h2 style="font-size: 2rem; color: #0f172a; margin-bottom: 8px;" id="v-name">대기 중</h2>
         <div style="background: #e0f2fe; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
           <span style="font-size: 0.8rem; color: #0369a1; display: block;">전화번호</span>
-          <strong style="font-size: 1.8rem; color: #0284c7;" id="v-phone">010-1234-5678</strong>
+          <strong style="font-size: 1.8rem; color: #0284c7;" id="v-phone">010-0000-0000</strong>
         </div>
-        <button class="btn-primary" style="padding: 16px; font-size: 1.2rem;" onclick="alert('📞 실제 통신사망 연결 시뮬레이션 중...')">전화 발신 시작</button>
+        <button class="btn-primary" style="padding: 16px; font-size: 1.2rem;" onclick="alert('📞 통화 연결 시뮬레이션')">전화 발신 시작</button>
       </div>
 
       <!-- 우측 성향 입력 패널 -->
       <div class="card" style="flex: 6; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
-          <h3 style="margin-bottom: 12px;">지지 성향 1-터치 판정</h3>
+          <h3 style="margin-bottom: 12px;">지지 성향 1-터치 판정 (DB 저장)</h3>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-            <button onclick="saveResult('우호')" style="padding: 16px; font-size: 1rem; font-weight: bold; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px; cursor: pointer;">👍 우호 / 지지</button>
-            <button onclick="saveResult('부동')" style="padding: 16px; font-size: 1rem; font-weight: bold; background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; border-radius: 8px; cursor: pointer;">😐 부동층 (고민)</button>
+            <button onclick="saveResultToSupabase('우호')" style="padding: 16px; font-size: 1rem; font-weight: bold; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px; cursor: pointer;">👍 우호 / 지지</button>
+            <button onclick="saveResultToSupabase('부동')" style="padding: 16px; font-size: 1rem; font-weight: bold; background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; border-radius: 8px; cursor: pointer;">😐 부동층 (고민)</button>
           </div>
+          <textarea id="v-memo" placeholder="상세 통화 메모를 입력하세요..." style="width:100%; height:80px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; resize:none;"></textarea>
         </div>
         <div>
-          <button class="btn-primary" style="background: #16a34a;" onclick="nextVoter()">💾 저장 후 다음 유권자 ➔</button>
+          <button class="btn-primary" style="background: #16a34a;" onclick="saveResultToSupabase('미분류 (무응답)')">💾 결과 저장 후 다음 유권자 ➔</button>
         </div>
       </div>
 
@@ -188,11 +151,19 @@
   </div>
 
   <script>
-    // --- 로그인 및 역할 분기 처리 로직 ---
-    function handleLogin() {
-      const id = document.getElementById('login-id').value.trim();
-      const pw = document.getElementById('login-pw').value.trim();
+    // --- Supabase 설정 ---
+    const SUPABASE_URL = 'https://odtyiuhjyvowikodcvym.supabase.co';
+    const SUPABASE_ANON_KEY = '여기에_퍼블리시블_키_입력'; // 본인 키 유지
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let currentVoterList = [];
+    let currentVoterIndex = 0;
+    let completedCount = 0;
+    let currentAgentId = 'agent01';
+
+    // --- 로그인 및 역할 분기 ---
+    async function handleLogin() {
+      const id = document.getElementById('login-id').value.trim();
       document.getElementById('login-container').classList.add('hidden');
       document.getElementById('view-super').classList.add('hidden');
       document.getElementById('view-admin').classList.add('hidden');
@@ -200,55 +171,110 @@
 
       if (id === 'super') {
         document.getElementById('view-super').classList.remove('hidden');
+        fetchSuperData();
       } else if (id === 'camp01') {
         document.getElementById('view-admin').classList.remove('hidden');
       } else {
-        // 기본 요원 로그인
+        currentAgentId = id || 'agent01';
         document.getElementById('view-agent').classList.remove('hidden');
-        document.getElementById('agent-display-id').innerText = id || 'agent01';
+        document.getElementById('agent-display-id').innerText = currentAgentId;
+        await loadVotersFromSupabase();
       }
     }
 
     function handleLogout() {
-      document.getElementById('view-super').classList.add('hidden');
-      document.getElementById('view-admin').classList.add('hidden');
-      document.getElementById('view-agent').classList.add('hidden');
+      document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
       document.getElementById('login-container').classList.remove('hidden');
-      document.getElementById('login-id').value = '';
-      document.getElementById('login-pw').value = '';
     }
 
-    // --- 엑셀(CSV) 명부 업로드 및 파싱 시뮬레이션 ---
-    function handleCsvUpload(event) {
+    // --- 슈퍼관리자: DB 캠프 조회 ---
+    async function fetchSuperData() {
+      const { data, error } = await supabaseClient.from('camps').select('*');
+      if (error) { console.error(error); return; }
+      let html = '';
+      data.forEach(c => {
+        html += `<tr><td><strong>${c.camp_name}</strong></td><td>${c.admin_id}</td><td>${c.tablet_limit}대</td><td>${(c.balance||0).toLocaleString()}원</td></tr>`;
+      });
+      document.getElementById('super-camps-body').innerHTML = html;
+    }
+
+    // --- 관리자: CSV 엑셀 명부 업로드 후 DB 적재 ---
+    async function handleCsvUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         const text = e.target.result;
         const lines = text.split('\n');
-        document.getElementById('upload-status').innerText = `✓ 총 ${lines.length - 1}건의 유권자 명부가 성공적으로 업로드 및 읍·면·동별 자동 분배되었습니다!`;
+        let insertCount = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+          const row = lines[i].trim();
+          if (!row) continue;
+          const cols = row.split(',');
+          if (cols.length >= 2) {
+            await supabaseClient.from('voters').insert([{
+              voter_name: cols[0] || '유권자',
+              phone: cols[1] || '010-0000-0000',
+              dong: cols[2] || '중앙동',
+              support_status: '미분류'
+            }]);
+            insertCount++;
+          }
+        }
+        document.getElementById('upload-status').innerText = `✓ 총 ${insertCount}건의 명부가 Supabase DB에 실시간 적재되었습니다!`;
       };
       reader.readAsText(file, 'utf-8');
     }
 
-    // --- 요원 화면 콜 결과 저장 ---
-    let completedCount = 0;
-    function saveResult(tendency) {
-      completedCount++;
-      document.getElementById('completed-count').innerText = completedCount;
-      alert(`성향 [${tendency}] 저장 완료! 다음 유권자로 이동합니다.`);
-      nextVoter();
+    // --- 요원: Supabase에서 미처리 유권자 명부 가져오기 ---
+    async function loadVotersFromSupabase() {
+      const { data, error } = await supabaseClient.from('voters').select('*').eq('support_status', '미분류').limit(20);
+      if (error || !data || data.length === 0) {
+        document.getElementById('v-name').innerText = "배정된 명부가 없습니다";
+        document.getElementById('v-phone').innerText = "010-0000-0000";
+        document.getElementById('v-dong').innerText = "안내";
+        return;
+      }
+      currentVoterList = data;
+      currentVoterIndex = 0;
+      displayCurrentVoter();
     }
 
-    function nextVoter() {
-      const sampleNames = ["이영희", "박민수", "정수진", "한지민"];
-      const sampleDongs = ["대천1동", "대천2동", "동대동", "죽정동"];
-      const rand = Math.floor(Math.random() * sampleNames.length);
-      
-      document.getElementById('v-name').innerText = `${sampleNames[rand]} 선생님`;
-      document.getElementById('v-dong').innerText = sampleDongs[rand];
-      document.getElementById('v-phone').innerText = `010-${Math.floor(1000+Math.random()*9000)}-${Math.floor(1000+Math.random()*9000)}`;
+    function displayCurrentVoter() {
+      if (currentVoterIndex >= currentVoterList.length) {
+        loadVotersFromSupabase();
+        return;
+      }
+      const v = currentVoterList[currentVoterIndex];
+      document.getElementById('v-name').innerText = `${v.voter_name} 선생님`;
+      document.getElementById('v-phone').innerText = v.phone;
+      document.getElementById('v-dong').innerText = v.dong;
+      document.getElementById('v-memo').value = '';
+    }
+
+    // --- 요원: 통화 결과 성향 및 메모를 Supabase DB에 실시간 저장 ---
+    async function saveResultToSupabase(status) {
+      if (currentVoterList.length === 0) return;
+      const v = currentVoterList[currentVoterIndex];
+      const memoText = document.getElementById('v-memo').value;
+
+      const { error } = await supabaseClient.from('voters').update({
+        support_status: status,
+        memo: memoText,
+        agent_id: currentAgentId,
+        called_at: new Date().toISOString()
+      }).eq('id', v.id);
+
+      if (error) {
+        alert("저장 실패: " + error.message);
+      } else {
+        completedCount++;
+        document.getElementById('completed-count').innerText = completedCount;
+        currentVoterIndex++;
+        displayCurrentVoter();
+      }
     }
   </script>
 </body>
