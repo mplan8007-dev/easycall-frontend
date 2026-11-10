@@ -3,28 +3,89 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>이지콜 (EasyCall)</title>
-    <!-- React 및 Babel 브라우저 컴파일러 로드 -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <title>이지콜 (EasyCall) - 캠프 선거전화 시스템</title>
+    <!-- React 및 Babel 브라우저 단독 실행 스크립트 -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      body { margin: 0; padding: 0; box-sizing: border-box; background-color: #f1f5f9; }
+      * { box-sizing: border-box; }
+    </style>
   </head>
-  <body style="margin: 0; padding: 0;">
+  <body>
     <div id="root"></div>
 
-    <!-- App.jsx를 Babel로 변환하여 렌더링 -->
-    <script type="text/babel" data-type="module">
-      // 브라우저 전역 변수에서 React 추출
-      const { useState, useEffect } = window.React;
+    <script type="text/babel">
+      const { useState, useEffect } = React;
 
-      // App.jsx 로드
-      import('./App.jsx').then((module) => {
-        const EasyCallApp = module.default;
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(EasyCallApp));
-      }).catch(err => {
-        console.error(err);
-      });
-    </script>
-  </body>
-</html>
+      const initialVoters = [
+        { id: 1, name: "김철수", phone: "010-1234-5678", region: "대천1동", age: "50대", tendency: "미분류", notes: "" },
+        { id: 2, name: "이영희", phone: "010-2345-6789", region: "대천2동", age: "40대", tendency: "우호", notes: "공약 문자 재발송 요청" },
+        { id: 3, name: "박민우", phone: "010-3456-7890", region: "동대동", age: "30대", tendency: "미분류", notes: "" },
+        { id: 4, name: "정순자", phone: "010-4567-8901", region: "죽정동", age: "60대", tendency: "부동", notes: "경로당 지원 정책 관심" },
+      ];
+
+      function EasyCallApp() {
+        const [voters, setVoters] = useState(initialVoters);
+        const [currentIndex, setCurrentIndex] = useState(0);
+        const [callStatus, setCallStatus] = useState("대기중"); // 대기중, 통화중, 후처리중
+        const [callTimer, setCallTimer] = useState(0);
+        const [autoDial, setAutoDial] = useState(false);
+        const [selectedTendency, setSelectedTendency] = useState("미분류");
+        const [memo, setMemo] = useState("");
+        const [sentSms, setSentSms] = useState(false);
+
+        const currentVoter = voters[currentIndex] || {};
+
+        useEffect(() => {
+          let interval = null;
+          if (callStatus === "통화중") {
+            interval = setInterval(() => setCallTimer((prev) => prev + 1), 1000);
+          } else {
+            clearInterval(interval);
+          }
+          return () => clearInterval(interval);
+        }, [callStatus]);
+
+        const handleStartCall = () => {
+          setCallStatus("통화중");
+          setCallTimer(0);
+          setSentSms(false);
+          setSelectedTendency(currentVoter.tendency || "미분류");
+          setMemo(currentVoter.notes || "");
+        };
+
+        const handleEndCall = () => {
+          setCallStatus("후처리중");
+        };
+
+        const handleSaveAndNext = () => {
+          setVoters((prev) =>
+            prev.map((v, idx) =>
+              idx === currentIndex ? { ...v, tendency: selectedTendency, notes: memo } : v
+            )
+          );
+
+          setCallStatus("대기중");
+          setCallTimer(0);
+          setSentSms(false);
+
+          if (currentIndex < voters.length - 1) {
+            setCurrentIndex((prev) => prev + 1);
+            if (autoDial) {
+              setTimeout(() => handleStartCall(), 1500);
+            }
+          } else {
+            alert("배정된 유권자 명부 통화가 모두 완료되었습니다.");
+          }
+        };
+
+        const formatTime = (seconds) => {
+          const mins = Math.floor(seconds / 60);
+          const secs = seconds % 60;
+          return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        };
+
+        return (
+          <div style={{ display: "flex", height: "100vh", fontFamily: "
