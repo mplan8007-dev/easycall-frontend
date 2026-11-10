@@ -97,17 +97,19 @@
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
                 <tr class="camp-row" data-keyword="보령시·서천군 선거캠프 camp01 충청남도 보령시 김본사">
                   <td class="py-3 text-xs text-slate-400 font-bold">충청남도 보령시</td>
-                  <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" 
-                      onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김본사 팀장', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
-                    보령시·서천군 선거캠프 🔍
+                  <td class="py-3">
+                    <button type="button" class="font-bold text-indigo-400 cursor-pointer hover:underline text-left" 
+                        onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김본사 팀장', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
+                      보령시·서천군 선거캠프 🔍
+                    </button>
                   </td>
                   <td class="py-3 font-mono text-xs">camp01</td>
                   <td class="py-3 text-indigo-300 font-bold text-xs">김본사 팀장</td>
                   <td class="py-3 font-mono text-amber-400 font-bold">150,000원</td>
                   <td class="py-3"><span id="camp-badge-camp01" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
                   <td class="py-3 flex gap-1">
-                    <button onclick="masterResetCampPw('camp01')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
-                    <button id="btn-approval-camp01" onclick="masterToggleCampApproval('camp01')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
+                    <button type="button" onclick="masterResetCampPw('camp01')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
+                    <button type="button" id="btn-approval-camp01" onclick="masterToggleCampApproval('camp01')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
                   </td>
                 </tr>
               </tbody>
@@ -161,7 +163,7 @@
                 <div><label class="block text-[11px] text-slate-400 mb-0.5">초기 예치금</label><input type="number" id="new-camp-balance" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="500000"></div>
               </div>
             </div>
-            <button onclick="registerNewCampByMaster()" class="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">신규 캠프 개설 승인</button>
+            <button type="button" onclick="registerNewCampByMaster()" class="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">신규 캠프 개설 승인</button>
           </div>
 
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
@@ -171,51 +173,55 @@
               <div><label class="block text-[11px] text-slate-400 mb-0.5">계좌번호</label><input type="text" id="master-bank-account" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono font-bold" value="123-456-789012"></div>
               <div><label class="block text-[11px] text-slate-400 mb-0.5">예금주명</label><input type="text" id="master-bank-holder" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-bold" value="(주)이지콜"></div>
             </div>
-            <button onclick="saveMasterBankInfo()" class="w-full mt-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">계좌 정보 배포</button>
+            <button type="button" onclick="saveMasterBankInfo()" class="w-full mt-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">계좌 정보 배포</button>
           </div>
         </div>
       </div>
     </main>
+  </div>
 
-    <!-- ==================== 캠프 상세 정보 모달 (최고관리자 뷰 내부로 이동하여 렌더링 보장) ==================== -->
-    <div id="camp-detail-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden z-50 items-center justify-center">
-      <div class="bg-slate-900 border border-slate-800 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
-          <h3 id="modal-camp-title" class="text-lg font-extrabold text-indigo-400">캠프 상세 정보</h3>
-          <button onclick="closeCampDetailModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="space-y-3.5 text-sm">
-          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-            <span class="text-slate-400">관할 지역</span>
-            <span id="modal-camp-region" class="font-bold text-indigo-300">충청남도 보령시</span>
-          </div>
-          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-            <span class="text-slate-400">본사 담당 직원 (CS)</span>
-            <span id="modal-camp-staff" class="font-bold text-amber-300">김본사 팀장</span>
-          </div>
-          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-            <span class="text-slate-400">관리자 아이디</span>
-            <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
-          </div>
-          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-            <span class="text-slate-400">캠프 담당자 (연락처 / 이메일)</span>
-            <span id="modal-camp-manager" class="font-bold text-white">김철수 (010-9999-8888)</span>
-          </div>
-          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-            <span class="text-slate-400">계약 서비스 기간</span>
-            <span id="modal-camp-period" class="font-mono font-bold text-emerald-400">2026-04-01 ~ 2026-06-03</span>
-          </div>
-          <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-            <span class="text-slate-400">할당 태블릿 라이선스</span>
-            <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
-          </div>
-          <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
-            <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
-            <span id="modal-camp-balance" class="font-mono font-black text-amber-400 text-base">150,000원</span>
-          </div>
-        </div>
-        <button onclick="closeCampDetailModal()" class="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">확인 완료</button>
+  <!-- ==================== 캠프 상세 정보 모달 (누적 통화 요금 ID 추가 및 최상단 레이어 보장) ==================== -->
+  <div id="camp-detail-modal" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[9999] items-center justify-center">
+    <div class="bg-slate-900 border border-slate-700 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
+      <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+        <h3 id="modal-camp-title" class="text-lg font-extrabold text-indigo-400">캠프 상세 정보</h3>
+        <button type="button" onclick="closeCampDetailModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
       </div>
+      <div class="space-y-3.5 text-sm">
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">관할 지역</span>
+          <span id="modal-camp-region" class="font-bold text-indigo-300">충청남도 보령시</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">본사 담당 직원 (CS)</span>
+          <span id="modal-camp-staff" class="font-bold text-amber-300">김본사 팀장</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">관리자 아이디</span>
+          <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">캠프 담당자 (연락처 / 이메일)</span>
+          <span id="modal-camp-manager" class="font-bold text-white">김철수 (010-9999-8888)</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">계약 서비스 기간</span>
+          <span id="modal-camp-period" class="font-mono font-bold text-emerald-400">2026-04-01 ~ 2026-06-03</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">할당 태블릿 라이선스</span>
+          <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">누적 전화 통화 요금</span>
+          <span id="modal-camp-fee" class="font-mono font-bold text-slate-300">350,000원</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
+          <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
+          <span id="modal-camp-balance" class="font-mono font-black text-amber-400 text-base">150,000원</span>
+        </div>
+      </div>
+      <button type="button" onclick="closeCampDetailModal()" class="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">확인 완료</button>
     </div>
   </div>
 
@@ -659,6 +665,18 @@
       }
     }
 
+    // --- 마스터 관제: 본사 입금 계좌 배포 ---
+    function saveMasterBankInfo() {
+      const name = document.getElementById('master-bank-name').value.trim();
+      const acc = document.getElementById('master-bank-account').value.trim();
+      const holder = document.getElementById('master-bank-holder').value.trim();
+      localStorage.setItem('master_bank_name', name);
+      localStorage.setItem('master_bank_acc', acc);
+      localStorage.setItem('master_bank_hold', holder);
+      alert("✅ 본사 입금 계좌 정보가 모든 캠프에 배포되었습니다!");
+      updateAdminBankNotice();
+    }
+
     function registerNewCampByMaster() {
       const sido = document.getElementById('new-camp-sido').value;
       const sigungu = document.getElementById('new-camp-sigungu').value.trim();
@@ -690,17 +708,19 @@
       newRow.setAttribute('data-keyword', `${name} ${admin} ${regionStr} ${staff}`.toLowerCase());
       newRow.innerHTML = `
         <td class="py-3 text-xs text-slate-400 font-bold">${regionStr}</td>
-        <td class="py-3 font-bold text-indigo-400 cursor-pointer hover:underline" 
-            onclick="openCampDetailModal('${name}', '${admin}', '${regionStr}', '${staff}', '${manager}', '${phone}', '${email}', '${start} ~ ${end}', '${tablets}', '0원', '${balance}')">
-          ${name} 🔍
+        <td class="py-3">
+          <button type="button" class="font-bold text-indigo-400 cursor-pointer hover:underline text-left" 
+              onclick="openCampDetailModal('${name}', '${admin}', '${regionStr}', '${staff}', '${manager}', '${phone}', '${email}', '${start} ~ ${end}', '${tablets}', '0원', '${balance}')">
+            ${name} 🔍
+          </button>
         </td>
         <td class="py-3 font-mono text-xs">${admin}</td>
         <td class="py-3 text-indigo-300 font-bold text-xs">${staff}</td>
         <td class="py-3 font-mono text-amber-400 font-bold">${balance}</td>
         <td class="py-3"><span id="camp-badge-${admin}" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
         <td class="py-3 flex gap-1">
-          <button onclick="masterResetCampPw('${admin}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
-          <button id="btn-approval-${admin}" onclick="masterToggleCampApproval('${admin}')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
+          <button type="button" onclick="masterResetCampPw('${admin}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold">비번초기화</button>
+          <button type="button" id="btn-approval-${admin}" onclick="masterToggleCampApproval('${admin}')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[10px] font-bold">중지</button>
         </td>
       `;
       tbody.appendChild(newRow);
@@ -764,26 +784,36 @@
       }
     }
 
+    // --- 모달창 오픈 및 클로즈 (Null 에러 방어 및 style.display 직접 제어) ---
     function openCampDetailModal(campName, campId, region, staffName, managerName, managerPhone, managerEmail, period, tablets, fee, balance) {
-      document.getElementById('modal-camp-title').innerText = campName;
-      document.getElementById('modal-camp-id').innerText = campId;
-      document.getElementById('modal-camp-region').innerText = region;
-      document.getElementById('modal-camp-staff').innerText = staffName;
-      document.getElementById('modal-camp-manager').innerText = `${managerName} (${managerPhone} / ${managerEmail})`;
-      document.getElementById('modal-camp-period').innerText = period;
-      document.getElementById('modal-camp-tablet').innerText = tablets;
-      document.getElementById('modal-camp-fee').innerText = fee;
-      document.getElementById('modal-camp-balance').innerText = balance;
+      const setTxt = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+      };
+
+      setTxt('modal-camp-title', campName);
+      setTxt('modal-camp-id', campId);
+      setTxt('modal-camp-region', region);
+      setTxt('modal-camp-staff', staffName);
+      setTxt('modal-camp-manager', `${managerName} (${managerPhone} / ${managerEmail})`);
+      setTxt('modal-camp-period', period);
+      setTxt('modal-camp-tablet', tablets);
+      setTxt('modal-camp-fee', fee);
+      setTxt('modal-camp-balance', balance);
       
       const modal = document.getElementById('camp-detail-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
     }
 
     function closeCampDetailModal() {
       const modal = document.getElementById('camp-detail-modal');
-      modal.classList.remove('flex');
-      modal.classList.add('hidden');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
     }
 
     function changeAdminPassword() {
