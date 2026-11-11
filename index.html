@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body { font-family: 'Pretendard', sans-serif; user-select: none; background-color: #0f172a; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -86,7 +87,7 @@
     </div>
   </div>
 
-  <!-- ==================== [복원] 캠프 상세정보 모달 ==================== -->
+  <!-- ==================== 캠프 상세정보 모달 ==================== -->
   <div id="camp-detail-modal" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[9999] items-center justify-center">
     <div class="bg-slate-900 border border-slate-700 p-7 rounded-2xl w-[520px] shadow-2xl text-slate-100">
       <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
@@ -249,7 +250,6 @@
         </div>
       </div>
 
-      <!-- [복원] 좌우 분할 구조: 좌측(캠프 목록 테이블) + 우측(신규 캠프 등록 폼) -->
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div class="flex justify-between items-center mb-4">
@@ -280,7 +280,6 @@
           </div>
         </div>
 
-        <!-- [복원] 우측: 신규 캠프 개설 및 계약 등록 폼 -->
         <div class="col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
           <h3 class="text-base font-bold text-indigo-300 mb-2">➕ 신규 선거 캠프 개설 등록</h3>
           <div class="space-y-2.5">
@@ -571,21 +570,26 @@
           </div>
         </div>
 
+        <!-- [수정 반영] 유권자 명부 엑셀(.xlsx, .xls) 및 CSV 대량 업로드 / 엑셀 표준 양식 다운로드 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-3">
             <div>
-              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 CSV 대량 업로드</h3>
-              <p class="text-xs text-slate-500 mt-0.5">수신거부(DNC 블랙리스트) 번호는 업로드 시 자동 필터링됩니다.</p>
+              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 대량 업로드</h3>
+              <p class="text-xs text-slate-500 mt-0.5">엑셀(.xlsx, .xls) 또는 CSV 파일을 직접 업로드하며, 수신거부(DNC) 번호는 자동 필터링됩니다.</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-1.5">
               <button type="button" onclick="resetVoterQueueToSample()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">샘플 복원</button>
-              <button type="button" onclick="downloadCsvTemplate()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs rounded-xl transition">
-                <i class="fa-solid fa-download mr-1"></i>표준 CSV 양식
+              <button type="button" onclick="downloadExcelTemplate()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center gap-1">
+                <i class="fa-solid fa-file-excel"></i> 표준 엑셀양식(.xlsx)
+              </button>
+              <button type="button" onclick="downloadCsvTemplate()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs rounded-xl transition">
+                <i class="fa-solid fa-download mr-1"></i>CSV 양식
               </button>
             </div>
           </div>
           <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center bg-slate-50 mb-3">
-            <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUpload(event)" class="text-xs font-bold text-slate-700 cursor-pointer">
+            <input type="file" id="csv-file-input" accept=".xlsx,.xls,.csv" onchange="handleCsvUpload(event)" class="text-xs font-bold text-slate-700 cursor-pointer">
+            <p class="text-[11px] text-slate-400 mt-1">지원 형식: 엑셀 파일 (.xlsx, .xls) 및 CSV 파일 (.csv)</p>
           </div>
           <div class="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl flex justify-between items-center text-xs">
             <span class="font-bold text-indigo-900">현재 유권자 명부 큐 적재 상태</span>
@@ -760,7 +764,7 @@
       </div>
     </main>
 
-    <!-- [탭 3: 통화기록 및 엑셀 다운로드 (녹음 청취 복원)] -->
+    <!-- [탭 3: 통화기록 및 엑셀 다운로드] -->
     <main id="admin-pane-logs" class="hidden flex-1 p-6 overflow-y-auto bg-white m-5 rounded-2xl border border-slate-200 shadow-sm space-y-5 custom-scrollbar">
       <div class="flex justify-between items-center">
         <div>
@@ -853,7 +857,7 @@
       </div>
     </header>
 
-    <!-- [요원 탭 1: 다이얼러 (발신/앱호출/시뮬레이션 완벽 복원)] -->
+    <!-- [요원 탭 1: 다이얼러] -->
     <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
       <section class="w-[38%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
@@ -2106,54 +2110,137 @@
       showToast("✉️ 콜백 문자 문구가 저장되었습니다!");
     }
 
+    // ==================== [추가] 엑셀(.xlsx, .xls) 및 CSV 통합 업로드 파서 ====================
     function handleCsvUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
+      const fileName = file.name;
+      const ext = fileName.split('.').pop().toLowerCase();
       const reader = new FileReader();
+
       reader.onload = function(e) {
-        const content = e.target.result;
-        const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0) { alert("빈 파일입니다."); return; }
+        try {
+          let rawRows = [];
 
-        const parsedVoters = [];
-        let skippedDncCount = 0;
-        let startIndex = (lines[0].toLowerCase().includes('phone') || lines[0].includes('전화') || lines[0].includes('이름')) ? 1 : 0;
+          if (ext === 'csv') {
+            const content = e.target.result;
+            const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length === 0) { alert("빈 파일입니다."); return; }
 
-        for (let i = startIndex; i < lines.length; i++) {
-          const cols = lines[i].split(',').map(c => c.trim());
-          let vName = `유권자 #${i}`, vPhone = "", vDong = "관할구역";
-
-          if (cols.length === 1 && cols[0]) vPhone = cols[0];
-          else if (cols.length >= 2) {
-            vName = cols[0] || `익명 유권자 #${i}`;
-            vPhone = cols[1] || "010-0000-0000";
-            vDong = cols[2] || "관할구역";
-          }
-
-          if (vPhone) {
-            const cleanPhone = vPhone.replace(/[^0-9]/g, '');
-            if (dncPhonesList.includes(cleanPhone)) {
-              skippedDncCount++;
-              continue;
+            const startIndex = (lines[0].toLowerCase().includes('phone') || lines[0].includes('전화') || lines[0].includes('이름') || lines[0].includes('성명')) ? 1 : 0;
+            for (let i = startIndex; i < lines.length; i++) {
+              const cols = lines[i].split(',').map(c => c.trim());
+              rawRows.push(cols);
             }
-            parsedVoters.push({
-              id: String(2000 + i), name: vName, phone: vPhone, dong: vDong,
-              lastResult: "READY", lastMemo: "", lockedBy: null
-            });
+          } else {
+            if (typeof XLSX === 'undefined') {
+              alert("엑셀 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.");
+              return;
+            }
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+            if (!rows || rows.length === 0) { alert("빈 엑셀 시트입니다."); return; }
+
+            const firstRowStr = rows[0].join(' ').toLowerCase();
+            const startIndex = (firstRowStr.includes('phone') || firstRowStr.includes('전화') || firstRowStr.includes('연락처') || firstRowStr.includes('이름') || firstRowStr.includes('성명')) ? 1 : 0;
+            for (let i = startIndex; i < rows.length; i++) {
+              rawRows.push(rows[i].map(c => String(c).trim()));
+            }
           }
+
+          const parsedVoters = [];
+          let skippedDncCount = 0;
+
+          for (let i = 0; i < rawRows.length; i++) {
+            const cols = rawRows[i];
+            if (!cols || cols.length === 0) continue;
+
+            let vName = `유권자 #${i + 1}`, vPhone = "", vDong = "관할구역";
+
+            if (cols.length === 1 && cols[0]) {
+              vPhone = cols[0];
+            } else if (cols.length >= 2) {
+              vName = cols[0] || `익명 유권자 #${i + 1}`;
+              vPhone = cols[1] || "";
+              vDong = cols[2] || "관할구역";
+            }
+
+            if (vPhone) {
+              let cleanPhone = vPhone.replace(/[^0-9]/g, '');
+              if (cleanPhone.length === 10 && cleanPhone.startsWith('10')) {
+                cleanPhone = '0' + cleanPhone;
+              }
+              if (cleanPhone.length < 8) continue;
+
+              if (dncPhonesList.includes(cleanPhone)) {
+                skippedDncCount++;
+                continue;
+              }
+
+              let formattedPhone = vPhone;
+              if (cleanPhone.length === 11 && cleanPhone.startsWith('010')) {
+                formattedPhone = `${cleanPhone.slice(0, 3)}-${cleanPhone.slice(3, 7)}-${cleanPhone.slice(7)}`;
+              }
+
+              parsedVoters.push({
+                id: String(2000 + parsedVoters.length + 1),
+                name: vName,
+                phone: formattedPhone,
+                dong: vDong,
+                lastResult: "READY",
+                lastMemo: "",
+                lockedBy: null
+              });
+            }
+          }
+
+          if (parsedVoters.length === 0) {
+            alert("유효한 유권자 전화번호 데이터를 찾을 수 없습니다.");
+            return;
+          }
+
+          votersList = parsedVoters;
+          currentVoterIdx = 0;
+          savePersistentData();
+          updateVoterQueueStatusText();
+          document.getElementById('upload-status').innerText = `✅ [${fileName}] 유권자 ${parsedVoters.length}명 적재 완료 (DNC 제외: ${skippedDncCount}명)`;
+          showToast(`📥 유권자 ${parsedVoters.length}명 적재 완료!`);
+        } catch (err) {
+          console.error(err);
+          alert("파일 처리 중 오류가 발생했습니다. 양식을 확인해 주세요.");
         }
-
-        if (parsedVoters.length === 0) { alert("유효한 유권자 데이터를 찾을 수 없습니다."); return; }
-
-        votersList = parsedVoters;
-        currentVoterIdx = 0;
-        savePersistentData();
-        updateVoterQueueStatusText();
-        document.getElementById('upload-status').innerText = `✅ [${file.name}] 유권자 ${parsedVoters.length}명 적재 완료 (DNC 제외: ${skippedDncCount}명)`;
-        showToast(`📥 유권자 ${parsedVoters.length}명 적재 완료!`);
       };
-      reader.readAsText(file, 'UTF-8');
+
+      if (ext === 'csv') {
+        reader.readAsText(file, 'UTF-8');
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    }
+
+    // ==================== [추가] 표준 엑셀 양식(.xlsx) 다운로드 ====================
+    function downloadExcelTemplate() {
+      if (typeof XLSX === 'undefined') {
+        alert("엑셀 생성 엔진을 불러오지 못했습니다.");
+        return;
+      }
+      const wsData = [
+        ["유권자명", "전화번호", "행정동"],
+        ["홍길동", "010-1234-5678", "대천1동"],
+        ["김영희", "010-9876-5432", "대천2동"],
+        ["박민수", "010-5555-4444", "오천면"],
+        ["이순신", "010-2222-3333", "대천3동"],
+        ["최유진", "010-7777-8888", "웅천읍"]
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [{ wch: 15 }, { wch: 18 }, { wch: 15 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "유권자명부");
+      XLSX.writeFile(wb, "이지콜_유권자명부_표준양식.xlsx");
+      showToast("📊 표준 엑셀 양식(.xlsx) 다운로드 완료!");
     }
 
     function resetVoterQueueToSample() {
@@ -2597,7 +2684,6 @@
       return `${m}:${s}`;
     }
 
-    // [복원] launchApp 매개변수에 따른 전화앱 호출 vs 브라우저 시뮬레이션 분기
     function startCallSimulation(launchApp = false) {
       if (checkAgentGlobalStopBanner()) {
         alert("🚨 발신 제한 상태입니다. 상단 안내를 확인하세요.");
