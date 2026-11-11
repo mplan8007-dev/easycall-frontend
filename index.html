@@ -342,6 +342,7 @@
       </div>
     </main>
 
+    <!-- [2단계 업그레이드 반영] 통화 성공 기준 성향 통계 탭 -->
     <main id="admin-pane-stats" class="hidden flex-1 p-6 overflow-y-auto bg-slate-100 space-y-6">
       <div class="grid grid-cols-2 gap-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
@@ -393,7 +394,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (1단계: 성별/연령대 및 통화결과 분리 적용) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -419,7 +420,6 @@
     </header>
 
     <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
-      <!-- 좌측: 유권자 정보 및 발신 제어 -->
       <section class="w-[38%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
           <div class="flex justify-between items-center mb-4">
@@ -443,10 +443,9 @@
           </div>
         </div>
 
-        <!-- [1단계 신규] 통화 미연결(부재중/거절/재통화/결번) 원터치 빠른 스킵 바 -->
         <div class="pt-4 border-t border-slate-100">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-500"><i class="fa-solid fa-phone-slash mr-1 text-rose-500"></i>통화 미연결 / 재통화 빠른 처리 (즉시 다음 이동)</span>
+            <span class="text-xs font-bold text-slate-500"><i class="fa-solid fa-phone-slash mr-1 text-rose-500"></i>통화 미연결 / 재통화 빠른 처리</span>
           </div>
           <div class="grid grid-cols-4 gap-2">
             <button type="button" onclick="quickSaveUnconnected('ABSENT')" class="py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition">🔔 부재중</button>
@@ -457,7 +456,6 @@
         </div>
       </section>
 
-      <!-- 우측: 스크립트, 성별/연령대 체크, 지지성향 태그, 메모 -->
       <section class="w-[62%] bg-white rounded-2xl border border-slate-200/80 p-5 flex flex-col justify-between shadow-sm overflow-y-auto custom-scrollbar">
         <div class="space-y-3.5">
           <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
@@ -465,7 +463,6 @@
             <p id="agent-script-display" class="text-xs text-indigo-950 font-semibold leading-relaxed">"안녕하십니까, 기호 1번 후보 자원봉사자입니다. 이번 지역 발전을 위해..."</p>
           </div>
 
-          <!-- [1단계 신규] 유권자 성별 및 연령대 원터치 수집 패널 -->
           <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3 space-y-2.5">
             <div class="flex items-center gap-3">
               <span class="text-xs font-extrabold text-slate-700 w-16 shrink-0"><i class="fa-solid fa-venus-mars mr-1 text-blue-600"></i>성별</span>
@@ -1038,7 +1035,7 @@
       }
     }
 
-    // --- 요원 워크스페이스 기능 (1단계: 성별/연령대 및 통화연결 분리 적용) ---
+    // --- 요원 워크스페이스 기능 ---
     function switchAgentTab(tabName) {
       const dialerTab = document.getElementById('agent-tab-dialer');
       const historyTab = document.getElementById('agent-tab-history');
