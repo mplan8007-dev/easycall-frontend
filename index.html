@@ -42,7 +42,7 @@
         <button type="button" onclick="handleInstantLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg">
           즉시 로그인
         </button>
-        <div id="login-error" class="text-xs text-rose-500 font-bold text-center mt-2"></div>
+        <div id="login-error" class="text-xs text-rose-500 font-bold text-center"></div>
       </div>
     </div>
   </div>
@@ -364,7 +364,8 @@
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <!-- [발신 모드 동적 연동] 유심 직발신 시 예치금 충전 신청 폼 자동 숨김 처리 -->
+        <div id="admin-charge-panel" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">💳 전화 예치금 계좌이체 충전 신청</h3>
           <p class="text-xs text-slate-500 mb-3" id="admin-bank-notice">본사 계좌 입금 후 충전하실 금액을 선택하세요.</p>
           <div class="space-y-3">
@@ -712,6 +713,9 @@
           if (savedMode) document.getElementById('setting-dial-mode').value = savedMode;
           if (savedWait) document.getElementById('setting-wait-secs').value = savedWait;
           
+          // [발신 모드 연동] 현재 캠프의 발신 모드에 따라 예치금 충전 폼 표시 여부 제어
+          applyAdminChargePanelVisibility(currentAdminId);
+
           const savedAdminTab = sessionStorage.getItem('easycall_admin_tab') || 'config';
           switchAdminTab(savedAdminTab, true);
 
@@ -747,7 +751,6 @@
         return; 
       }
 
-      // 강제 로그인 통과 조건 (마스터, 캠프, 요원 모두 '1234' 또는 자유 비번 허용)
       document.getElementById('login-view').classList.add('hidden');
 
       if (idInput === 'super' || idInput.includes('master')) {
@@ -761,6 +764,7 @@
         currentAdminId = idInput;
         document.getElementById('admin-view').classList.remove('hidden');
         updateAdminBankNotice();
+        applyAdminChargePanelVisibility(currentAdminId);
         sessionStorage.setItem('easycall_admin_tab', 'config');
         renderAdminLogsTable();
         renderStatsAndCharts();
@@ -801,9 +805,21 @@
       });
     }
 
+    // --- 마스터/관리자 연동: 캠프별 발신 모드 변경 시 예치금 폼 가시성 동적 제어 ---
     function changeCampModeByMaster(campId, modeVal) {
       localStorage.setItem(`easycall_hybrid_mode_${campId}`, modeVal);
-      alert(`⚡ 캠프 [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신 (0원)' : 'SIP 망발신 (종량제)'}]로 변경 배포되었습니다!`);
+      alert(`⚡ 캠프 [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신 (통신비 0원)' : 'SIP 망발신 (종량제)'}]로 변경되었습니다!`);
+    }
+
+    function applyAdminChargePanelVisibility(campId) {
+      const mode = localStorage.getItem(`easycall_hybrid_mode_${campId}`) || 'sim';
+      const chargePanel = document.getElementById('admin-charge-panel');
+      if (!chargePanel) return;
+      if (mode === 'sim') {
+        chargePanel.style.display = 'none'; // 무제한 유심 직발신인 경우 예치금 충전 폼 숨김
+      } else {
+        chargePanel.style.display = 'block'; // SIP 종량제인 경우 예치금 충전 폼 표시
+      }
     }
 
     function masterResetCampPw(campId) {
