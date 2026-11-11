@@ -58,7 +58,7 @@
             <p class="text-xs text-slate-400 mt-0.5">최고관리자 / 캠프상황실 / 태블릿단말기 공용</p>
           </div>
         </div>
-        <span id="login-cloud-badge" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-800 text-slate-400 border border-slate-700">로컬모드</span>
+        <span id="login-cloud-badge" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-950 text-indigo-300 border border-indigo-700">☁️ 클라우드 자동연결</span>
       </div>
 
       <div class="space-y-4">
@@ -87,38 +87,42 @@
     </div>
   </div>
 
-  <!-- ==================== [Phase 4 신규] Supabase 실시간 클라우드 DB 연동 설정 모달 ==================== -->
+  <!-- ==================== [Phase 4] Supabase 실시간 클라우드 DB 연동 설정 모달 (전체 기능 복원) ==================== -->
   <div id="supabase-config-modal" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[9999] items-center justify-center">
-    <div class="bg-slate-900 border border-indigo-500/60 p-7 rounded-2xl w-[560px] shadow-2xl text-slate-100 space-y-4">
+    <div class="bg-slate-900 border border-indigo-500/60 p-7 rounded-2xl w-[580px] shadow-2xl text-slate-100 space-y-4">
       <div class="flex justify-between items-center pb-3 border-b border-slate-800">
         <div>
           <h3 class="text-lg font-extrabold text-indigo-400"><i class="fa-solid fa-cloud-bolt mr-1.5"></i>Supabase 실시간 클라우드 DB 연동 센터</h3>
-          <p class="text-xs text-slate-400 mt-0.5">연결 즉시 상황실 PC와 모든 현장 태블릿이 실시간으로 데이터를 공유합니다.</p>
+          <p class="text-xs text-slate-400 mt-0.5">본사 기본 클라우드 키가 내장되어 모든 기기에서 자동 연결되며, 수동 제어도 가능합니다.</p>
         </div>
         <button type="button" onclick="closeSupabaseModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block font-bold text-slate-300 mb-1">Supabase Project URL</label>
+          <label class="block font-bold text-slate-300 mb-1">Supabase Project URL (본사 기본값 내장됨)</label>
           <input type="text" id="sb-url-input" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" placeholder="https://xxxxxxxxxxxx.supabase.co">
         </div>
         <div>
-          <label class="block font-bold text-slate-300 mb-1">Supabase Anon Public API Key</label>
-          <input type="password" id="sb-key-input" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+          <label class="block font-bold text-slate-300 mb-1">Supabase Publishable / Anon API Key (본사 기본값 내장됨)</label>
+          <input type="text" id="sb-key-input" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none" placeholder="sb_publishable_... 또는 eyJhbGci...">
         </div>
         <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl text-[11px] text-slate-400 leading-relaxed space-y-1">
-          <div class="font-bold text-indigo-300"><i class="fa-solid fa-circle-info mr-1"></i>클라우드 하이브리드 동작 안내</div>
-          <p>• 키를 저장하면 현재 로컬에 있는 캠프·단말기·유권자 데이터가 클라우드로 즉시 업로드(Push)되며 실시간 채널이 열립니다.</p>
-          <p>• 키를 비우고 저장하면 언제든 <strong>로컬 단독 모드(localStorage)</strong>로 안전하게 전환됩니다.</p>
+          <div class="font-bold text-emerald-400"><i class="fa-solid fa-circle-check mr-1"></i>클라우드 하이브리드 동작 및 무설정 자동 연결 안내</div>
+          <p>• 본사(`odtyiuhjyvowikodcvym.supabase.co`) 서버가 기본 내장되어 태블릿 15대에서 별도 설정 없이 즉시 연동됩니다.</p>
+          <p>• 만약 인터넷 장애 등으로 오프라인 단독 운영이 필요할 경우 우측의 <strong>[연결 해제(로컬전환)]</strong> 버튼을 누르면 언제든 로컬 스토리지 단독 모드로 안전하게 작동합니다.</p>
         </div>
+        <div id="sb-test-result-box" class="hidden p-3 rounded-xl border text-xs font-bold"></div>
       </div>
 
       <div class="flex gap-2 pt-2">
         <button type="button" onclick="saveAndConnectSupabase()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
           ☁️ 클라우드 DB 연결 및 실시간 동기화 시작
         </button>
-        <button type="button" onclick="disconnectSupabase()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold rounded-xl text-xs border border-slate-700 transition">
+        <button type="button" onclick="testSupabaseConnection()" class="px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold rounded-xl text-xs border border-slate-700 transition">
+          🔍 연결 테스트
+        </button>
+        <button type="button" onclick="disconnectSupabase()" class="px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold rounded-xl text-xs border border-slate-700 transition">
           연결 해제(로컬전환)
         </button>
       </div>
@@ -131,19 +135,19 @@
       <div class="flex items-center gap-4">
         <h1 class="text-lg font-extrabold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (엔터프라이즈 마스터)</h1>
         <div class="flex items-center gap-2 bg-slate-950 px-3 py-1 rounded-full border border-slate-800 text-xs">
-          <span id="super-cloud-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="super-cloud-status-txt" class="text-slate-300 font-mono">하이브리드 로컬 DB 정상</span>
+          <span id="super-cloud-dot" class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
+          <span id="super-cloud-status-txt" class="text-slate-300 font-mono">☁️ Supabase 실시간 클라우드 DB 동기화 가동 중</span>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <button type="button" onclick="openSupabaseModal()" class="bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5">
           <i class="fa-solid fa-cloud"></i> ☁️ 클라우드 DB 설정
         </button>
-        <button type="button" onclick="forcePushToCloud()" id="btn-cloud-push" class="hidden bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 px-3 py-2 rounded-xl text-xs font-bold transition">
+        <button type="button" onclick="forcePushToCloud()" id="btn-cloud-push" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 px-3 py-2 rounded-xl text-xs font-bold transition">
           <i class="fa-solid fa-cloud-arrow-up mr-1"></i>클라우드 강제동기화
         </button>
         <button type="button" onclick="resetAllSystemData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition">
-          <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          <i class="fa-solid fa-rotate-left mr-1"></i>전체 데이터 초기화
         </button>
         <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">로그아웃</button>
       </div>
@@ -450,7 +454,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2.5">
-        <span id="admin-cloud-badge" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">💾 로컬 동기화</span>
+        <span id="admin-cloud-badge" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">☁️ 클라우드 실시간 연동중</span>
         <button type="button" onclick="openBriefingReportModal()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-print text-amber-400"></i> 🖨️ 후보자 보고용 A4 브리핑 인쇄
         </button>
@@ -1077,6 +1081,10 @@
   </div>
 
   <script>
+    // ==================== [고정 내장] 본사 Supabase 클라우드 DB 기본 상수 ====================
+    const DEFAULT_SB_URL = 'https://odtyiuhjyvowikodcvym.supabase.co';
+    const DEFAULT_SB_KEY = 'sb_publishable_kb51-2LmeL8yl3Z_G_k-fQ_uH8fxqU-';
+
     // ==================== 전역 상태 및 기본 초기 데이터 ====================
     let selectedStatus = 'SUPPORT';
     let selectedGender = '미상';
@@ -1172,10 +1180,12 @@
       savePersistentData();
     }
 
-    // ==================== [Phase 4] Supabase 하이브리드 클라우드 동기화 엔진 ====================
+    // ==================== [Phase 4] Supabase 하이브리드 클라우드 동기화 엔진 (누락 함수 100% 복원) ====================
     function openSupabaseModal() {
-      document.getElementById('sb-url-input').value = localStorage.getItem('easycall_sb_url') || '';
-      document.getElementById('sb-key-input').value = localStorage.getItem('easycall_sb_key') || '';
+      document.getElementById('sb-url-input').value = localStorage.getItem('easycall_sb_url') || DEFAULT_SB_URL;
+      document.getElementById('sb-key-input').value = localStorage.getItem('easycall_sb_key') || DEFAULT_SB_KEY;
+      const resBox = document.getElementById('sb-test-result-box');
+      if (resBox) resBox.classList.add('hidden');
       const modal = document.getElementById('supabase-config-modal');
       modal.style.display = 'flex';
     }
@@ -1188,22 +1198,53 @@
       const url = document.getElementById('sb-url-input').value.trim();
       const key = document.getElementById('sb-key-input').value.trim();
       if (!url || !key) {
-        alert("Supabase Project URL과 Anon Key를 모두 입력해 주세요.");
+        alert("Supabase Project URL과 Anon Key를 모두 입력해 주세요. (기본값을 쓰시려면 창을 닫았다가 다시 여세요)");
         return;
       }
       localStorage.setItem('easycall_sb_url', url);
       localStorage.setItem('easycall_sb_key', key);
+      localStorage.removeItem('easycall_cloud_force_disabled');
       closeSupabaseModal();
       await initSupabaseEngine(true);
     }
 
+    // [원상복구 완료] 수동 로컬 단독 모드 전환 함수
     function disconnectSupabase() {
-      localStorage.removeItem('easycall_sb_url');
-      localStorage.removeItem('easycall_sb_key');
+      localStorage.setItem('easycall_cloud_force_disabled', 'true');
+      if (sbRealtimeChannel && sbClient) {
+        sbClient.removeChannel(sbRealtimeChannel);
+      }
       sbClient = null;
       updateCloudStatusBadges(false);
       closeSupabaseModal();
-      showToast("💾 로컬 스토리지 단독 모드로 전환되었습니다.");
+      showToast("💾 클라우드 연결이 일시 해제되고 로컬 스토리지 단독 모드로 전환되었습니다.");
+    }
+
+    // [신규 보강] 클라우드 테이블 연결 상태 즉시 진단 함수
+    async function testSupabaseConnection() {
+      const url = document.getElementById('sb-url-input').value.trim() || DEFAULT_SB_URL;
+      const key = document.getElementById('sb-key-input').value.trim() || DEFAULT_SB_KEY;
+      const resBox = document.getElementById('sb-test-result-box');
+      if (!resBox) return;
+
+      resBox.classList.remove('hidden');
+      resBox.className = "p-3 rounded-xl border border-indigo-500/50 bg-indigo-950/40 text-indigo-300 text-xs font-bold";
+      resBox.innerText = "🔄 Supabase 클라우드 서버 및 테이블 상태를 점검하는 중입니다...";
+
+      try {
+        const tempClient = window.supabase.createClient(url, key);
+        const { data, error } = await tempClient.from('easycall_sync_store').select('store_key, updated_at').limit(1);
+        if (error) {
+          resBox.className = "p-3 rounded-xl border border-amber-500/60 bg-amber-950/40 text-amber-300 text-xs font-bold leading-relaxed";
+          resBox.innerText = `⚠️ 서버 접속은 성공했으나 테이블이 아직 없거나 권한 확인이 필요합니다: [${error.message}]\n(Supabase SQL Editor에서 CREATE TABLE 쿼리를 실행해 주세요)`;
+        } else {
+          resBox.className = "p-3 rounded-xl border border-emerald-500/60 bg-emerald-950/40 text-emerald-300 text-xs font-bold";
+          resBox.innerText = `✅ 클라우드 DB(easycall_sync_store) 정상 연결 확인 완료! (현재 레코드: ${data ? data.length : 0}건)`;
+        }
+      } catch (e) {
+        resBox.className = "p-3 rounded-xl border border-rose-500/60 bg-rose-950/40 text-rose-300 text-xs font-bold";
+        resBox.innerText = `🚨 연결 실패: URL 또는 API Key 형식을 확인해 주세요. (${e.message})`;
+      }
     }
 
     function updateCloudStatusBadges(connected) {
@@ -1216,7 +1257,7 @@
       if (connected) {
         if (loginBadge) {
           loginBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-950 text-indigo-300 border border-indigo-700";
-          loginBadge.innerText = "☁️ 클라우드 연동됨";
+          loginBadge.innerText = "☁️ 클라우드 자동연결";
         }
         if (superDot) superDot.className = "w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping";
         if (superTxt) superTxt.innerText = "☁️ Supabase 실시간 클라우드 DB 동기화 가동 중";
@@ -1241,8 +1282,12 @@
     }
 
     async function initSupabaseEngine(pushInitial = false) {
-      const url = localStorage.getItem('easycall_sb_url');
-      const key = localStorage.getItem('easycall_sb_key');
+      if (localStorage.getItem('easycall_cloud_force_disabled') === 'true') {
+        updateCloudStatusBadges(false);
+        return;
+      }
+      const url = localStorage.getItem('easycall_sb_url') || DEFAULT_SB_URL;
+      const key = localStorage.getItem('easycall_sb_key') || DEFAULT_SB_KEY;
       if (!url || !key || !window.supabase) {
         updateCloudStatusBadges(false);
         return;
@@ -1254,16 +1299,15 @@
 
         if (pushInitial) {
           await pushStateToSupabase();
-          showToast("☁️ 클라우드 DB 연결 및 초기 데이터 업로드 완료!");
+          showToast("☁️ 클라우드 DB 연결 및 전체 데이터 동기화 완료!");
         } else {
           await pullStateFromSupabase();
         }
 
-        // 실시간(Realtime) 변경 감지 구독
         if (sbRealtimeChannel) sbClient.removeChannel(sbRealtimeChannel);
         sbRealtimeChannel = sbClient
           .channel('easycall-global-sync')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'easycall_sync_store' }, async (payload) => {
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'easycall_sync_store' }, async () => {
             if (!isCloudSyncing) {
               await pullStateFromSupabase();
               refreshActiveRoleUI();
@@ -1298,7 +1342,7 @@
           updated_at: new Date().toISOString()
         });
       } catch (e) {
-        console.warn("클라우드 Push 오류(테이블 미생성 등):", e);
+        console.warn("클라우드 Push 대기 중:", e);
       } finally {
         setTimeout(() => { isCloudSyncing = false; }, 300);
       }
@@ -1345,9 +1389,11 @@
           if (b.campStopped !== undefined) localStorage.setItem('easycall_camp_global_stopped', b.campStopped);
           if (b.sosAlert) localStorage.setItem('easycall_sos_alert', b.sosAlert);
           else localStorage.removeItem('easycall_sos_alert');
+        } else if (!error && !data) {
+          await pushStateToSupabase();
         }
       } catch (e) {
-        console.warn("클라우드 Pull 오류:", e);
+        console.warn("클라우드 Pull 대기 중:", e);
       }
     }
 
@@ -1438,17 +1484,20 @@
       refreshActiveRoleUI();
     });
 
-    function resetAllSystemData() {
+    // [원상복구 완료] 초기화 시 클라우드 설정값 보존 로직 포함
+    async function resetAllSystemData() {
       if (!confirm("⚠️ 모든 캠프 설정, 등록된 태블릿, 통화 기록을 초기 상태로 리셋하시겠습니까?")) return;
       const role = localStorage.getItem('easycall_role');
       const id = localStorage.getItem('easycall_id');
-      const sbUrl = localStorage.getItem('easycall_sb_url');
-      const sbKey = localStorage.getItem('easycall_sb_key');
+      const sbUrl = localStorage.getItem('easycall_sb_url') || DEFAULT_SB_URL;
+      const sbKey = localStorage.getItem('easycall_sb_key') || DEFAULT_SB_KEY;
       localStorage.clear();
       if (role) localStorage.setItem('easycall_role', role);
       if (id) localStorage.setItem('easycall_id', id);
       if (sbUrl) localStorage.setItem('easycall_sb_url', sbUrl);
       if (sbKey) localStorage.setItem('easycall_sb_key', sbKey);
+      loadPersistentData();
+      if (sbClient) await pushStateToSupabase();
       window.location.reload();
     }
 
@@ -2844,7 +2893,6 @@
 
       globalCampCallLogs.unshift(newLogEntry);
 
-      // 클라우드 DB 연결 시 개별 로그 테이블에도 아카이브 저장
       if (sbClient) {
         sbClient.from('easycall_call_logs').insert({
           camp_id: targetCampId,
@@ -3057,7 +3105,7 @@
           <td class="p-3">${h.dong}</td>
           <td class="p-3 text-slate-600 font-semibold">${demoStr}</td>
           <td class="p-3">${formatCallResultBadge(h.callResult)}</td>
-          <td class="p-3 font-bold">${formatSupportStatus(h.status, h.callResult)}</td>
+          <td class="p-3 font-bold">${formatSupportStatus(h.status, l.callResult)}</td>
           <td class="p-3 font-mono text-slate-600">${h.duration || '00:00'}</td>
           <td class="p-3 text-slate-600">${h.memo || '-'}</td>
           <td class="p-3 font-mono text-slate-400">${h.time}</td>
