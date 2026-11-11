@@ -15,6 +15,31 @@
     .custom-scrollbar-dark::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .animate-pulse-red { animation: pulse-red 1.5s infinite; }
+
+    /* A4 인쇄 전용 스타일 */
+    @media print {
+      body * { visibility: hidden !important; }
+      #briefing-report-modal, #briefing-report-modal * { visibility: visible !important; }
+      #briefing-report-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+      #briefing-print-area {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10mm !important;
+      }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col text-slate-800">
@@ -46,7 +71,6 @@
         </button>
         <div id="login-error" class="text-xs text-rose-500 font-bold text-center min-h-[16px]"></div>
 
-        <!-- 빠른 테스트용 계정 선택 도우미 -->
         <div class="pt-4 border-t border-slate-800/80">
           <span class="block text-[11px] font-bold text-slate-500 mb-2 text-center">⚡ 원클릭 테스트 계정 자동 입력</span>
           <div class="grid grid-cols-3 gap-2">
@@ -78,7 +102,6 @@
     </header>
 
     <main class="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar-dark">
-      <!-- 상단 KPI 요약 -->
       <div class="grid grid-cols-4 gap-5">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 block mb-1">총 등록 캠프 수</span>
@@ -111,7 +134,6 @@
       </div>
 
       <div class="grid grid-cols-3 gap-6">
-        <!-- 좌측 2칸: 캠프 라이선스 테이블 -->
         <div class="col-span-2 space-y-6">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div class="flex justify-between items-center mb-4">
@@ -137,15 +159,12 @@
                     <th class="pb-3 text-right">제어</th>
                   </tr>
                 </thead>
-                <tbody id="super-camps-body" class="divide-y divide-slate-800 text-xs">
-                  <!-- JS 동적 렌더링 -->
-                </tbody>
+                <tbody id="super-camps-body" class="divide-y divide-slate-800 text-xs"></tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- 우측 1칸: 신규 캠프 등록 & 입금 계좌 관리 -->
         <div class="space-y-6 flex flex-col justify-between">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 class="text-base font-bold text-indigo-300 mb-3">➕ 신규 캠프 개설 및 계약 등록</h3>
@@ -269,8 +288,110 @@
     </div>
   </div>
 
+  <!-- ==================== [Phase 3 신규] 후보자 일일 보고용 A4 브리핑 리포트 모달 ==================== -->
+  <div id="briefing-report-modal" style="display: none;" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] items-center justify-center overflow-y-auto py-8">
+    <div id="briefing-print-area" class="bg-white text-slate-900 w-[820px] rounded-2xl shadow-2xl p-10 border border-slate-300 space-y-6 my-auto">
+      <!-- 상단 버튼 바 (인쇄 시 숨김) -->
+      <div class="no-print flex justify-between items-center pb-4 border-b border-slate-200">
+        <span class="text-xs font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">🖨️ A4 규격 최적화 보고서 미리보기</span>
+        <div class="flex gap-2">
+          <button type="button" onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-print"></i> 즉시 인쇄 / PDF 저장
+          </button>
+          <button type="button" onclick="closeBriefingReportModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl">닫기</button>
+        </div>
+      </div>
+
+      <!-- 보고서 타이틀 헤더 -->
+      <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+        <div>
+          <p class="text-xs font-extrabold text-blue-700 uppercase tracking-widest">ELECTION CAMPAIGN DAILY BRIEFING</p>
+          <h1 class="text-2xl font-black text-slate-900 mt-1" id="report-camp-title">선거 캠프 전화홍보 일일 종합 상황보고서</h1>
+        </div>
+        <div class="text-right text-xs text-slate-600 space-y-0.5">
+          <div><strong>보고 일시:</strong> <span id="report-date-txt" class="font-mono"></span></div>
+          <div><strong>발행 시스템:</strong> 이지콜(EasyCall) 상황실 관제센터</div>
+        </div>
+      </div>
+
+      <!-- 1. 종합 수행 요약 표 -->
+      <div>
+        <h3 class="text-sm font-extrabold text-slate-900 mb-2">1. 금일 전화홍보 총괄 수행 실적</h3>
+        <div class="grid grid-cols-5 gap-3 text-center">
+          <div class="p-3 bg-slate-50 border border-slate-300 rounded-lg">
+            <span class="text-[11px] font-bold text-slate-500 block">총 발신 시도</span>
+            <span class="text-lg font-black text-slate-900 font-mono" id="rep-total">0건</span>
+          </div>
+          <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-lg">
+            <span class="text-[11px] font-bold text-emerald-700 block">통화 성공 (유효)</span>
+            <span class="text-lg font-black text-emerald-700 font-mono" id="rep-conn">0건 (0%)</span>
+          </div>
+          <div class="p-3 bg-blue-50 border border-blue-300 rounded-lg">
+            <span class="text-[11px] font-bold text-blue-700 block">긍정 우호층 확보</span>
+            <span class="text-lg font-black text-blue-700 font-mono" id="rep-pos">0건 (0%)</span>
+          </div>
+          <div class="p-3 bg-amber-50 border border-amber-300 rounded-lg">
+            <span class="text-[11px] font-bold text-amber-700 block">부재중 / 콜백대기</span>
+            <span class="text-lg font-black text-amber-700 font-mono" id="rep-cb">0건</span>
+          </div>
+          <div class="p-3 bg-rose-50 border border-rose-300 rounded-lg">
+            <span class="text-[11px] font-bold text-rose-700 block">수신거부 (DNC)</span>
+            <span class="text-lg font-black text-rose-700 font-mono" id="rep-dnc">0건</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 지지 성향 & 성별/연령대 분석 -->
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-extrabold text-slate-900 mb-2">2. 유효 응답자 지지 성향 세부 분포</h3>
+          <table class="w-full text-xs border border-slate-300">
+            <thead class="bg-slate-100 border-b border-slate-300 font-bold">
+              <tr><th class="p-2 text-left">성향 분류</th><th class="p-2 text-right">응답 건수</th><th class="p-2 text-right">비율(%)</th></tr>
+            </thead>
+            <tbody id="rep-support-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
+          </table>
+        </div>
+        <div>
+          <h3 class="text-sm font-extrabold text-slate-900 mb-2">3. 관할 행정동별 통화 및 지지율 현황</h3>
+          <table class="w-full text-xs border border-slate-300">
+            <thead class="bg-slate-100 border-b border-slate-300 font-bold">
+              <tr><th class="p-2 text-left">행정동</th><th class="p-2 text-right">시도/연결</th><th class="p-2 text-right">긍정 지지율</th></tr>
+            </thead>
+            <tbody id="rep-dong-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. 주요 유권자 민원 및 특이사항 요약 -->
+      <div>
+        <h3 class="text-sm font-extrabold text-slate-900 mb-2">4. 현장 주요 유권자 민원 및 특이 메모 보고 (최근 8건)</h3>
+        <table class="w-full text-xs border border-slate-300">
+          <thead class="bg-slate-100 border-b border-slate-300 font-bold">
+            <tr><th class="p-2 text-left w-24">유권자(동)</th><th class="p-2 text-left w-24">성별/연령</th><th class="p-2 text-left w-24">성향</th><th class="p-2 text-left">상세 민원 및 건의사항 메모</th></tr>
+          </thead>
+          <tbody id="rep-memo-tbody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+
+      <div class="pt-4 border-t border-slate-300 flex justify-between items-center text-[11px] text-slate-500">
+        <span>※ 본 보고서는 선거법 준수 하에 수집된 전화홍보 빅데이터 자동 집계 자료입니다.</span>
+        <span class="font-bold text-slate-700">결재: 선거대책본부장 / 후보자 (인)</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== 2. 캠프관리자 화면 ==================== -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
+    <!-- [Phase 3 신규] 요원 SOS 긴급 호출 수신 경보 배너 -->
+    <div id="admin-sos-alert-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 flex items-center justify-between shadow-lg z-40">
+      <div class="flex items-center gap-2.5 text-xs font-extrabold">
+        <span class="px-2 py-0.5 bg-white text-rose-600 rounded font-black animate-pulse">🚨 SOS 긴급호출</span>
+        <span id="admin-sos-alert-text">태블릿 요원으로부터 긴급 도움 요청이 접수되었습니다!</span>
+      </div>
+      <button type="button" onclick="clearSosAlerts()" class="px-3 py-1 bg-rose-800 hover:bg-rose-900 text-white rounded-lg text-xs font-bold transition">확인 및 경보 해제</button>
+    </div>
+
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-4">
         <div>
@@ -282,10 +403,13 @@
         <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
           <button type="button" id="admin-tab-config-btn" onclick="switchAdminTab('config')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition">상황실 설정 및 관리</button>
           <button type="button" id="admin-tab-stats-btn" onclick="switchAdminTab('stats')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">인구통계·성향 교차차트 및 실적</button>
-          <button type="button" id="admin-tab-logs-btn" onclick="switchAdminTab('logs')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">전체 통화기록 및 엑셀 다운로드</button>
+          <button type="button" id="admin-tab-logs-btn" onclick="switchAdminTab('logs')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">전체 통화기록 및 엑셀 추출</button>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2.5">
+        <button type="button" onclick="openBriefingReportModal()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-print text-amber-400"></i> 🖨️ 후보자 보고용 A4 브리핑 인쇄
+        </button>
         <span id="admin-header-mode-badge" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">📱 무제한 유심 직발신 모드</span>
         <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold">로그아웃</button>
       </div>
@@ -294,15 +418,31 @@
     <!-- [탭 1: 상황실 설정 및 관리] -->
     <main id="admin-pane-config" class="flex-1 p-6 grid grid-cols-3 gap-6 overflow-y-auto custom-scrollbar">
       <div class="col-span-2 space-y-6">
-        <!-- 캠프 일괄 발신 제어 -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <h3 class="text-base font-bold text-slate-900 mb-1">🚨 캠프 전체 전화 홍보 업무 일괄 제어</h3>
-            <p class="text-xs text-slate-500">식사 시간, 전략 회의 등 필요 시 모든 태블릿 요원의 전화 발신을 즉시 잠급니다.</p>
+        <!-- 캠프 일괄 발신 제어 & [Phase 3] 야간 발신 제한 안전잠금 -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 mb-0.5">🚨 캠프 전체 전화 홍보 업무 일괄 제어 & 선거법 야간 안전잠금</h3>
+              <p class="text-xs text-slate-500">식사·회의 시 일괄 중지하거나, 선거법 준수를 위해 야간 시간대 발신을 자동 차단합니다.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="camp-global-status-badge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">전화 업무 진행 중 🟢</span>
+              <button type="button" id="btn-toggle-camp-call" onclick="toggleCampGlobalCalling()" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition">전체 전화 중지</button>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <span id="camp-global-status-badge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">전화 업무 진행 중 🟢</span>
-            <button type="button" id="btn-toggle-camp-call" onclick="toggleCampGlobalCalling()" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition">전체 전화 중지</button>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="night-lock-enable" onchange="saveNightLockSettings()" class="w-4 h-4 accent-blue-600 cursor-pointer" checked>
+              <label for="night-lock-enable" class="text-xs font-extrabold text-slate-800 cursor-pointer">🌙 발신 허용 시간대 안전잠금 활성화</label>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-slate-500 font-bold">허용 시간:</span>
+              <input type="time" id="allowed-start-time" value="08:00" onchange="saveNightLockSettings()" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-mono font-bold">
+              <span>~</span>
+              <input type="time" id="allowed-end-time" value="21:00" onchange="saveNightLockSettings()" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-mono font-bold">
+              <button type="button" onclick="saveNightLockSettings()" class="px-3 py-1 bg-slate-800 text-white rounded-lg font-bold">적용</button>
+            </div>
           </div>
         </div>
 
@@ -320,7 +460,7 @@
             <div class="p-4 bg-blue-50/70 border border-blue-200 rounded-xl flex flex-col justify-between space-y-3">
               <div>
                 <span class="text-[10px] font-extrabold px-2 py-0.5 bg-blue-200 text-blue-800 rounded">1단계: 초반 (인지도)</span>
-                <textarea id="scenario-step-1" rows="4" class="w-full mt-2 p-2.5 bg-white border border-blue-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 leading-relaxed">안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!</textarea>
+                <textarea id="scenario-step-1" rows="3" class="w-full mt-2 p-2.5 bg-white border border-blue-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 leading-relaxed">안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!</textarea>
               </div>
               <button type="button" onclick="saveAndDeployStep(1)" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-xs">저장 후 1단계 배포</button>
             </div>
@@ -328,7 +468,7 @@
             <div class="p-4 bg-indigo-50/70 border border-indigo-200 rounded-xl flex flex-col justify-between space-y-3">
               <div>
                 <span class="text-[10px] font-extrabold px-2 py-0.5 bg-indigo-200 text-indigo-800 rounded">2단계: 중반 (공약/현안)</span>
-                <textarea id="scenario-step-2" rows="4" class="w-full mt-2 p-2.5 bg-white border border-indigo-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500 leading-relaxed">안녕하십니까! 우리 동네의 가장 시급한 숙원 사업과 민원을 공약에 반영하고자 전화드렸습니다. 불편하신 점을 말씀해 주세요!</textarea>
+                <textarea id="scenario-step-2" rows="3" class="w-full mt-2 p-2.5 bg-white border border-indigo-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500 leading-relaxed">안녕하십니까! 우리 동네의 가장 시급한 숙원 사업과 민원을 공약에 반영하고자 전화드렸습니다. 불편하신 점을 말씀해 주세요!</textarea>
               </div>
               <button type="button" onclick="saveAndDeployStep(2)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition shadow-xs">저장 후 2단계 배포</button>
             </div>
@@ -336,14 +476,13 @@
             <div class="p-4 bg-purple-50/70 border border-purple-200 rounded-xl flex flex-col justify-between space-y-3">
               <div>
                 <span class="text-[10px] font-extrabold px-2 py-0.5 bg-purple-200 text-purple-800 rounded">3단계: 후반 (투표독려)</span>
-                <textarea id="scenario-step-3" rows="4" class="w-full mt-2 p-2.5 bg-white border border-purple-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:border-purple-500 leading-relaxed">투표일이 다가왔습니다! 반드시 소중한 한 표를 행사하셔서 우리 지역의 확실한 변화를 만들어 주시기를 간곡히 부탁드립니다!</textarea>
+                <textarea id="scenario-step-3" rows="3" class="w-full mt-2 p-2.5 bg-white border border-purple-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:border-purple-500 leading-relaxed">투표일이 다가왔습니다! 반드시 소중한 한 표를 행사하셔서 우리 지역의 확실한 변화를 만들어 주시기를 간곡히 부탁드립니다!</textarea>
               </div>
               <button type="button" onclick="saveAndDeployStep(3)" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg transition shadow-xs">저장 후 3단계 배포</button>
             </div>
           </div>
 
-          <!-- [2차 신규] 콜백 명함/공약 문자(SMS) 템플릿 설정 -->
-          <div class="pt-4 border-t border-slate-100">
+          <div class="pt-3 border-t border-slate-100">
             <div class="flex justify-between items-center mb-1.5">
               <label class="text-xs font-bold text-slate-800"><i class="fa-solid fa-comment-sms mr-1 text-emerald-600"></i> 통화 직후 발송할 후보자 명함/공약 콜백 문자(SMS) 문구 설정</label>
               <span class="text-[11px] text-emerald-700 font-semibold">태블릿 무제한 유심 문자 연동 (발송비 0원)</span>
@@ -355,7 +494,32 @@
           </div>
         </div>
 
-        <!-- 실제 CSV 파싱 업로드 (수신거부 자동 필터링 포함) -->
+        <!-- [Phase 3 신규] 돌발 질문 대응 FAQ (모범 답변 컨닝페이퍼) 관리 센터 -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-circle-question mr-1 text-indigo-600"></i> 유권자 돌발 질문 / 네거티브 대응 모범답변(FAQ) 배포 관리</h3>
+              <p class="text-xs text-slate-500 mt-0.5">통화 중 유권자가 자주 묻는 질문과 모범 답변을 등록하면 태블릿 요원 화면에 즉시 표시됩니다.</p>
+            </div>
+            <button type="button" onclick="saveFaqCards()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">FAQ 전체 저장 및 배포</button>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+              <input type="text" id="faq-q-1" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-bold text-indigo-900" value="Q1. 후보자의 핵심 대표 공약은?">
+              <textarea id="faq-a-1" rows="2" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs text-slate-700">지역 경제 활성화와 어르신·아이 돌봄 복지 확충을 최우선 과제로 추진하고 있습니다.</textarea>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+              <input type="text" id="faq-q-2" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-bold text-indigo-900" value="Q2. 후보자의 주요 경력과 강점은?">
+              <textarea id="faq-a-2" rows="2" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs text-slate-700">수십 년간 현장에서 검증된 행정 실무 전문가로서 말보다 실천이 앞서는 일꾼입니다.</textarea>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+              <input type="text" id="faq-q-3" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-bold text-indigo-900" value="Q3. 사전투표 일정과 장소 문의">
+              <textarea id="faq-a-3" rows="2" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs text-slate-700">사전투표 기간 중 신분증만 지참하시면 전국 가까운 읍·면·동 사전투표소 어디서나 투표 가능합니다.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 실제 CSV 파싱 업로드 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-3">
             <div>
@@ -369,42 +533,19 @@
               </button>
             </div>
           </div>
-          <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center bg-slate-50 mb-4">
+          <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center bg-slate-50 mb-3">
             <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUpload(event)" class="text-xs font-bold text-slate-700 cursor-pointer">
           </div>
-          <div class="p-3.5 bg-indigo-50/60 border border-indigo-100 rounded-xl flex justify-between items-center text-xs">
+          <div class="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl flex justify-between items-center text-xs">
             <span class="font-bold text-indigo-900">현재 적재된 유권자 명부 큐 & 수신거부(DNC) 차단 현황</span>
             <span class="font-mono font-black text-indigo-600 text-sm" id="voter-queue-status">로딩 중...</span>
           </div>
           <div id="upload-status" class="text-xs font-bold text-emerald-600 mt-2"></div>
         </div>
-
-        <!-- 오토다이얼 및 일일 목표 콜수 설정 -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 mb-2">⚙️ 태블릿 오토다이얼 및 요원 1인당 일일 목표량 설정</h3>
-          <div class="grid grid-cols-3 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">연결 방식</label>
-              <select id="setting-dial-mode" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold">
-                <option value="manual">수동 전환 (직접 클릭)</option>
-                <option value="auto">자동 전환 (오토다이얼)</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">자동 발신 대기 시간 (초)</label>
-              <input type="number" id="setting-wait-secs" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold" value="3" min="1" max="15">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">1인당 일일 목표 건수</label>
-              <input type="number" id="setting-daily-goal" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold" value="150" min="10" max="1000">
-            </div>
-          </div>
-          <button type="button" onclick="saveDialSettings()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition">설정 저장 및 전체 태블릿 배포</button>
-        </div>
       </div>
 
       <div class="space-y-6">
-        <!-- [핵심 패치] 발신 모드에 따른 예치금 패널 동적 제어 & 무제한 유심 안내 패널 -->
+        <!-- 발신 모드 동적 연동 패널 -->
         <div id="admin-charge-panel" class="bg-white border-2 border-amber-400 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-2">
             <h3 class="text-base font-bold text-slate-900">💳 전화 예치금 계좌이체 충전 신청</h3>
@@ -437,40 +578,58 @@
           <p class="text-xs text-emerald-700 leading-relaxed">현재 본사 마스터 설정에 의해 <strong>통신비 0원 무제한 유심 직발신 모드</strong>로 운영 중이므로 별도의 전화 예치금 충전이 필요하지 않습니다.</p>
         </div>
 
+        <!-- 오토다이얼 및 일일 목표 콜수 설정 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 mb-2"><i class="fa-solid fa-key mr-1 text-blue-600"></i> 상황실 관리자 비밀번호 변경</h3>
-          <div class="space-y-3">
+          <h3 class="text-base font-bold text-slate-900 mb-2">⚙️ 오토다이얼 및 일일 목표량 설정</h3>
+          <div class="space-y-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-3">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">새로운 비밀번호</label>
-              <input type="password" id="admin-new-pw" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900" placeholder="새 비밀번호 입력">
+              <label class="block text-xs font-bold text-slate-700 mb-1">연결 방식</label>
+              <select id="setting-dial-mode" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold">
+                <option value="manual">수동 전환 (직접 클릭)</option>
+                <option value="auto">자동 전환 (오토다이얼)</option>
+              </select>
             </div>
-            <button type="button" onclick="changeAdminPassword()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-sm">비밀번호 변경 저장</button>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">자동발신 대기(초)</label>
+                <input type="number" id="setting-wait-secs" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold" value="3" min="1" max="15">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">1인 일일 목표(건)</label>
+                <input type="number" id="setting-daily-goal" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-bold" value="150" min="10" max="1000">
+              </div>
+            </div>
           </div>
+          <button type="button" onclick="saveDialSettings()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition">설정 저장 및 배포</button>
         </div>
 
-        <!-- 소속 태블릿 요원 발급 및 영구 저장 -->
+        <!-- 소속 태블릿 요원 발급 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-900 mb-2">👤 소속 태블릿 요원 계정 관리</h3>
-          <p class="text-xs text-slate-500 mb-3">발급된 요원 계정은 초기 비밀번호 <code class="font-mono font-bold text-blue-600">1234</code>로 즉시 로그인할 수 있습니다.</p>
-          <div class="flex gap-2 mb-4">
-            <input type="text" id="agent-id-input" class="flex-1 border border-slate-300 rounded-xl p-2.5 text-xs font-mono" placeholder="예: agent02">
-            <button type="button" onclick="createAgentAccount()" class="px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">계정 발급</button>
+          <div class="flex gap-2 mb-3">
+            <input type="text" id="agent-id-input" class="flex-1 border border-slate-300 rounded-xl p-2 text-xs font-mono" placeholder="예: agent02">
+            <button type="button" onclick="createAgentAccount()" class="px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">발급</button>
           </div>
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
-              <tr><th class="p-2.5">요원 아이디</th><th class="p-2.5">누적 처리</th><th class="p-2.5">실시간 상태</th></tr>
+              <tr><th class="p-2">요원 ID</th><th class="p-2">누적 처리</th><th class="p-2">상태</th></tr>
             </thead>
-            <tbody id="agent-list-body" class="divide-y divide-slate-100">
-              <!-- JS 동적 렌더링 -->
-            </tbody>
+            <tbody id="agent-list-body" class="divide-y divide-slate-100"></tbody>
           </table>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-2"><i class="fa-solid fa-key mr-1 text-blue-600"></i> 상황실 비밀번호 변경</h3>
+          <div class="flex gap-2">
+            <input type="password" id="admin-new-pw" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs" placeholder="새 비밀번호">
+            <button type="button" onclick="changeAdminPassword()" class="px-3 py-2 bg-slate-800 text-white font-bold text-xs rounded-xl">변경</button>
+          </div>
         </div>
       </div>
     </main>
 
     <!-- [탭 2: 인구통계·성향 교차차트 및 요원별 실적] -->
     <main id="admin-pane-stats" class="hidden flex-1 p-6 overflow-y-auto bg-slate-100 space-y-6 custom-scrollbar">
-      <!-- 상단: 전체 통화 연결 상태 5단 요약 보드 -->
       <div class="grid grid-cols-5 gap-4">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <span class="text-xs font-bold text-slate-400 block mb-1">🟢 통화 성공 (유효응답)</span>
@@ -494,7 +653,6 @@
         </div>
       </div>
 
-      <!-- 중단: 지지 성향 분포 & 성별 교차 분석 -->
       <div class="grid grid-cols-2 gap-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
@@ -521,39 +679,29 @@
           </div>
         </div>
 
-        <!-- 성별 지지 성향 교차 분석 차트 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-venus-mars mr-1.5 text-blue-600"></i> 성별(남/여) 응답 및 긍정 지지율 교차 분석</h3>
             <span class="text-xs font-bold text-slate-400">인구통계 1차 분석</span>
           </div>
-          <div id="gender-cross-chart" class="space-y-4 pt-1">
-            <!-- JS 동적 렌더링 -->
-          </div>
+          <div id="gender-cross-chart" class="space-y-4 pt-1"></div>
         </div>
       </div>
 
-      <!-- 하단: 연령대별 교차 분석 & 관할 행정동별 실적/지지율 & 요원별 실적 -->
       <div class="grid grid-cols-3 gap-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-user-clock mr-1.5 text-indigo-600"></i> 연령대별(20대~70대+) 긍정 지지율 분포</h3>
-          <div id="age-cross-chart" class="space-y-2.5 pt-1">
-            <!-- JS 동적 렌더링 -->
-          </div>
+          <div id="age-cross-chart" class="space-y-2.5 pt-1"></div>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-map-location-dot mr-1.5 text-emerald-600"></i> 관할 행정동별 통화 및 지지율 현황</h3>
-          <div id="dong-performance-list" class="space-y-2.5 pt-1 max-h-64 overflow-y-auto custom-scrollbar">
-            <!-- JS 동적 렌더링 -->
-          </div>
+          <div id="dong-performance-list" class="space-y-2.5 pt-1 max-h-64 overflow-y-auto custom-scrollbar"></div>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-users-gear mr-1.5 text-blue-600"></i> 담당 요원별 실적 비교 리포트</h3>
-          <div id="agent-performance-list" class="space-y-2.5 pt-1 max-h-64 overflow-y-auto custom-scrollbar">
-            <!-- JS 동적 렌더링 -->
-          </div>
+          <div id="agent-performance-list" class="space-y-2.5 pt-1 max-h-64 overflow-y-auto custom-scrollbar"></div>
         </div>
       </div>
     </main>
@@ -593,9 +741,7 @@
             <th class="p-3">시각</th>
           </tr>
         </thead>
-        <tbody id="admin-all-logs-tbody" class="divide-y divide-slate-100">
-          <!-- JS 동적 렌더링 -->
-        </tbody>
+        <tbody id="admin-all-logs-tbody" class="divide-y divide-slate-100"></tbody>
       </table>
     </main>
   </div>
@@ -605,7 +751,7 @@
     <!-- 캠프 전체 발신 중지 오버레이 배너 -->
     <div id="agent-global-stop-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 text-center text-xs font-extrabold flex items-center justify-center gap-2 shadow-md z-40">
       <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
-      <span>현재 상황실 관리자에 의해 캠프 전체 전화 발신이 일시 중지되었습니다. 대기해 주세요.</span>
+      <span id="agent-stop-banner-msg">현재 상황실 관리자에 의해 캠프 전체 전화 발신이 일시 중지되었습니다. 대기해 주세요.</span>
     </div>
 
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
@@ -615,21 +761,21 @@
           <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">선거 전화홍보 시스템 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1 font-semibold">태블릿 워크스페이스</span></h1>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2.5">
         <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition">전화 다이얼러</button>
-          <button type="button" id="tab-search-btn" onclick="switchAgentTab('search')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition flex items-center gap-1">
-            <span>🔍 유권자 검색 및 콜백</span>
+          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition">전화 다이얼러</button>
+          <button type="button" id="tab-search-btn" onclick="switchAgentTab('search')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition flex items-center gap-1">
+            <span>🔍 검색/콜백</span>
             <span id="callback-count-badge" class="px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-extrabold">0</span>
           </button>
-          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">내 통화 이력 및 통계</button>
+          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">내 실적/통계</button>
         </div>
 
-        <!-- [2차 신규] 일일 목표 달성률 프로그레스 게이지 -->
-        <div class="bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl flex items-center gap-2.5 w-48">
+        <!-- 일일 목표 달성률 게이지 -->
+        <div class="bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl flex items-center gap-2 w-44">
           <div class="flex-1">
             <div class="flex justify-between text-[10px] font-extrabold text-slate-600 mb-0.5">
-              <span>🎯 일일 목표</span>
+              <span>🎯 목표</span>
               <span id="agent-goal-txt" class="text-blue-600 font-mono">0 / 150건 (0%)</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
@@ -638,13 +784,18 @@
           </div>
         </div>
 
-        <button type="button" id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식/업무 중지</span>
+        <!-- [Phase 3 신규] 상황실 긴급 SOS 호출 버튼 -->
+        <button type="button" onclick="triggerAgentSosCall()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-300 px-3 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1">
+          <i class="fa-solid fa-bell text-rose-600"></i><span>🚨 상황실 SOS 호출</span>
         </button>
-        <div class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
-          <span>요원: <strong class="text-slate-900 font-mono" id="agent-display-id">agent01</strong></span>
+
+        <button type="button" id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1">
+          <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식중지</span>
+        </button>
+        <div class="bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-full text-xs font-semibold">
+          <strong class="text-slate-900 font-mono" id="agent-display-id">agent01</strong>
         </div>
-        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">로그아웃</button>
+        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition">로그아웃</button>
       </div>
     </header>
 
@@ -654,9 +805,10 @@
         <div>
           <div class="flex justify-between items-center mb-4">
             <span class="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-md shadow-sm" id="voter-dong">대천1동</span>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded" id="voter-lock-badge">🔒 단독 점유중</span>
               <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md" id="voter-last-status">신규 대상</span>
-              <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md font-mono" id="voter-id">ID #1042</span>
+              <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-md font-mono" id="voter-id">ID #1042</span>
             </div>
           </div>
           <div class="bg-gradient-to-br from-blue-50/70 to-slate-50 border border-blue-100/80 rounded-xl p-5 mb-4">
@@ -672,7 +824,6 @@
                 <button type="button" id="btn-native-tel" onclick="startCallSimulation(true)" class="py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition flex items-center justify-center gap-1">
                   <i class="fa-solid fa-mobile-screen-button text-blue-600"></i><span>태블릿 전화앱 호출</span>
                 </button>
-                <!-- [2차 신규] 원터치 콜백 문자 발송 버튼 -->
                 <button type="button" onclick="sendCallbackSmsToVoter()" class="py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition flex items-center justify-center gap-1">
                   <i class="fa-solid fa-comment-sms text-emerald-600"></i><span>명함/공약 문자발송</span>
                 </button>
@@ -704,49 +855,62 @@
       </section>
 
       <section class="w-[62%] bg-white rounded-2xl border border-slate-200/80 p-5 flex flex-col justify-between shadow-sm overflow-y-auto custom-scrollbar">
-        <div class="space-y-3.5">
-          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5">
-            <span class="text-[11px] font-bold text-indigo-600 block mb-1">📢 캠프 홍보 시나리오 대본 (상황실 실시간 연동)</span>
+        <div class="space-y-3">
+          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+            <span class="text-[11px] font-bold text-indigo-600 block mb-0.5">📢 캠프 홍보 시나리오 대본 (상황실 실시간 연동)</span>
             <p id="agent-script-display" class="text-sm text-indigo-950 font-bold leading-relaxed">"안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!"</p>
           </div>
 
-          <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5">
+          <!-- [Phase 3 신규] 돌발 질문 모범 답변(FAQ) 원터치 오픈 바 -->
+          <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-extrabold text-amber-900"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>유권자 돌발 질문 모범 답변 (클릭 시 답변 표시)</span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5" id="agent-faq-buttons">
+              <button type="button" onclick="toggleFaqAnswer(1)" class="py-1.5 px-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold truncate text-left" id="agent-faq-btn-1">Q1. 핵심 대표 공약</button>
+              <button type="button" onclick="toggleFaqAnswer(2)" class="py-1.5 px-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold truncate text-left" id="agent-faq-btn-2">Q2. 후보자 주요 경력</button>
+              <button type="button" onclick="toggleFaqAnswer(3)" class="py-1.5 px-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold truncate text-left" id="agent-faq-btn-3">Q3. 사전투표 안내</button>
+            </div>
+            <div id="agent-faq-answer-box" class="hidden mt-2 p-2.5 bg-white rounded-lg border border-amber-300 text-xs font-bold text-slate-800 leading-relaxed"></div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3 space-y-2">
             <div class="flex items-center gap-3">
               <span class="text-xs font-extrabold text-slate-700 w-16 shrink-0"><i class="fa-solid fa-venus-mars mr-1 text-blue-600"></i>성별</span>
               <div class="flex gap-1.5 flex-1">
-                <button type="button" onclick="selectVoterGender('미상')" id="btn-gender-미상" class="gender-btn px-3 py-1.5 rounded-lg border-2 border-blue-600 bg-blue-50 text-blue-700 text-xs font-bold transition">미상</button>
-                <button type="button" onclick="selectVoterGender('남성')" id="btn-gender-남성" class="gender-btn px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">👨 남성</button>
-                <button type="button" onclick="selectVoterGender('여성')" id="btn-gender-여성" class="gender-btn px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">👩 여성</button>
+                <button type="button" onclick="selectVoterGender('미상')" id="btn-gender-미상" class="gender-btn px-3 py-1 rounded-lg border-2 border-blue-600 bg-blue-50 text-blue-700 text-xs font-bold transition">미상</button>
+                <button type="button" onclick="selectVoterGender('남성')" id="btn-gender-남성" class="gender-btn px-4 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">👨 남성</button>
+                <button type="button" onclick="selectVoterGender('여성')" id="btn-gender-여성" class="gender-btn px-4 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">👩 여성</button>
               </div>
             </div>
             <div class="flex items-center gap-3">
               <span class="text-xs font-extrabold text-slate-700 w-16 shrink-0"><i class="fa-solid fa-user-clock mr-1 text-indigo-600"></i>연령대</span>
               <div class="grid grid-cols-7 gap-1.5 flex-1">
-                <button type="button" onclick="selectVoterAge('미상')" id="btn-age-미상" class="age-btn py-1.5 rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-xs font-bold transition text-center">미상</button>
-                <button type="button" onclick="selectVoterAge('20대')" id="btn-age-20대" class="age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">20대</button>
-                <button type="button" onclick="selectVoterAge('30대')" id="btn-age-30대" class="age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">30대</button>
-                <button type="button" onclick="selectVoterAge('40대')" id="btn-age-40대" class="age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">40대</button>
-                <button type="button" onclick="selectVoterAge('50대')" id="btn-age-50대" class="age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">50대</button>
-                <button type="button" onclick="selectVoterAge('60대')" id="btn-age-60대" class="age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">60대</button>
-                <button type="button" onclick="selectVoterAge('70대+')" id="btn-age-70대+" class="age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">70대+</button>
+                <button type="button" onclick="selectVoterAge('미상')" id="btn-age-미상" class="age-btn py-1 rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-xs font-bold transition text-center">미상</button>
+                <button type="button" onclick="selectVoterAge('20대')" id="btn-age-20대" class="age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">20대</button>
+                <button type="button" onclick="selectVoterAge('30대')" id="btn-age-30대" class="age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">30대</button>
+                <button type="button" onclick="selectVoterAge('40대')" id="btn-age-40대" class="age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">40대</button>
+                <button type="button" onclick="selectVoterAge('50대')" id="btn-age-50대" class="age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">50대</button>
+                <button type="button" onclick="selectVoterAge('60대')" id="btn-age-60대" class="age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">60대</button>
+                <button type="button" onclick="selectVoterAge('70대+')" id="btn-age-70대+" class="age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center">70대+</button>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 class="text-xs font-extrabold text-slate-900 mb-2">📊 유권자 지지 성향 분류 (통화 연결 시 선택)</h3>
+            <h3 class="text-xs font-extrabold text-slate-900 mb-1.5">📊 유권자 지지 성향 분류 (통화 연결 시 선택)</h3>
             <div class="grid grid-cols-2 gap-2" id="status-grid">
-              <button type="button" onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">👍 적극 지지</button>
-              <button type="button" onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">😊 우호 / 호의</button>
-              <button type="button" onclick="selectSupportStatus('VOLUNTEER')" id="btn-status-VOLUNTEER" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">🙋 자원봉사 희망</button>
-              <button type="button" onclick="selectSupportStatus('OPPOSE')" id="btn-status-OPPOSE" class="status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">👎 비지지 / 거부</button>
+              <button type="button" onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-2.5 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">👍 적극 지지</button>
+              <button type="button" onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-2.5 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">😊 우호 / 호의</button>
+              <button type="button" onclick="selectSupportStatus('VOLUNTEER')" id="btn-status-VOLUNTEER" class="status-btn p-2.5 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">🙋 자원봉사 희망</button>
+              <button type="button" onclick="selectSupportStatus('OPPOSE')" id="btn-status-OPPOSE" class="status-btn p-2.5 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm">👎 비지지 / 거부</button>
             </div>
           </div>
 
           <textarea id="memo-input" rows="2" placeholder="유권자 민원 사항이나 특이 메모 입력..." class="w-full p-2.5 border border-slate-200 rounded-xl text-xs"></textarea>
         </div>
 
-        <button type="button" id="btn-save-next" onclick="saveResultToStorage('SUPPORT', 'CONNECTED')" class="w-full mt-3 py-3.5 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-md">💾 통화성공 저장 후 다음 유권자 ➔</button>
+        <button type="button" id="btn-save-next" onclick="saveResultToStorage('SUPPORT', 'CONNECTED')" class="w-full mt-2 py-3.5 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-md">💾 통화성공 저장 후 다음 유권자 ➔</button>
       </section>
     </main>
 
@@ -755,7 +919,7 @@
       <div class="flex justify-between items-center">
         <div>
           <h2 class="text-lg font-extrabold text-slate-900">🔍 유권자 직접 검색 및 실시간 재통화(콜백) 대기열</h2>
-          <p class="text-xs text-slate-500">전체 유권자 명부에서 검색하거나, 부재중·재통화 예약 대상자만 필터링하여 즉시 발신합니다. (수신거부 DNC 번호는 발신이 차단됩니다)</p>
+          <p class="text-xs text-slate-500">전체 유권자 명부에서 검색하거나, 부재중·재통화 예약 대상자만 필터링하여 즉시 발신합니다. (다른 요원 통화중 번호 및 DNC 번호는 보호됩니다)</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" id="filter-btn-all" onclick="setSearchFilterMode('ALL')" class="px-3 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition">전체 명부 보기</button>
@@ -776,13 +940,12 @@
               <th class="p-3">연락처</th>
               <th class="p-3">관할 행정동</th>
               <th class="p-3">최근 통화 상태</th>
+              <th class="p-3">점유 상태</th>
               <th class="p-3">최근 메모</th>
               <th class="p-3 text-right">선택 발신</th>
             </tr>
           </thead>
-          <tbody id="agent-search-voters-tbody" class="divide-y divide-slate-100">
-            <!-- JS 동적 렌더링 -->
-          </tbody>
+          <tbody id="agent-search-voters-tbody" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
     </main>
@@ -850,6 +1013,7 @@
     let currentAdminId = 'camp01';
     let currentVoterIdx = 0;
     let searchFilterMode = 'ALL';
+    let activeFaqNum = null;
 
     const DEFAULT_CAMPS = [
       {
@@ -874,32 +1038,32 @@
     ];
 
     const DEFAULT_VOTERS = [
-      { id: "1042", name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", lastResult: "READY", lastMemo: "" },
-      { id: "1043", name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", lastResult: "READY", lastMemo: "" },
-      { id: "1044", name: "박민수 유권자", phone: "010-5555-4444", dong: "오천면", lastResult: "READY", lastMemo: "" },
-      { id: "1045", name: "이순신 유권자", phone: "010-2222-3333", dong: "대천3동", lastResult: "READY", lastMemo: "" },
-      { id: "1046", name: "최유진 유권자", phone: "010-7777-8888", dong: "웅천읍", lastResult: "READY", lastMemo: "" }
+      { id: "1042", name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1043", name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1044", name: "박민수 유권자", phone: "010-5555-4444", dong: "오천면", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1045", name: "이순신 유권자", phone: "010-2222-3333", dong: "대천3동", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1046", name: "최유진 유권자", phone: "010-7777-8888", dong: "웅천읍", lastResult: "READY", lastMemo: "", lockedBy: null }
+    ];
+
+    const DEFAULT_FAQS = [
+      { q: "Q1. 후보자의 핵심 대표 공약은?", a: "지역 경제 활성화와 어르신·아이 돌봄 복지 확충을 최우선 과제로 추진하고 있습니다." },
+      { q: "Q2. 후보자의 주요 경력과 강점은?", a: "수십 년간 현장에서 검증된 행정 실무 전문가로서 말보다 실천이 앞서는 일꾼입니다." },
+      { q: "Q3. 사전투표 일정과 장소 문의", a: "사전투표 기간 중 신분증만 지참하시면 전국 가까운 읍·면·동 사전투표소 어디서나 투표 가능합니다." }
     ];
 
     let campsList = [];
     let agentsList = [];
     let votersList = [];
     let globalCampCallLogs = [];
-    let dncPhonesList = []; // 수신거부(DNC) 번호 목록
+    let dncPhonesList = [];
+    let faqCardsList = [];
 
-    // ==================== [핵심 해결] 캠프별 발신 모드 단일 진실 공급원(Single Source of Truth) ====================
     function getCampEffectiveMode(campId) {
       const targetId = (campId || 'camp01').trim().toLowerCase();
-      // 1순위: 개별 하이브리드 모드 키 확인
       const directMode = localStorage.getItem(`easycall_hybrid_mode_${targetId}`);
-      if (directMode === 'sim' || directMode === 'sip') {
-        return directMode;
-      }
-      // 2순위: campsList 배열 내 객체 확인
+      if (directMode === 'sim' || directMode === 'sip') return directMode;
       const campObj = campsList.find(c => c.campId.toLowerCase() === targetId);
-      if (campObj && (campObj.mode === 'sim' || campObj.mode === 'sip')) {
-        return campObj.mode;
-      }
+      if (campObj && (campObj.mode === 'sim' || campObj.mode === 'sip')) return campObj.mode;
       return 'sim';
     }
 
@@ -907,9 +1071,7 @@
       const targetId = (campId || 'camp01').trim().toLowerCase();
       localStorage.setItem(`easycall_hybrid_mode_${targetId}`, modeVal);
       const campObj = campsList.find(c => c.campId.toLowerCase() === targetId);
-      if (campObj) {
-        campObj.mode = modeVal;
-      }
+      if (campObj) campObj.mode = modeVal;
       savePersistentData();
     }
 
@@ -917,24 +1079,18 @@
       try {
         const savedCamps = localStorage.getItem('easycall_camps');
         campsList = savedCamps ? JSON.parse(savedCamps) : [...DEFAULT_CAMPS];
-        // 개별 키와 배열 내 mode 동기화 보장
         campsList.forEach(c => {
           const directMode = localStorage.getItem(`easycall_hybrid_mode_${c.campId.toLowerCase()}`);
-          if (directMode === 'sim' || directMode === 'sip') {
-            c.mode = directMode;
-          } else {
-            localStorage.setItem(`easycall_hybrid_mode_${c.campId.toLowerCase()}`, c.mode || 'sim');
-          }
+          if (directMode === 'sim' || directMode === 'sip') c.mode = directMode;
+          else localStorage.setItem(`easycall_hybrid_mode_${c.campId.toLowerCase()}`, c.mode || 'sim');
         });
         localStorage.setItem('easycall_camps', JSON.stringify(campsList));
 
         const savedAgents = localStorage.getItem('easycall_agents');
         agentsList = savedAgents ? JSON.parse(savedAgents) : [...DEFAULT_AGENTS];
-        if (!savedAgents) localStorage.setItem('easycall_agents', JSON.stringify(agentsList));
 
         const savedVoters = localStorage.getItem('easycall_voters');
         votersList = savedVoters ? JSON.parse(savedVoters) : [...DEFAULT_VOTERS];
-        if (!savedVoters) localStorage.setItem('easycall_voters', JSON.stringify(votersList));
 
         const savedLogs = localStorage.getItem('easycall_logs');
         globalCampCallLogs = savedLogs ? JSON.parse(savedLogs) : [];
@@ -942,15 +1098,18 @@
         const savedDnc = localStorage.getItem('easycall_dnc_phones');
         dncPhonesList = savedDnc ? JSON.parse(savedDnc) : [];
 
+        const savedFaqs = localStorage.getItem('easycall_faqs');
+        faqCardsList = savedFaqs ? JSON.parse(savedFaqs) : [...DEFAULT_FAQS];
+
         const savedIdx = parseInt(localStorage.getItem('easycall_voter_idx') || '0', 10);
         currentVoterIdx = isNaN(savedIdx) ? 0 : savedIdx;
       } catch (e) {
-        console.error("로컬 스토리지 로드 오류:", e);
         campsList = [...DEFAULT_CAMPS];
         agentsList = [...DEFAULT_AGENTS];
         votersList = [...DEFAULT_VOTERS];
         globalCampCallLogs = [];
         dncPhonesList = [];
+        faqCardsList = [...DEFAULT_FAQS];
       }
     }
 
@@ -960,10 +1119,10 @@
       localStorage.setItem('easycall_voters', JSON.stringify(votersList));
       localStorage.setItem('easycall_logs', JSON.stringify(globalCampCallLogs));
       localStorage.setItem('easycall_dnc_phones', JSON.stringify(dncPhonesList));
+      localStorage.setItem('easycall_faqs', JSON.stringify(faqCardsList));
       localStorage.setItem('easycall_voter_idx', String(currentVoterIdx));
     }
 
-    // 다른 탭/창에서 마스터가 설정 변경 시 실시간 반영
     window.addEventListener('storage', function() {
       loadPersistentData();
       const role = localStorage.getItem('easycall_role');
@@ -971,12 +1130,14 @@
         applyAdminChargePanelVisibility(currentAdminId);
         updateAdminGlobalStopUI();
         updateVoterQueueStatusText();
+        checkAdminSosBanner();
         renderAdminLogsTable();
         renderStatsAndCharts();
       } else if (role === 'agent') {
         applyHybridModeUI();
         checkAgentGlobalStopBanner();
         updateAgentGoalGauge();
+        renderAgentFaqButtons();
       } else if (role === 'super') {
         renderSuperCampsTable();
       }
@@ -992,7 +1153,6 @@
       window.location.reload();
     }
 
-    // ==================== 초기화 실행 ====================
     window.onload = function() {
       loadPersistentData();
       updateAdminBankNotice();
@@ -1033,7 +1193,6 @@
       return true;
     }
 
-    // ==================== 로그인 및 보안 검증 ====================
     function handleInstantLogin() {
       loadPersistentData();
       const idInput = document.getElementById('login-id').value.trim().toLowerCase();
@@ -1092,13 +1251,20 @@
     }
 
     function handleLogout() {
+      // 로그아웃 시 자신이 점유(Lock)했던 유권자 해제
+      if (localStorage.getItem('easycall_role') === 'agent') {
+        votersList.forEach(v => {
+          if (v.lockedBy === currentAgentId) v.lockedBy = null;
+        });
+        savePersistentData();
+      }
       localStorage.removeItem('easycall_role');
       localStorage.removeItem('easycall_id');
       sessionStorage.removeItem('easycall_admin_tab');
       window.location.href = window.location.pathname;
     }
 
-    // ==================== 1. 최고관리자 뷰 초기화 및 제어 ====================
+    // ==================== 1. 최고관리자 뷰 ====================
     function initSuperView() {
       loadPersistentData();
       document.getElementById('super-view').classList.remove('hidden');
@@ -1113,15 +1279,11 @@
       const tbody = document.getElementById('super-camps-body');
       if (!tbody) return;
 
-      let totalTablets = 0;
-      let totalBalance = 0;
-      let activeCount = 0;
-      let html = '';
+      let totalTablets = 0, totalBalance = 0, activeCount = 0, html = '';
 
       campsList.forEach(c => {
         const effectiveMode = getCampEffectiveMode(c.campId);
         c.mode = effectiveMode;
-
         totalTablets += Number(c.tablets) || 0;
         totalBalance += Number(c.balance) || 0;
         if (c.approved) activeCount++;
@@ -1165,7 +1327,6 @@
       });
 
       tbody.innerHTML = html || `<tr><td colspan="7" class="py-6 text-center text-slate-500">검색된 캠프가 없습니다.</td></tr>`;
-
       document.getElementById('stat-total-camps').innerText = `${campsList.length}개`;
       document.getElementById('stat-active-camps-txt').innerText = `${activeCount}개 가동 중`;
       document.getElementById('stat-total-tablets').innerText = `${totalTablets}대`;
@@ -1177,7 +1338,7 @@
     function changeCampModeByMaster(campId, modeVal) {
       setCampEffectiveMode(campId, modeVal);
       renderSuperCampsTable();
-      showToast(`⚡ [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신 (충전폼 숨김)' : 'SIP 종량제 망발신 (충전폼 표시)'}]로 즉시 반영되었습니다!`);
+      showToast(`⚡ [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신' : 'SIP 종량제 망발신'}]로 변경되었습니다!`);
     }
 
     function masterResetCampPw(campId) {
@@ -1215,31 +1376,16 @@
         alert("시·군·구, 캠프명, 본사 담당 직원, 관리자 아이디, 캠프 담당자 성명은 필수 입력입니다.");
         return;
       }
-      if (!admin.includes('camp')) {
-        admin = 'camp_' + admin;
-      }
+      if (!admin.includes('camp')) admin = 'camp_' + admin;
       if (campsList.some(c => c.campId.toLowerCase() === admin)) {
         alert("이미 존재하는 캠프 관리자 ID입니다.");
         return;
       }
 
-      const newCamp = {
-        campId: admin,
-        name: name,
-        region: `${sido} ${sigungu}`,
-        staff: staff,
-        manager: manager,
-        phone: phone,
-        email: email,
-        period: `${start} ~ ${end}`,
-        tablets: tablets,
-        fee: 0,
-        balance: balance,
-        mode: mode,
-        approved: true
-      };
-
-      campsList.push(newCamp);
+      campsList.push({
+        campId: admin, name, region: `${sido} ${sigungu}`, staff, manager, phone, email,
+        period: `${start} ~ ${end}`, tablets, fee: 0, balance, mode, approved: true
+      });
       localStorage.setItem(`pw_${admin}`, pw);
       localStorage.setItem(`camp_${admin}_approved`, 'true');
       setCampEffectiveMode(admin, mode);
@@ -1290,7 +1436,7 @@
       showToast("✅ 본사 입금 계좌 정보가 전사 배포되었습니다!");
     }
 
-    // ==================== 2. 캠프 상황실 관리자 뷰 초기화 및 기능 ====================
+    // ==================== 2. 캠프 상황실 관리자 뷰 ====================
     function initAdminView() {
       loadPersistentData();
       document.getElementById('admin-view').classList.remove('hidden');
@@ -1303,12 +1449,26 @@
       document.getElementById('setting-wait-secs').value = localStorage.getItem('easycall_wait_secs') || '3';
       document.getElementById('setting-daily-goal').value = localStorage.getItem('easycall_daily_goal') || '150';
 
+      // 야간 발신 제한 설정 불러오기
+      document.getElementById('night-lock-enable').checked = localStorage.getItem('easycall_night_lock') !== 'false';
+      document.getElementById('allowed-start-time').value = localStorage.getItem('easycall_start_time') || '08:00';
+      document.getElementById('allowed-end-time').value = localStorage.getItem('easycall_end_time') || '21:00';
+
+      // FAQ 불러오기
+      faqCardsList.forEach((item, idx) => {
+        const qEl = document.getElementById(`faq-q-${idx + 1}`);
+        const aEl = document.getElementById(`faq-a-${idx + 1}`);
+        if (qEl) qEl.value = item.q;
+        if (aEl) aEl.value = item.a;
+      });
+
       const savedSms = localStorage.getItem('easycall_sms_template');
       if (savedSms) document.getElementById('admin-sms-template').value = savedSms;
 
       updateAdminGlobalStopUI();
       applyAdminChargePanelVisibility(currentAdminId);
       updateVoterQueueStatusText();
+      checkAdminSosBanner();
       renderAdminAgentsList();
       renderAdminLogsTable();
       renderStatsAndCharts();
@@ -1317,7 +1477,144 @@
       switchAdminTab(savedAdminTab);
     }
 
-    // [핵심 해결] 캠프 관리자 예치금 충전 신청 폼 노출/숨김 제어
+    // [Phase 3] 야간 발신 제한 설정 저장 및 검사
+    function saveNightLockSettings() {
+      const enabled = document.getElementById('night-lock-enable').checked;
+      const startT = document.getElementById('allowed-start-time').value || '08:00';
+      const endT = document.getElementById('allowed-end-time').value || '21:00';
+      localStorage.setItem('easycall_night_lock', String(enabled));
+      localStorage.setItem('easycall_start_time', startT);
+      localStorage.setItem('easycall_end_time', endT);
+      showToast(`🌙 발신 허용 시간대(${startT} ~ ${endT}) 설정이 반영되었습니다.`);
+    }
+
+    function isWithinAllowedCallingHours() {
+      const enabled = localStorage.getItem('easycall_night_lock') !== 'false';
+      if (!enabled) return true;
+      const startT = localStorage.getItem('easycall_start_time') || '08:00';
+      const endT = localStorage.getItem('easycall_end_time') || '21:00';
+      const now = new Date();
+      const curHm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      return curHm >= startT && curHm <= endT;
+    }
+
+    // [Phase 3] FAQ 저장 및 배포
+    function saveFaqCards() {
+      const newFaqs = [];
+      for (let i = 1; i <= 3; i++) {
+        const q = document.getElementById(`faq-q-${i}`)?.value.trim() || `Q${i}. 질문`;
+        const a = document.getElementById(`faq-a-${i}`)?.value.trim() || `답변 내용`;
+        newFaqs.push({ q, a });
+      }
+      faqCardsList = newFaqs;
+      savePersistentData();
+      showToast("💡 돌발 질문 대응 FAQ 카드가 모든 태블릿에 배포되었습니다!");
+    }
+
+    // [Phase 3] 요원 SOS 긴급 호출 관제
+    function triggerAgentSosCall() {
+      const v = votersList[currentVoterIdx];
+      const sosData = {
+        agentId: currentAgentId,
+        voterName: v ? v.name : '미상',
+        voterPhone: v ? v.phone : '-',
+        time: new Date().toLocaleTimeString()
+      };
+      localStorage.setItem('easycall_sos_alert', JSON.stringify(sosData));
+      showToast("🚨 상황실 관리자에게 SOS 긴급 도움 요청을 발송했습니다!");
+    }
+
+    function checkAdminSosBanner() {
+      const raw = localStorage.getItem('easycall_sos_alert');
+      const banner = document.getElementById('admin-sos-alert-banner');
+      const txt = document.getElementById('admin-sos-alert-text');
+      if (!banner || !txt) return;
+      if (raw) {
+        const data = JSON.parse(raw);
+        txt.innerText = `[${data.time}] 👤 ${data.agentId} 요원이 (${data.voterName} / ${data.voterPhone}) 통화 중 긴급 도움을 요청했습니다!`;
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function clearSosAlerts() {
+      localStorage.removeItem('easycall_sos_alert');
+      checkAdminSosBanner();
+      showToast("✅ SOS 긴급 호출 경보가 확인 및 해제되었습니다.");
+    }
+
+    // [Phase 3] 후보자 일일 보고용 A4 브리핑 모달 오픈
+    function openBriefingReportModal() {
+      loadPersistentData();
+      const campObj = campsList.find(c => c.campId.toLowerCase() === currentAdminId.toLowerCase()) || campsList[0];
+      document.getElementById('report-camp-title').innerText = `${campObj ? campObj.name : '선거 캠프'} 전화홍보 일일 종합 상황보고서`;
+      document.getElementById('report-date-txt').innerText = new Date().toLocaleString();
+
+      const total = globalCampCallLogs.length;
+      const connLogs = globalCampCallLogs.filter(l => l.callResult === 'CONNECTED');
+      const posLogs = connLogs.filter(l => l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER');
+      const cbLogs = globalCampCallLogs.filter(l => l.callResult === 'ABSENT' || l.callResult === 'CALLBACK');
+      const dncLogs = globalCampCallLogs.filter(l => l.callResult === 'REJECT');
+
+      const pct = (n, d) => d === 0 ? 0 : Math.round((n / d) * 100);
+
+      document.getElementById('rep-total').innerText = `${total}건`;
+      document.getElementById('rep-conn').innerText = `${connLogs.length}건 (${pct(connLogs.length, total)}%)`;
+      document.getElementById('rep-pos').innerText = `${posLogs.length}건 (${pct(posLogs.length, connLogs.length)}%)`;
+      document.getElementById('rep-cb').innerText = `${cbLogs.length}건`;
+      document.getElementById('rep-dnc').innerText = `${dncLogs.length}건`;
+
+      const supCnt = connLogs.filter(l => l.status === 'SUPPORT').length;
+      const favCnt = connLogs.filter(l => l.status === 'FAVORABLE').length;
+      const volCnt = connLogs.filter(l => l.status === 'VOLUNTEER').length;
+      const oppCnt = connLogs.filter(l => l.status === 'OPPOSE').length;
+
+      document.getElementById('rep-support-tbody').innerHTML = `
+        <tr><td class="p-2 font-sans font-bold text-emerald-700">👍 적극 지지</td><td class="p-2 text-right">${supCnt}건</td><td class="p-2 text-right">${pct(supCnt, connLogs.length)}%</td></tr>
+        <tr><td class="p-2 font-sans font-bold text-blue-700">😊 우호 / 호의</td><td class="p-2 text-right">${favCnt}건</td><td class="p-2 text-right">${pct(favCnt, connLogs.length)}%</td></tr>
+        <tr><td class="p-2 font-sans font-bold text-purple-700">🙋 자원봉사 희망</td><td class="p-2 text-right">${volCnt}건</td><td class="p-2 text-right">${pct(volCnt, connLogs.length)}%</td></tr>
+        <tr><td class="p-2 font-sans font-bold text-rose-700">👎 비지지 / 거부</td><td class="p-2 text-right">${oppCnt}건</td><td class="p-2 text-right">${pct(oppCnt, connLogs.length)}%</td></tr>
+      `;
+
+      const dongMap = {};
+      globalCampCallLogs.forEach(l => {
+        const d = l.dong || '기타';
+        if (!dongMap[d]) dongMap[d] = { total: 0, conn: 0, pos: 0 };
+        dongMap[d].total++;
+        if (l.callResult === 'CONNECTED') {
+          dongMap[d].conn++;
+          if (l.status !== 'OPPOSE') dongMap[d].pos++;
+        }
+      });
+
+      let dHtml = '';
+      Object.keys(dongMap).forEach(d => {
+        const item = dongMap[d];
+        dHtml += `<tr><td class="p-2 font-sans font-bold">${d}</td><td class="p-2 text-right">${item.total} / ${item.conn}건</td><td class="p-2 text-right font-bold text-blue-700">${pct(item.pos, item.conn)}%</td></tr>`;
+      });
+      document.getElementById('rep-dong-tbody').innerHTML = dHtml || `<tr><td colspan="3" class="p-3 text-center font-sans text-slate-400">집계 데이터 없음</td></tr>`;
+
+      const memoLogs = globalCampCallLogs.filter(l => l.memo && l.memo.trim().length > 0).slice(0, 8);
+      let mHtml = '';
+      memoLogs.forEach(l => {
+        mHtml += `<tr>
+          <td class="p-2 font-bold">${l.voterName} (${l.dong})</td>
+          <td class="p-2">${l.gender || '미상'}/${l.age || '미상'}</td>
+          <td class="p-2 font-bold">${formatSupportStatus(l.status, l.callResult)}</td>
+          <td class="p-2 text-slate-700">${l.memo}</td>
+        </tr>`;
+      });
+      document.getElementById('rep-memo-tbody').innerHTML = mHtml || `<tr><td colspan="4" class="p-3 text-center text-slate-400">등록된 유권자 민원 메모가 없습니다.</td></tr>`;
+
+      const modal = document.getElementById('briefing-report-modal');
+      modal.style.display = 'flex';
+    }
+
+    function closeBriefingReportModal() {
+      document.getElementById('briefing-report-modal').style.display = 'none';
+    }
+
     function applyAdminChargePanelVisibility(campId) {
       loadPersistentData();
       const targetId = (campId || currentAdminId || 'camp01').toLowerCase();
@@ -1329,9 +1626,7 @@
       const headerBadge = document.getElementById('admin-header-mode-badge');
       const balanceTxt = document.getElementById('admin-current-balance-txt');
 
-      if (balanceTxt && campObj) {
-        balanceTxt.innerText = `${Number(campObj.balance || 0).toLocaleString()}원`;
-      }
+      if (balanceTxt && campObj) balanceTxt.innerText = `${Number(campObj.balance || 0).toLocaleString()}원`;
 
       if (effectiveMode === 'sim') {
         if (chargePanel) chargePanel.classList.add('hidden');
@@ -1410,15 +1705,11 @@
 
     function saveSmsTemplate() {
       const smsTxt = document.getElementById('admin-sms-template').value.trim();
-      if (!smsTxt) {
-        alert("콜백 문자 문구를 입력해 주세요.");
-        return;
-      }
+      if (!smsTxt) { alert("콜백 문자 문구를 입력해 주세요."); return; }
       localStorage.setItem('easycall_sms_template', smsTxt);
       showToast("✉️ 후보자 명함/공약 콜백 문자 문구가 저장되었습니다!");
     }
 
-    // 실제 CSV 파싱 및 수신거부(DNC) 번호 자동 필터링
     function handleCsvUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1427,27 +1718,18 @@
       reader.onload = function(e) {
         const content = e.target.result;
         const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0) {
-          alert("빈 파일입니다.");
-          return;
-        }
+        if (lines.length === 0) { alert("빈 파일입니다."); return; }
 
         const parsedVoters = [];
         let skippedDncCount = 0;
-        let startIndex = 0;
-        if (lines[0].toLowerCase().includes('phone') || lines[0].includes('전화') || lines[0].includes('이름')) {
-          startIndex = 1;
-        }
+        let startIndex = (lines[0].toLowerCase().includes('phone') || lines[0].includes('전화') || lines[0].includes('이름')) ? 1 : 0;
 
         for (let i = startIndex; i < lines.length; i++) {
           const cols = lines[i].split(',').map(c => c.trim());
-          let vName = `유권자 #${i}`;
-          let vPhone = "";
-          let vDong = "관할구역";
+          let vName = `유권자 #${i}`, vPhone = "", vDong = "관할구역";
 
-          if (cols.length === 1 && cols[0]) {
-            vPhone = cols[0];
-          } else if (cols.length >= 2) {
+          if (cols.length === 1 && cols[0]) vPhone = cols[0];
+          else if (cols.length >= 2) {
             vName = cols[0] || `익명 유권자 #${i}`;
             vPhone = cols[1] || "010-0000-0000";
             vDong = cols[2] || "관할구역";
@@ -1457,29 +1739,22 @@
             const cleanPhone = vPhone.replace(/[^0-9]/g, '');
             if (dncPhonesList.includes(cleanPhone)) {
               skippedDncCount++;
-              continue; // 수신거부 블랙리스트 번호 자동 제외
+              continue;
             }
             parsedVoters.push({
-              id: String(2000 + i),
-              name: vName,
-              phone: vPhone,
-              dong: vDong,
-              lastResult: "READY",
-              lastMemo: ""
+              id: String(2000 + i), name: vName, phone: vPhone, dong: vDong,
+              lastResult: "READY", lastMemo: "", lockedBy: null
             });
           }
         }
 
-        if (parsedVoters.length === 0) {
-          alert("유효한 유권자 데이터를 찾을 수 없습니다.");
-          return;
-        }
+        if (parsedVoters.length === 0) { alert("유효한 유권자 데이터를 찾을 수 없습니다."); return; }
 
         votersList = parsedVoters;
         currentVoterIdx = 0;
         savePersistentData();
         updateVoterQueueStatusText();
-        document.getElementById('upload-status').innerText = `✅ [${file.name}] 유권자 ${parsedVoters.length}명 적재 완료! (수신거부 블랙리스트 ${skippedDncCount}명 자동 제외됨)`;
+        document.getElementById('upload-status').innerText = `✅ [${file.name}] 유권자 ${parsedVoters.length}명 적재 완료! (수신거부 DNC ${skippedDncCount}명 자동 제외됨)`;
         showToast(`📥 유권자 ${parsedVoters.length}명 명부 적재 완료!`);
       };
       reader.readAsText(file, 'UTF-8');
@@ -1515,18 +1790,13 @@
       document.body.removeChild(link);
     }
 
-    // [2차 신규] 전체 통화결과 또는 지지자 명단 엑셀(CSV) 다운로드
     function exportCallLogsToCsv(filterType) {
       loadPersistentData();
       let targetLogs = globalCampCallLogs;
       if (filterType === 'POSITIVE_ONLY') {
         targetLogs = globalCampCallLogs.filter(l => l.callResult === 'CONNECTED' && (l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER'));
       }
-
-      if (targetLogs.length === 0) {
-        alert("다운로드할 통화 기록 데이터가 없습니다.");
-        return;
-      }
+      if (targetLogs.length === 0) { alert("다운로드할 통화 기록 데이터가 없습니다."); return; }
 
       let csvContent = "순번,담당요원,유권자명,연락처,행정동,성별,연령대,통화연결상태,지지성향,통화시간,민원및특이메모,기록시각\n";
       targetLogs.forEach((l, idx) => {
@@ -1540,7 +1810,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      const fileName = filterType === 'POSITIVE_ONLY' ? `이지콜_핵심지지자및자원봉사명단_${new Date().toLocaleDateString()}.csv` : `이지콜_전체통화결과보고서_${new Date().toLocaleDateString()}.csv`;
+      const fileName = filterType === 'POSITIVE_ONLY' ? `이지콜_핵심지지자명단_${new Date().toLocaleDateString()}.csv` : `이지콜_전체통화결과보고서_${new Date().toLocaleDateString()}.csv`;
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
@@ -1592,7 +1862,7 @@
       savePersistentData();
       renderAdminAgentsList();
       document.getElementById('agent-id-input').value = '';
-      showToast(`👤 요원 계정 [${agentId}] 발급 및 저장 완료! (초기비번: 1234)`);
+      showToast(`👤 요원 계정 [${agentId}] 발급 완료! (초기비번: 1234)`);
     }
 
     function renderAdminAgentsList() {
@@ -1601,13 +1871,11 @@
       let html = '';
       agentsList.forEach(a => {
         const callCnt = globalCampCallLogs.filter(l => l.agentId === a.agentId).length;
-        html += `
-          <tr>
-            <td class="p-2.5 font-mono font-bold text-slate-800">${a.agentId}</td>
-            <td class="p-2.5 font-mono font-bold text-blue-600">${callCnt}건</td>
-            <td class="p-2.5 text-emerald-600 font-bold">${a.status}</td>
-          </tr>
-        `;
+        html += `<tr>
+          <td class="p-2 font-mono font-bold text-slate-800">${a.agentId}</td>
+          <td class="p-2 font-mono font-bold text-blue-600">${callCnt}건</td>
+          <td class="p-2 text-emerald-600 font-bold">${a.status}</td>
+        </tr>`;
       });
       tbody.innerHTML = html;
     }
@@ -1617,9 +1885,7 @@
       const acc = localStorage.getItem('master_bank_acc') || '123-456-789012';
       const holder = localStorage.getItem('master_bank_hold') || '충남교육산업 (이지콜)';
       const noticeEl = document.getElementById('admin-bank-notice');
-      if (noticeEl) {
-        noticeEl.innerText = `본사 지정 계좌(${name} ${acc} | 예금주: ${holder}) 입금 후 충전 금액을 신청하세요.`;
-      }
+      if (noticeEl) noticeEl.innerText = `본사 지정 계좌(${name} ${acc} | 예금주: ${holder}) 입금 후 충전 금액을 신청하세요.`;
     }
 
     function switchAdminTab(tabName) {
@@ -1654,11 +1920,9 @@
         logsBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
         renderAdminLogsTable();
       }
-
       sessionStorage.setItem('easycall_admin_tab', tabName);
     }
 
-    // ==================== 성별·연령대·행정동 교차 분석 차트 ====================
     function renderStatsAndCharts() {
       const totalCalls = globalCampCallLogs.length;
       const connectedLogs = globalCampCallLogs.filter(l => l.callResult === 'CONNECTED');
@@ -1741,9 +2005,7 @@
         dongMap[d].total++;
         if (l.callResult === 'CONNECTED') {
           dongMap[d].connected++;
-          if (l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER') {
-            dongMap[d].pos++;
-          }
+          if (l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER') dongMap[d].pos++;
         }
       });
 
@@ -1839,18 +2101,17 @@
       tbody.innerHTML = html;
     }
 
-    // ==================== 3. 태블릿 요원 워크스페이스 초기화 및 기능 ====================
+    // ==================== 3. 태블릿 요원 워크스페이스 ====================
     function initAgentView() {
       loadPersistentData();
       document.getElementById('agent-view').classList.remove('hidden');
       document.getElementById('agent-display-id').innerText = currentAgentId;
 
       const savedScript = localStorage.getItem('easycall_current_script');
-      if (savedScript) {
-        document.getElementById('agent-script-display').innerText = `"${savedScript}"`;
-      }
+      if (savedScript) document.getElementById('agent-script-display').innerText = `"${savedScript}"`;
 
       checkAgentGlobalStopBanner();
+      renderAgentFaqButtons();
       loadCurrentVoterToDialer();
       selectSupportStatus('SUPPORT');
       selectVoterGender('미상');
@@ -1859,6 +2120,27 @@
       applyHybridModeUI();
       updateCallbackBadgeCount();
       updateAgentGoalGauge();
+    }
+
+    function renderAgentFaqButtons() {
+      faqCardsList.forEach((item, idx) => {
+        const btn = document.getElementById(`agent-faq-btn-${idx + 1}`);
+        if (btn) btn.innerText = item.q;
+      });
+    }
+
+    function toggleFaqAnswer(num) {
+      const box = document.getElementById('agent-faq-answer-box');
+      if (!box) return;
+      if (activeFaqNum === num && !box.classList.contains('hidden')) {
+        box.classList.add('hidden');
+        activeFaqNum = null;
+        return;
+      }
+      activeFaqNum = num;
+      const item = faqCardsList[num - 1] || DEFAULT_FAQS[num - 1];
+      box.innerHTML = `<span class="text-indigo-600 mr-1">[모범답변]</span> ${item.a}`;
+      box.classList.remove('hidden');
     }
 
     function updateAgentGoalGauge() {
@@ -1874,12 +2156,25 @@
 
     function checkAgentGlobalStopBanner() {
       const isStopped = localStorage.getItem('easycall_camp_global_stopped') === 'true';
+      const inHours = isWithinAllowedCallingHours();
       const banner = document.getElementById('agent-global-stop-banner');
-      if (banner) {
-        if (isStopped) banner.classList.remove('hidden');
-        else banner.classList.add('hidden');
+      const msg = document.getElementById('agent-stop-banner-msg');
+
+      if (!banner) return false;
+      if (isStopped) {
+        if (msg) msg.innerText = "현재 상황실 관리자에 의해 캠프 전체 전화 발신이 일시 중지되었습니다. 대기해 주세요.";
+        banner.classList.remove('hidden');
+        return true;
       }
-      return isStopped;
+      if (!inHours) {
+        const s = localStorage.getItem('easycall_start_time') || '08:00';
+        const e = localStorage.getItem('easycall_end_time') || '21:00';
+        if (msg) msg.innerText = `🌙 [야간 발신 제한 안전잠금 작동 중] 선거법 준수를 위해 허용 시간대(${s} ~ ${e}) 외에는 발신이 제한됩니다.`;
+        banner.classList.remove('hidden');
+        return true;
+      }
+      banner.classList.add('hidden');
+      return false;
     }
 
     function applyHybridModeUI() {
@@ -1908,22 +2203,45 @@
 
       if (mode === 'auto') {
         btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> 통화성공 저장 후 ${secs}초 뒤 다음 유권자 자동 발신 ➔`;
-        btn.className = "w-full mt-3 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
+        btn.className = "w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
       } else {
         btn.innerHTML = `💾 통화성공 저장 후 다음 유권자 ➔`;
-        btn.className = "w-full mt-3 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
+        btn.className = "w-full mt-2 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
       }
     }
 
+    // [Phase 3] 다른 요원이 점유(Lock)하지 않은 유권자 자동 탐색 및 단독 점유
     function loadCurrentVoterToDialer() {
       if (votersList.length === 0) votersList = [...DEFAULT_VOTERS];
-      if (currentVoterIdx >= votersList.length || currentVoterIdx < 0) currentVoterIdx = 0;
+
+      // 이전에 내가 점유했던 다른 유권자 Lock 해제
+      votersList.forEach((v, idx) => {
+        if (v.lockedBy === currentAgentId && idx !== currentVoterIdx) v.lockedBy = null;
+      });
+
+      // 다른 요원이 점유 중이거나 수신거부(REJECT)인 번호는 자동으로 건너뛰기 탐색
+      let loopCount = 0;
+      while (loopCount < votersList.length) {
+        if (currentVoterIdx >= votersList.length || currentVoterIdx < 0) currentVoterIdx = 0;
+        const candidate = votersList[currentVoterIdx];
+        if ((!candidate.lockedBy || candidate.lockedBy === currentAgentId) && candidate.lastResult !== 'REJECT') {
+          break;
+        }
+        currentVoterIdx = (currentVoterIdx + 1) % votersList.length;
+        loopCount++;
+      }
 
       const v = votersList[currentVoterIdx];
+      v.lockedBy = currentAgentId; // 현재 요원 단독 점유 설정
+      savePersistentData();
+
       document.getElementById('voter-name').innerText = v.name;
       document.getElementById('voter-phone').innerText = v.phone;
       document.getElementById('voter-dong').innerText = v.dong;
       document.getElementById('voter-id').innerText = `ID #${v.id}`;
+
+      const lockBadge = document.getElementById('voter-lock-badge');
+      if (lockBadge) lockBadge.innerText = `🔒 ${currentAgentId} 단독 점유중`;
 
       const statusEl = document.getElementById('voter-last-status');
       if (v.lastResult === 'ABSENT') {
@@ -1949,7 +2267,6 @@
       updateAgentButtonTextPreview();
     }
 
-    // [2차 신규] 원터치 콜백 문자 발송 연동 (sms: 스키마)
     function sendCallbackSmsToVoter() {
       const v = votersList[currentVoterIdx];
       if (!v || !v.phone) return;
@@ -1967,7 +2284,7 @@
 
     function startCallSimulation(useNativeTel = false) {
       if (checkAgentGlobalStopBanner()) {
-        alert("🚨 상황실 관리자에 의해 현재 캠프 전체 전화 발신이 일시 중지된 상태입니다.");
+        alert("🚨 발신 일시 중지 또는 야간 발신 제한 시간대입니다. 상단 안내 배너를 확인하세요.");
         return;
       }
       if (isAgentOnBreak) {
@@ -2017,7 +2334,7 @@
 
     function quickSaveUnconnected(callResultType) {
       if (checkAgentGlobalStopBanner()) {
-        alert("🚨 캠프 전체 발신 중지 상태입니다.");
+        alert("🚨 발신 제한 상태입니다.");
         return;
       }
       saveResultToStorage('NONE', callResultType);
@@ -2033,17 +2350,14 @@
 
       if (v) {
         v.lastResult = callResult;
+        v.lockedBy = null; // 통화 종료 후 점유 해제
         if (memoVal) v.lastMemo = memoVal;
-        // 수신거부(REJECT) 선택 시 DNC 블랙리스트 자동 등록
         if (callResult === 'REJECT') {
           const cleanPhone = v.phone.replace(/[^0-9]/g, '');
-          if (cleanPhone && !dncPhonesList.includes(cleanPhone)) {
-            dncPhonesList.push(cleanPhone);
-          }
+          if (cleanPhone && !dncPhonesList.includes(cleanPhone)) dncPhonesList.push(cleanPhone);
         }
       }
 
-      // SIP 종량제 모드인 경우 통화 성공 시 예치금 20원 차감 시뮬레이션
       const agentObj = agentsList.find(a => a.agentId.toLowerCase() === currentAgentId.toLowerCase());
       const targetCampId = agentObj ? agentObj.campId.toLowerCase() : 'camp01';
       if (getCampEffectiveMode(targetCampId) === 'sip' && callResult === 'CONNECTED') {
@@ -2097,7 +2411,6 @@
       }
     }
 
-    // ==================== 요원 탭 전환 및 실시간 콜백 검색 테이블 ====================
     function switchAgentTab(tabName) {
       const dialerTab = document.getElementById('agent-tab-dialer');
       const searchTab = document.getElementById('agent-tab-search');
@@ -2111,20 +2424,20 @@
       searchTab.classList.add('hidden');
       historyTab.classList.add('hidden');
 
-      dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
-      searchBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition flex items-center gap-1";
-      historyBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      dialerBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      searchBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition flex items-center gap-1";
+      historyBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
 
       if (tabName === 'dialer') {
         dialerTab.classList.remove('hidden');
-        dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
+        dialerBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
       } else if (tabName === 'search') {
         searchTab.classList.remove('hidden');
-        searchBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition flex items-center gap-1";
+        searchBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition flex items-center gap-1";
         renderAgentSearchTable();
       } else {
         historyTab.classList.remove('hidden');
-        historyBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
+        historyBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
         renderAgentHistoryTable();
       }
     }
@@ -2156,16 +2469,20 @@
 
       let html = '';
       votersList.forEach((v, idx) => {
-        if (searchFilterMode === 'CALLBACK_ONLY' && v.lastResult !== 'ABSENT' && v.lastResult !== 'CALLBACK') {
-          return;
-        }
+        if (searchFilterMode === 'CALLBACK_ONLY' && v.lastResult !== 'ABSENT' && v.lastResult !== 'CALLBACK') return;
         const kw = `${v.name} ${v.phone} ${v.dong} ${v.id}`.toLowerCase();
         if (query && !kw.includes(query)) return;
 
         const isDnc = v.lastResult === 'REJECT';
-        const actionBtn = isDnc
-          ? `<span class="px-3 py-1.5 bg-slate-200 text-slate-500 font-bold rounded-lg text-xs">발신차단됨</span>`
-          : `<button type="button" onclick="selectVoterByIndexAndCall(${idx})" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs">즉시 다이얼러 호출</button>`;
+        const isLockedOther = v.lockedBy && v.lockedBy !== currentAgentId;
+
+        let lockHtml = `<span class="text-slate-400">대기</span>`;
+        if (v.lockedBy === currentAgentId) lockHtml = `<span class="text-emerald-600 font-bold">🔒 내 점유중</span>`;
+        else if (isLockedOther) lockHtml = `<span class="text-amber-600 font-bold">⚠️ ${v.lockedBy} 통화중</span>`;
+
+        let actionBtn = `<button type="button" onclick="selectVoterByIndexAndCall(${idx})" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs">즉시 다이얼러 호출</button>`;
+        if (isDnc) actionBtn = `<span class="px-3 py-1.5 bg-slate-200 text-slate-500 font-bold rounded-lg text-xs">발신차단됨</span>`;
+        else if (isLockedOther) actionBtn = `<span class="px-3 py-1.5 bg-amber-100 text-amber-700 font-bold rounded-lg text-xs">타요원 점유중</span>`;
 
         html += `
           <tr class="hover:bg-slate-50 transition ${isDnc ? 'opacity-60 bg-rose-50/30' : ''}">
@@ -2174,13 +2491,14 @@
             <td class="p-3 font-mono text-blue-600 font-bold">${v.phone}</td>
             <td class="p-3 font-semibold">${v.dong}</td>
             <td class="p-3">${formatCallResultBadge(v.lastResult || 'READY')}</td>
+            <td class="p-3">${lockHtml}</td>
             <td class="p-3 text-slate-500">${v.lastMemo || '-'}</td>
             <td class="p-3 text-right">${actionBtn}</td>
           </tr>
         `;
       });
 
-      tbody.innerHTML = html || `<tr><td colspan="7" class="py-8 text-center text-slate-400">조건에 맞는 유권자가 없습니다.</td></tr>`;
+      tbody.innerHTML = html || `<tr><td colspan="8" class="py-8 text-center text-slate-400">조건에 맞는 유권자가 없습니다.</td></tr>`;
     }
 
     function selectVoterByIndexAndCall(idx) {
@@ -2195,30 +2513,26 @@
     function selectVoterGender(gender) {
       selectedGender = gender;
       document.querySelectorAll('.gender-btn').forEach(b => {
-        b.className = "gender-btn px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition";
+        b.className = "gender-btn px-4 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition";
       });
       const activeBtn = document.getElementById(`btn-gender-${gender}`);
-      if (activeBtn) {
-        activeBtn.className = "gender-btn px-4 py-1.5 rounded-lg border-2 border-blue-600 bg-blue-50 text-blue-700 text-xs font-extrabold transition shadow-xs";
-      }
+      if (activeBtn) activeBtn.className = "gender-btn px-4 py-1 rounded-lg border-2 border-blue-600 bg-blue-50 text-blue-700 text-xs font-extrabold transition shadow-xs";
     }
 
     function selectVoterAge(age) {
       selectedAge = age;
       document.querySelectorAll('.age-btn').forEach(b => {
-        b.className = "age-btn py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center";
+        b.className = "age-btn py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold transition text-center";
       });
       const activeBtn = document.getElementById(`btn-age-${age}`);
-      if (activeBtn) {
-        activeBtn.className = "age-btn py-1.5 rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-xs font-extrabold transition text-center shadow-xs";
-      }
+      if (activeBtn) activeBtn.className = "age-btn py-1 rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-xs font-extrabold transition text-center shadow-xs";
     }
 
     function selectSupportStatus(status) {
       selectedStatus = status;
-      document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-3 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm");
+      document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-2.5 rounded-xl border border-slate-200 bg-white text-left transition font-bold text-sm");
       const btn = document.getElementById(`btn-status-${status}`);
-      if (btn) btn.className = "status-btn p-3 rounded-xl border-2 border-blue-600 bg-blue-50 text-left transition shadow-sm font-bold text-sm";
+      if (btn) btn.className = "status-btn p-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 text-left transition shadow-sm font-bold text-sm";
     }
 
     function toggleAgentBreak() {
@@ -2228,12 +2542,12 @@
       const agentObj = agentsList.find(a => a.agentId.toLowerCase() === currentAgentId.toLowerCase());
 
       if (isAgentOnBreak) {
-        btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5";
-        txt.innerText = "업무 시작 (복귀)";
+        btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1";
+        txt.innerText = "업무복귀";
         if (agentObj) agentObj.status = "휴식 중 ☕";
       } else {
-        btn.className = "bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5";
-        txt.innerText = "휴식/업무 중지";
+        btn.className = "bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1";
+        txt.innerText = "휴식중지";
         if (agentObj) agentObj.status = "근무 중 🟢";
       }
       savePersistentData();
