@@ -342,7 +342,6 @@
       </div>
     </main>
 
-    <!-- [2단계 업그레이드 반영] 통화 성공 기준 성향 통계 탭 -->
     <main id="admin-pane-stats" class="hidden flex-1 p-6 overflow-y-auto bg-slate-100 space-y-6">
       <div class="grid grid-cols-2 gap-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
@@ -601,6 +600,11 @@
           const savedWait = localStorage.getItem('easycall_wait_secs');
           if (savedMode) document.getElementById('setting-dial-mode').value = savedMode;
           if (savedWait) document.getElementById('setting-wait-secs').value = savedWait;
+          
+          // [새로고침 유지 기능] 저장된 관리자 탭 복원
+          const savedAdminTab = sessionStorage.getItem('easycall_admin_tab') || 'config';
+          switchAdminTab(savedAdminTab, true);
+
           renderAdminLogsTable();
           renderStatsAndCharts();
         } else if (savedRole === 'agent') {
@@ -653,6 +657,7 @@
         currentAdminId = idInput;
         document.getElementById('admin-view').classList.remove('hidden');
         updateAdminBankNotice();
+        sessionStorage.setItem('easycall_admin_tab', 'config');
         renderAdminLogsTable();
         renderStatsAndCharts();
         return;
@@ -673,6 +678,7 @@
     function handleLogout() {
       localStorage.removeItem('easycall_role');
       localStorage.removeItem('easycall_id');
+      sessionStorage.removeItem('easycall_admin_tab');
       window.location.href = window.location.pathname;
     }
 
@@ -890,7 +896,8 @@
       document.getElementById('upload-status').innerText = `✓ 유권자 명부 큐 적재 및 검증 완료!`;
     }
 
-    function switchAdminTab(tabName) {
+    // --- [새로고침 유지 기능 추가] 상황실 관리자 탭 전환 함수 ---
+    function switchAdminTab(tabName, isInit = false) {
       const configPane = document.getElementById('admin-pane-config');
       const statsPane = document.getElementById('admin-pane-stats');
       const logsPane = document.getElementById('admin-pane-logs');
@@ -919,6 +926,9 @@
         logsBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
         renderAdminLogsTable();
       }
+
+      // 현재 선택된 탭 기억
+      sessionStorage.setItem('easycall_admin_tab', tabName);
     }
 
     function renderStatsAndCharts() {
