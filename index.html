@@ -205,7 +205,7 @@
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100 relative">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-4">
-        <h1 class="text-lg font-extrabold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (마스터)</h1>
+        <h1 class="text-lg font-extrabold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (멀티캠프 마스터)</h1>
         <div class="flex items-center gap-2 bg-slate-950 px-3 py-1 rounded-full border border-slate-800 text-xs">
           <span id="super-cloud-dot" class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
           <span id="super-cloud-status-txt" class="text-slate-300 font-mono">☁️ Supabase 실시간 클라우드 DB 정상</span>
@@ -242,7 +242,7 @@
           </div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-          <span class="text-xs font-bold text-slate-400 block mb-1">전사 누적 통화 기록</span>
+          <span class="text-xs font-bold text-slate-400 block mb-1">전사 누적 통화 기록 (전 캠프 합산)</span>
           <div class="flex items-baseline justify-between">
             <span class="text-3xl font-black text-emerald-400 font-mono" id="stat-super-total-calls">0건</span>
             <span class="text-xs text-emerald-400 font-bold">실시간 동기화</span>
@@ -254,8 +254,8 @@
         <div class="col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div class="flex justify-between items-center mb-4">
             <div>
-              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스(Quota) 관제</h3>
-              <p class="text-xs text-slate-400 mt-0.5">캠프별 계약 태블릿 대수를 조절(-1, +1, +5)할 수 있습니다.</p>
+              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스(Quota) 및 독립 DB 관제</h3>
+              <p class="text-xs text-slate-400 mt-0.5">각 캠프는 데이터(유권자명부, 통화기록, 대본, 설정)가 100% 독립 격리되어 운영됩니다.</p>
             </div>
             <div class="relative w-64">
               <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
@@ -270,7 +270,7 @@
                   <th class="pb-3">캠프명</th>
                   <th class="pb-3">관리자 ID</th>
                   <th class="pb-3 text-emerald-400">태블릿 라이선스 (등록/한도)</th>
-                  <th class="pb-3 text-indigo-400">통신 방식</th>
+                  <th class="pb-3 text-indigo-400">독립 명부/콜수</th>
                   <th class="pb-3">상태</th>
                   <th class="pb-3 text-right">제어</th>
                 </tr>
@@ -290,18 +290,21 @@
                   <option value="충청남도">충청남도</option>
                   <option value="서울특별시">서울특별시</option>
                   <option value="경기도">경기도</option>
+                  <option value="인천광역시">인천광역시</option>
                   <option value="대전광역시">대전광역시</option>
                   <option value="세종특별자치시">세종특별자치시</option>
+                  <option value="부산광역시">부산광역시</option>
+                  <option value="전북특별자치도">전북특별자치도</option>
                 </select>
               </div>
               <div>
                 <label class="block text-[11px] text-slate-400 mb-0.5">시·군·구</label>
-                <input type="text" id="new-camp-sigungu" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 보령시">
+                <input type="text" id="new-camp-sigungu" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 서천군">
               </div>
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-0.5">캠프명</label>
-              <input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 기호 1번 보령선거캠프">
+              <input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 기호 1번 서천선거캠프">
             </div>
             <div>
               <label class="block text-[11px] text-indigo-300 mb-0.5 font-bold">⭐ 본사 담당 직원 (CS 매니저)</label>
@@ -309,7 +312,7 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[11px] text-slate-400 mb-0.5">관리자 ID</label>
+                <label class="block text-[11px] text-slate-400 mb-0.5">관리자 ID (camp 포함)</label>
                 <input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" placeholder="camp02">
               </div>
               <div>
@@ -343,7 +346,7 @@
             </div>
           </div>
           <button type="button" onclick="registerNewCampByMaster()" class="w-full mt-3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
-            신규 캠프 승인 및 생성
+            신규 캠프 승인 및 독립 DB 생성
           </button>
         </div>
       </div>
@@ -354,7 +357,7 @@
   <div id="briefing-report-modal" style="display: none;" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] items-center justify-center overflow-y-auto py-8">
     <div id="briefing-print-area" class="bg-white text-slate-900 w-[820px] rounded-2xl shadow-2xl p-10 border border-slate-300 space-y-6 my-auto">
       <div class="no-print flex justify-between items-center pb-4 border-b border-slate-200">
-        <span class="text-xs font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">🖨️ A4 규격 최적화 보고서</span>
+        <span class="text-xs font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">🖨️ A4 규격 최적화 보고서 (해당 캠프 전용 집계)</span>
         <div class="flex gap-2">
           <button type="button" onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow flex items-center gap-1.5">
             <i class="fa-solid fa-print"></i> 즉시 인쇄 / PDF 저장
@@ -438,7 +441,7 @@
     </div>
   </div>
 
-  <!-- ==================== 2. 캠프관리자(camp01) 상황실 ==================== -->
+  <!-- ==================== 2. 캠프관리자(camp01 등) 상황실 ==================== -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <div id="admin-sos-alert-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 flex items-center justify-between shadow-lg z-40">
       <div class="flex items-center gap-2.5 text-xs font-extrabold">
@@ -477,7 +480,7 @@
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-base font-bold text-slate-900 mb-0.5">🚨 캠프 전체 전화 업무 일괄 제어 & 야간 안전잠금</h3>
-              <p class="text-xs text-slate-500">선거법 준수를 위해 야간 시간대 발신을 자동 차단합니다.</p>
+              <p class="text-xs text-slate-500">우리 캠프 소속 태블릿만 일괄 제어하며, 야간 시간대 발신을 자동 차단합니다.</p>
             </div>
             <div class="flex items-center gap-3">
               <span id="camp-global-status-badge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">전화 업무 진행 중 🟢</span>
@@ -503,8 +506,8 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
             <div>
-              <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 홍보 시나리오 대본 단계별 배포</h3>
-              <p class="text-xs text-slate-500 mt-0.5">대본을 수정하고 배포하면 모든 태블릿 화면에 즉시 동기화됩니다.</p>
+              <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 홍보 시나리오 대본 단계별 배포 (캠프 전용)</h3>
+              <p class="text-xs text-slate-500 mt-0.5">대본을 수정하고 배포하면 우리 캠프 소속 태블릿 화면에만 즉시 동기화됩니다.</p>
             </div>
             <span id="current-active-step-badge" class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-bold">현재 배포됨: 1단계</span>
           </div>
@@ -550,7 +553,7 @@
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-circle-question mr-1 text-indigo-600"></i> 유권자 돌발 질문 모범답변(FAQ) 관리</h3>
-              <p class="text-xs text-slate-500 mt-0.5">통화 중 요원 화면에 띄울 모범 답변 카드입니다.</p>
+              <p class="text-xs text-slate-500 mt-0.5">통화 중 우리 캠프 요원 화면에 띄울 모범 답변 카드입니다.</p>
             </div>
             <button type="button" onclick="saveFaqCards()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">FAQ 배포</button>
           </div>
@@ -570,12 +573,12 @@
           </div>
         </div>
 
-        <!-- [수정 반영] 유권자 명부 엑셀(.xlsx, .xls) 및 CSV 대량 업로드 / 엑셀 표준 양식 다운로드 -->
+        <!-- 유권자 명부 엑셀(.xlsx, .xls) 및 CSV 대량 업로드 / 엑셀 표준 양식 다운로드 (캠프 독립) -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-3">
             <div>
-              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 대량 업로드</h3>
-              <p class="text-xs text-slate-500 mt-0.5">엑셀(.xlsx, .xls) 또는 CSV 파일을 직접 업로드하며, 수신거부(DNC) 번호는 자동 필터링됩니다.</p>
+              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 대량 업로드 (캠프 전용 격리 DB)</h3>
+              <p class="text-xs text-slate-500 mt-0.5">업로드된 명부는 우리 캠프 전용으로만 격리 저장되며 타 캠프와 절대 공유되지 않습니다.</p>
             </div>
             <div class="flex gap-1.5">
               <button type="button" onclick="resetVoterQueueToSample()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">샘플 복원</button>
@@ -592,7 +595,7 @@
             <p class="text-[11px] text-slate-400 mt-1">지원 형식: 엑셀 파일 (.xlsx, .xls) 및 CSV 파일 (.csv)</p>
           </div>
           <div class="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl flex justify-between items-center text-xs">
-            <span class="font-bold text-indigo-900">현재 유권자 명부 큐 적재 상태</span>
+            <span class="font-bold text-indigo-900">현재 우리 캠프 명부 큐 적재 상태</span>
             <span class="font-mono font-black text-indigo-600 text-sm" id="voter-queue-status">로딩 중...</span>
           </div>
           <div id="upload-status" class="text-xs font-bold text-emerald-600 mt-2"></div>
@@ -684,7 +687,7 @@
               <input type="number" id="setting-daily-goal" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-bold" value="250" min="10" max="1000">
             </div>
           </div>
-          <button type="button" onclick="saveDialSettings()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition">설정 저장 및 전체 배포</button>
+          <button type="button" onclick="saveDialSettings()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition">설정 저장 및 캠프 단말기 배포</button>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
@@ -768,8 +771,8 @@
     <main id="admin-pane-logs" class="hidden flex-1 p-6 overflow-y-auto bg-white m-5 rounded-2xl border border-slate-200 shadow-sm space-y-5 custom-scrollbar">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-lg font-extrabold text-slate-900">🎧 캠프 전체 통화 기록</h2>
-          <p class="text-xs text-slate-500 mt-0.5">선거용 회선별 발신 결과와 유권자 성향 및 메모를 엑셀로 추출합니다.</p>
+          <h2 class="text-lg font-extrabold text-slate-900">🎧 캠프 전체 통화 기록 (캠프 전용)</h2>
+          <p class="text-xs text-slate-500 mt-0.5">우리 캠프 회선별 발신 결과와 유권자 성향 및 메모를 엑셀로 추출합니다.</p>
         </div>
         <div class="flex items-center gap-2.5">
           <button type="button" onclick="exportCallLogsToCsv('POSITIVE_ONLY')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
@@ -804,7 +807,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원(tab01) 워크스페이스 ==================== -->
+  <!-- ==================== 3. 태블릿 요원(tab01 등) 워크스페이스 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800 relative">
     <div id="agent-global-stop-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 text-center text-xs font-extrabold flex items-center justify-center gap-2 shadow-md z-40">
       <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
@@ -975,7 +978,7 @@
       <div class="flex justify-between items-center">
         <div>
           <h2 class="text-lg font-extrabold text-slate-900">🔍 유권자 검색 및 재통화(콜백) 대기열</h2>
-          <p class="text-xs text-slate-500">부재중·재통화 예약 대상자를 필터링하여 즉시 발신할 수 있습니다.</p>
+          <p class="text-xs text-slate-500">우리 캠프 명부 내 부재중·재통화 예약 대상자를 필터링하여 즉시 발신할 수 있습니다.</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" id="filter-btn-all" onclick="setSearchFilterMode('ALL')" class="px-3 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition">전체 명부</button>
@@ -1054,7 +1057,7 @@
     const DEFAULT_SB_URL = 'https://odtyiuhjyvowikodcvym.supabase.co';
     const DEFAULT_SB_KEY = 'sb_publishable_kb51-2LmeL8yl3Z_G_k-fQ_uH8fxqU-';
 
-    // ==================== 전역 상태 및 데이터 ====================
+    // ==================== 전역 상태 및 멀티캠프 격리 데이터 구조 ====================
     let selectedStatus = 'SUPPORT';
     let selectedGender = '미상';
     let selectedAge = '미상';
@@ -1064,7 +1067,7 @@
     let wrapUpTimer = null;
     let currentAgentId = 'tab01';
     let currentAdminId = 'camp01';
-    let currentVoterIdx = 0;
+    let currentVoterIdx = 0; // 현재 캠프의 명부 내 인덱스
     let searchFilterMode = 'ALL';
     let activeFaqNum = null;
 
@@ -1099,11 +1102,11 @@
     ];
 
     const DEFAULT_VOTERS = [
-      { id: "1042", name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", lastResult: "READY", lastMemo: "", lockedBy: null },
-      { id: "1043", name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", lastResult: "READY", lastMemo: "", lockedBy: null },
-      { id: "1044", name: "박민수 유권자", phone: "010-5555-4444", dong: "오천면", lastResult: "READY", lastMemo: "", lockedBy: null },
-      { id: "1045", name: "이순신 유권자", phone: "010-2222-3333", dong: "대천3동", lastResult: "READY", lastMemo: "", lockedBy: null },
-      { id: "1046", name: "최유진 유권자", phone: "010-7777-8888", dong: "웅천읍", lastResult: "READY", lastMemo: "", lockedBy: null }
+      { id: "1042", campId: "camp01", name: "홍길동 유권자", phone: "010-1234-5678", dong: "대천1동", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1043", campId: "camp01", name: "김영희 유권자", phone: "010-9876-5432", dong: "대천2동", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1044", campId: "camp01", name: "박민수 유권자", phone: "010-5555-4444", dong: "오천면", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1045", campId: "camp01", name: "이순신 유권자", phone: "010-2222-3333", dong: "대천3동", lastResult: "READY", lastMemo: "", lockedBy: null },
+      { id: "1046", campId: "camp01", name: "최유진 유권자", phone: "010-7777-8888", dong: "웅천읍", lastResult: "READY", lastMemo: "", lockedBy: null }
     ];
 
     const DEFAULT_FAQS = [
@@ -1114,10 +1117,69 @@
 
     let campsList = [];
     let agentsList = [];
-    let votersList = [];
-    let globalCampCallLogs = [];
-    let dncPhonesList = [];
-    let faqCardsList = [];
+    let votersList = []; // 전체 캠프 유권자 배열 (각 요소에 campId 포함)
+    let globalCampCallLogs = []; // 전체 캠프 통화 로그 (각 요소에 campId 포함)
+    let campSettingsMap = {}; // 캠프별 격리 설정맵 { camp01: { dncPhones: [], faqs: [], scripts: {}, ... } }
+
+    // ==================== [핵심] 멀티캠프 격리 헬퍼 함수 ====================
+    function getActiveCampId() {
+      const role = localStorage.getItem('easycall_role');
+      if (role === 'admin') {
+        return (currentAdminId || 'camp01').toLowerCase();
+      }
+      if (role === 'agent') {
+        const ag = agentsList.find(a => a.agentId.toLowerCase() === currentAgentId.toLowerCase());
+        return ag && ag.campId ? ag.campId.toLowerCase() : 'camp01';
+      }
+      return (currentAdminId || 'camp01').toLowerCase();
+    }
+
+    function getCampConfig(campId) {
+      const cid = (campId || getActiveCampId() || 'camp01').toLowerCase();
+      if (!campSettingsMap[cid]) {
+        campSettingsMap[cid] = {
+          dncPhones: [],
+          faqs: JSON.parse(JSON.stringify(DEFAULT_FAQS)),
+          stepScripts: {
+            1: "안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!",
+            2: "안녕하십니까! 우리 동네의 가장 시급한 숙원 사업과 민원을 공약에 적극 반영하고자 연락드렸습니다. 불편하신 점을 편히 말씀해 주세요!",
+            3: "투표일이 다가왔습니다! 반드시 소중한 한 표를 행사하셔서 우리 지역의 확실한 변화를 만들어 주시기를 간곡히 부탁드립니다!"
+          },
+          currentScript: "안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!",
+          activeStepNum: "1",
+          smsTemplate: "[선거캠프 안내] 바쁘신 중에도 통화에 응해주셔서 감사드립니다. 우리 지역 발전을 위한 핵심 공약을 확인해 주세요!",
+          dialMode: "manual",
+          waitSecs: "2",
+          dailyGoal: "250",
+          nightLock: true,
+          startTime: "08:00",
+          endTime: "21:00",
+          globalStopped: false,
+          sosAlert: null
+        };
+      }
+      return campSettingsMap[cid];
+    }
+
+    function getCampVoters(campId) {
+      const cid = (campId || getActiveCampId() || 'camp01').toLowerCase();
+      let list = votersList.filter(v => (v.campId || 'camp01').toLowerCase() === cid);
+      if (list.length === 0) {
+        const samples = DEFAULT_VOTERS.map(v => ({
+          ...v,
+          campId: cid,
+          lockedBy: null
+        }));
+        votersList.push(...samples);
+        list = votersList.filter(v => (v.campId || 'camp01').toLowerCase() === cid);
+      }
+      return list;
+    }
+
+    function getCampCallLogs(campId) {
+      const cid = (campId || getActiveCampId() || 'camp01').toLowerCase();
+      return globalCampCallLogs.filter(l => (l.campId || 'camp01').toLowerCase() === cid);
+    }
 
     function ensureAgentStructure(agentObj, idx = 0) {
       if (!agentObj.campId) agentObj.campId = 'camp01';
@@ -1281,12 +1343,7 @@
           agentsList,
           votersList,
           globalCampCallLogs,
-          dncPhonesList,
-          faqCardsList,
-          currentScript: localStorage.getItem('easycall_current_script') || '',
-          activeStepNum: localStorage.getItem('easycall_active_step_num') || '1',
-          campStopped: localStorage.getItem('easycall_camp_global_stopped') || 'false',
-          sosAlert: localStorage.getItem('easycall_sos_alert') || ''
+          campSettingsMap
         };
         await sbClient.from('easycall_sync_store').upsert({
           store_key: 'GLOBAL_STATE',
@@ -1320,26 +1377,17 @@
             localStorage.setItem('easycall_agents', JSON.stringify(agentsList));
           }
           if (b.votersList) {
-            votersList = b.votersList;
+            votersList = b.votersList.map(v => ({ ...v, campId: (v.campId || 'camp01').toLowerCase() }));
             localStorage.setItem('easycall_voters', JSON.stringify(votersList));
           }
           if (b.globalCampCallLogs) {
-            globalCampCallLogs = b.globalCampCallLogs;
+            globalCampCallLogs = b.globalCampCallLogs.map(l => ({ ...l, campId: (l.campId || 'camp01').toLowerCase() }));
             localStorage.setItem('easycall_logs', JSON.stringify(globalCampCallLogs));
           }
-          if (b.dncPhonesList) {
-            dncPhonesList = b.dncPhonesList;
-            localStorage.setItem('easycall_dnc_phones', JSON.stringify(dncPhonesList));
+          if (b.campSettingsMap) {
+            campSettingsMap = b.campSettingsMap;
+            localStorage.setItem('easycall_camp_settings_map', JSON.stringify(campSettingsMap));
           }
-          if (b.faqCardsList) {
-            faqCardsList = b.faqCardsList;
-            localStorage.setItem('easycall_faqs', JSON.stringify(faqCardsList));
-          }
-          if (b.currentScript) localStorage.setItem('easycall_current_script', b.currentScript);
-          if (b.activeStepNum) localStorage.setItem('easycall_active_step_num', b.activeStepNum);
-          if (b.campStopped !== undefined) localStorage.setItem('easycall_camp_global_stopped', b.campStopped);
-          if (b.sosAlert) localStorage.setItem('easycall_sos_alert', b.sosAlert);
-          else localStorage.removeItem('easycall_sos_alert');
         } else if (!error && !data) {
           await pushStateToSupabase();
         }
@@ -1358,6 +1406,7 @@
       if (role === 'super') {
         renderSuperCampsTable();
       } else if (role === 'admin') {
+        loadScenarioTextsToInputs();
         updateAdminGlobalStopUI();
         updateVoterQueueStatusText();
         checkAdminSosBanner();
@@ -1365,13 +1414,16 @@
         renderAdminLogsTable();
         renderStatsAndCharts();
       } else if (role === 'agent') {
-        const savedScript = localStorage.getItem('easycall_current_script');
-        if (savedScript) document.getElementById('agent-script-display').innerText = `"${savedScript}"`;
+        const cfg = getCampConfig(getActiveCampId());
+        if (cfg.currentScript) {
+          document.getElementById('agent-script-display').innerText = `"${cfg.currentScript}"`;
+        }
         updateAgentDeviceHeaderBadge();
         checkAgentGlobalStopBanner();
         updateAgentGoalGauge();
         renderAgentFaqButtons();
         updateCallbackBadgeCount();
+        updateAgentButtonTextPreview();
       }
     }
 
@@ -1386,25 +1438,27 @@
 
         const savedVoters = localStorage.getItem('easycall_voters');
         votersList = savedVoters ? JSON.parse(savedVoters) : [...DEFAULT_VOTERS];
+        votersList = votersList.map(v => ({ ...v, campId: (v.campId || 'camp01').toLowerCase() }));
 
         const savedLogs = localStorage.getItem('easycall_logs');
         globalCampCallLogs = savedLogs ? JSON.parse(savedLogs) : [];
+        globalCampCallLogs = globalCampCallLogs.map(l => {
+          if (!l.campId) {
+            const ag = agentsList.find(a => a.agentId.toLowerCase() === (l.agentId || '').toLowerCase());
+            l.campId = ag ? ag.campId.toLowerCase() : 'camp01';
+          }
+          return l;
+        });
 
-        const savedDnc = localStorage.getItem('easycall_dnc_phones');
-        dncPhonesList = savedDnc ? JSON.parse(savedDnc) : [];
-
-        const savedFaqs = localStorage.getItem('easycall_faqs');
-        faqCardsList = savedFaqs ? JSON.parse(savedFaqs) : [...DEFAULT_FAQS];
-
-        const savedIdx = parseInt(localStorage.getItem('easycall_voter_idx') || '0', 10);
-        currentVoterIdx = isNaN(savedIdx) ? 0 : savedIdx;
+        const savedMap = localStorage.getItem('easycall_camp_settings_map');
+        campSettingsMap = savedMap ? JSON.parse(savedMap) : {};
+        campsList.forEach(c => getCampConfig(c.campId));
       } catch (e) {
         campsList = [...DEFAULT_CAMPS];
         agentsList = [...DEFAULT_AGENTS].map((a, i) => ensureAgentStructure(a, i));
         votersList = [...DEFAULT_VOTERS];
         globalCampCallLogs = [];
-        dncPhonesList = [];
-        faqCardsList = [...DEFAULT_FAQS];
+        campSettingsMap = {};
       }
     }
 
@@ -1413,9 +1467,7 @@
       localStorage.setItem('easycall_agents', JSON.stringify(agentsList));
       localStorage.setItem('easycall_voters', JSON.stringify(votersList));
       localStorage.setItem('easycall_logs', JSON.stringify(globalCampCallLogs));
-      localStorage.setItem('easycall_dnc_phones', JSON.stringify(dncPhonesList));
-      localStorage.setItem('easycall_faqs', JSON.stringify(faqCardsList));
-      localStorage.setItem('easycall_voter_idx', String(currentVoterIdx));
+      localStorage.setItem('easycall_camp_settings_map', JSON.stringify(campSettingsMap));
       if (sbClient) pushStateToSupabase();
     }
 
@@ -1425,7 +1477,7 @@
     });
 
     async function resetAllSystemData() {
-      if (!confirm("⚠️ 모든 설정, 등록된 태블릿, 통화 기록을 초기 상태로 리셋하시겠습니까?")) return;
+      if (!confirm("⚠️ 모든 캠프 설정, 등록된 태블릿, 통화 기록을 초기 상태로 리셋하시겠습니까?")) return;
       const role = localStorage.getItem('easycall_role');
       const id = localStorage.getItem('easycall_id');
       const sbUrl = localStorage.getItem('easycall_sb_url') || DEFAULT_SB_URL;
@@ -1443,7 +1495,6 @@
     window.onload = async function() {
       loadPersistentData();
       await initSupabaseEngine(false);
-      loadScenarioTextsToInputs();
 
       const savedRole = localStorage.getItem('easycall_role');
       const savedId = localStorage.getItem('easycall_id');
@@ -1496,7 +1547,11 @@
 
       if (idInput.includes('camp')) {
         const campObj = campsList.find(c => c.campId.toLowerCase() === idInput);
-        if (campObj && campObj.approved === false) {
+        if (!campObj) {
+          errorEl.innerText = "🚫 개설되지 않은 캠프 관리자 ID입니다. 본사 마스터에서 먼저 캠프를 등록하세요.";
+          return;
+        }
+        if (campObj.approved === false) {
           errorEl.innerText = "🛑 본사 마스터로부터 이용이 중지된 캠프 계정입니다.";
           return;
         }
@@ -1539,7 +1594,8 @@
 
     function handleLogout() {
       if (localStorage.getItem('easycall_role') === 'agent') {
-        votersList.forEach(v => {
+        const cid = getActiveCampId();
+        getCampVoters(cid).forEach(v => {
           if (v.lockedBy === currentAgentId) v.lockedBy = null;
         });
         savePersistentData();
@@ -1565,7 +1621,11 @@
       let totalTablets = 0, totalRegistered = 0, activeCount = 0, html = '';
 
       campsList.forEach(c => {
-        const regCount = agentsList.filter(a => a.campId.toLowerCase() === c.campId.toLowerCase()).length;
+        const cid = c.campId.toLowerCase();
+        const regCount = agentsList.filter(a => a.campId.toLowerCase() === cid).length;
+        const campVotersCnt = getCampVoters(cid).length;
+        const campCallsCnt = getCampCallLogs(cid).length;
+
         totalTablets += Number(c.tablets) || 0;
         totalRegistered += regCount;
         if (c.approved !== false) activeCount++;
@@ -1603,7 +1663,7 @@
                 <button type="button" onclick="adjustCampTabletLimit('${c.campId}', 5)" class="px-1.5 py-0.5 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 rounded text-[10px] font-bold border border-indigo-700">+5</button>
               </div>
             </td>
-            <td class="py-3 font-bold text-emerald-400">📞 통신사 공식 선거회선 (SIP)</td>
+            <td class="py-3 font-mono text-slate-300">명부 ${campVotersCnt}명 / 통화 ${campCallsCnt}건</td>
             <td class="py-3"><span class="${badgeClass}">${badgeText}</span></td>
             <td class="py-3 flex gap-1 justify-end">
               <button type="button" onclick="masterResetCampPw('${c.campId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold transition">비번초기화</button>
@@ -1657,10 +1717,15 @@
         approved: true
       });
       localStorage.setItem(`pw_${admin}`, pw);
+
+      // 신규 캠프 전용 독립 설정 및 기본 샘플 명부 초기화
+      getCampConfig(admin);
+      getCampVoters(admin);
+
       savePersistentData();
       renderSuperCampsTable();
 
-      showToast(`🎉 신규 캠프 [${name}] 개설 완료!`);
+      showToast(`🎉 신규 캠프 [${name}] 개설 및 독립 DB 생성 완료!`);
       document.getElementById('new-camp-sigungu').value = '';
       document.getElementById('new-camp-name').value = '';
       document.getElementById('new-camp-staff').value = '';
@@ -1722,33 +1787,35 @@
       showToast(`🔐 캠프 [${campId}] 비밀번호가 1234로 초기화되었습니다.`);
     }
 
-    // ==================== 상황실 관리자(camp01) ====================
+    // ==================== 상황실 관리자(멀티캠프 격리 적용) ====================
     function initAdminView() {
       loadPersistentData();
       document.getElementById('admin-view').classList.remove('hidden');
       const campObj = campsList.find(c => c.campId.toLowerCase() === currentAdminId.toLowerCase()) || campsList[0];
       if (campObj) {
-        document.getElementById('admin-header-camp-name').innerText = `${campObj.name}`;
+        document.getElementById('admin-header-camp-name').innerText = `${campObj.name} (${campObj.campId})`;
       }
 
-      document.getElementById('setting-dial-mode').value = localStorage.getItem('easycall_dial_mode') || 'manual';
-      document.getElementById('setting-wait-secs').value = localStorage.getItem('easycall_wait_secs') || '2';
-      document.getElementById('setting-daily-goal').value = localStorage.getItem('easycall_daily_goal') || '250';
+      const cfg = getCampConfig(currentAdminId);
 
-      document.getElementById('night-lock-enable').checked = localStorage.getItem('easycall_night_lock') !== 'false';
-      document.getElementById('allowed-start-time').value = localStorage.getItem('easycall_start_time') || '08:00';
-      document.getElementById('allowed-end-time').value = localStorage.getItem('easycall_end_time') || '21:00';
+      document.getElementById('setting-dial-mode').value = cfg.dialMode || 'manual';
+      document.getElementById('setting-wait-secs').value = cfg.waitSecs || '2';
+      document.getElementById('setting-daily-goal').value = cfg.dailyGoal || '250';
 
-      faqCardsList.forEach((item, idx) => {
+      document.getElementById('night-lock-enable').checked = cfg.nightLock !== false;
+      document.getElementById('allowed-start-time').value = cfg.startTime || '08:00';
+      document.getElementById('allowed-end-time').value = cfg.endTime || '21:00';
+
+      (cfg.faqs || DEFAULT_FAQS).forEach((item, idx) => {
         const qEl = document.getElementById(`faq-q-${idx + 1}`);
         const aEl = document.getElementById(`faq-a-${idx + 1}`);
         if (qEl) qEl.value = item.q;
         if (aEl) aEl.value = item.a;
       });
 
-      const savedSms = localStorage.getItem('easycall_sms_template');
-      if (savedSms) document.getElementById('admin-sms-template').value = savedSms;
+      document.getElementById('admin-sms-template').value = cfg.smsTemplate || '';
 
+      loadScenarioTextsToInputs();
       updateAdminGlobalStopUI();
       updateVoterQueueStatusText();
       checkAdminSosBanner();
@@ -1779,8 +1846,12 @@
         alert("단말기 로그인 ID(예: tab02)를 입력해 주세요.");
         return;
       }
+      if (agentId === 'super' || agentId.includes('master') || agentId.includes('camp')) {
+        alert("단말기 ID에는 'super'나 'camp'를 포함할 수 없습니다.");
+        return;
+      }
       if (agentsList.some(a => a.agentId.toLowerCase() === agentId)) {
-        alert("이미 등록된 단말기 ID입니다.");
+        alert("이미 등록된 단말기 ID입니다. 고유한 ID를 입력해 주세요.");
         return;
       }
 
@@ -1861,6 +1932,8 @@
       const campObj = campsList.find(c => c.campId.toLowerCase() === currentAdminId.toLowerCase()) || campsList[0];
       const maxQuota = campObj ? (Number(campObj.tablets) || 15) : 15;
       const myCampAgents = agentsList.filter(a => a.campId.toLowerCase() === currentAdminId.toLowerCase());
+      const myCampLogs = getCampCallLogs(currentAdminId);
+
       const regCount = myCampAgents.length;
       const remain = Math.max(0, maxQuota - regCount);
       const pct = Math.min(100, Math.round((regCount / maxQuota) * 100));
@@ -1873,7 +1946,7 @@
       let html = '';
       myCampAgents.forEach((a, idx) => {
         ensureAgentStructure(a, idx);
-        const totalCallCnt = globalCampCallLogs.filter(l => l.agentId.toLowerCase() === a.agentId.toLowerCase()).length;
+        const totalCallCnt = myCampLogs.filter(l => l.agentId.toLowerCase() === a.agentId.toLowerCase()).length;
         const bindBadge = a.boundDeviceToken
           ? `<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono text-[10px] font-bold">🔒 ${a.boundDeviceToken}</span>`
           : `<span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-semibold">미귀속</span>`;
@@ -1905,60 +1978,62 @@
     }
 
     function saveNightLockSettings() {
-      const enabled = document.getElementById('night-lock-enable').checked;
-      const startT = document.getElementById('allowed-start-time').value || '08:00';
-      const endT = document.getElementById('allowed-end-time').value || '21:00';
-      localStorage.setItem('easycall_night_lock', String(enabled));
-      localStorage.setItem('easycall_start_time', startT);
-      localStorage.setItem('easycall_end_time', endT);
+      const cfg = getCampConfig(currentAdminId);
+      cfg.nightLock = document.getElementById('night-lock-enable').checked;
+      cfg.startTime = document.getElementById('allowed-start-time').value || '08:00';
+      cfg.endTime = document.getElementById('allowed-end-time').value || '21:00';
       savePersistentData();
-      showToast(`🌙 발신 허용 시간대(${startT} ~ ${endT}) 설정 완료`);
+      showToast(`🌙 발신 허용 시간대(${cfg.startTime} ~ ${cfg.endTime}) 설정 완료`);
     }
 
-    function isWithinAllowedCallingHours() {
-      const enabled = localStorage.getItem('easycall_night_lock') !== 'false';
-      if (!enabled) return true;
-      const startT = localStorage.getItem('easycall_start_time') || '08:00';
-      const endT = localStorage.getItem('easycall_end_time') || '21:00';
+    function isWithinAllowedCallingHours(campId) {
+      const cfg = getCampConfig(campId || getActiveCampId());
+      if (cfg.nightLock === false) return true;
+      const startT = cfg.startTime || '08:00';
+      const endT = cfg.endTime || '21:00';
       const now = new Date();
       const curHm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
       return curHm >= startT && curHm <= endT;
     }
 
     function saveFaqCards() {
+      const cfg = getCampConfig(currentAdminId);
       const newFaqs = [];
       for (let i = 1; i <= 3; i++) {
         const q = document.getElementById(`faq-q-${i}`)?.value.trim() || `Q${i}. 질문`;
         const a = document.getElementById(`faq-a-${i}`)?.value.trim() || `답변 내용`;
         newFaqs.push({ q, a });
       }
-      faqCardsList = newFaqs;
+      cfg.faqs = newFaqs;
       savePersistentData();
-      showToast("💡 FAQ 모범답변이 모든 태블릿에 배포되었습니다!");
+      showToast("💡 FAQ 모범답변이 우리 캠프 모든 태블릿에 배포되었습니다!");
     }
 
     function triggerAgentSosCall() {
-      const v = votersList[currentVoterIdx];
+      const cid = getActiveCampId();
+      const cfg = getCampConfig(cid);
+      const myVoters = getCampVoters(cid);
+      const v = myVoters[currentVoterIdx];
       const agentObj = agentsList.find(a => a.agentId.toLowerCase() === currentAgentId.toLowerCase());
       const label = agentObj ? `${agentObj.alias}(${currentAgentId})` : currentAgentId;
-      const sosData = {
+
+      cfg.sosAlert = {
         agentId: label,
         voterName: v ? v.name : '미상',
         voterPhone: v ? v.phone : '-',
         time: new Date().toLocaleTimeString()
       };
-      localStorage.setItem('easycall_sos_alert', JSON.stringify(sosData));
       savePersistentData();
       showToast("🚨 상황실 관리자에게 SOS 긴급 도움 요청을 전달했습니다!");
     }
 
     function checkAdminSosBanner() {
-      const raw = localStorage.getItem('easycall_sos_alert');
+      const cfg = getCampConfig(currentAdminId);
       const banner = document.getElementById('admin-sos-alert-banner');
       const txt = document.getElementById('admin-sos-alert-text');
       if (!banner || !txt) return;
-      if (raw) {
-        const data = JSON.parse(raw);
+      if (cfg.sosAlert) {
+        const data = cfg.sosAlert;
         txt.innerText = `[${data.time}] 📱 ${data.agentId} 요원이 (${data.voterName} / ${data.voterPhone}) 통화 중 긴급 도움을 요청했습니다!`;
         banner.classList.remove('hidden');
       } else {
@@ -1967,7 +2042,8 @@
     }
 
     function clearSosAlerts() {
-      localStorage.removeItem('easycall_sos_alert');
+      const cfg = getCampConfig(currentAdminId);
+      cfg.sosAlert = null;
       savePersistentData();
       checkAdminSosBanner();
       showToast("✅ SOS 긴급 호출 경보가 확인 및 해제되었습니다.");
@@ -1979,11 +2055,12 @@
       document.getElementById('report-camp-title').innerText = `${campObj ? campObj.name : '선거 캠프'} 전화홍보 일일 종합 상황보고서`;
       document.getElementById('report-date-txt').innerText = new Date().toLocaleString();
 
-      const total = globalCampCallLogs.length;
-      const connLogs = globalCampCallLogs.filter(l => l.callResult === 'CONNECTED');
+      const campLogs = getCampCallLogs(currentAdminId);
+      const total = campLogs.length;
+      const connLogs = campLogs.filter(l => l.callResult === 'CONNECTED');
       const posLogs = connLogs.filter(l => l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER');
-      const cbLogs = globalCampCallLogs.filter(l => l.callResult === 'ABSENT' || l.callResult === 'CALLBACK');
-      const dncLogs = globalCampCallLogs.filter(l => l.callResult === 'REJECT');
+      const cbLogs = campLogs.filter(l => l.callResult === 'ABSENT' || l.callResult === 'CALLBACK');
+      const dncLogs = campLogs.filter(l => l.callResult === 'REJECT');
 
       const pct = (n, d) => d === 0 ? 0 : Math.round((n / d) * 100);
 
@@ -2006,7 +2083,7 @@
       `;
 
       const dongMap = {};
-      globalCampCallLogs.forEach(l => {
+      campLogs.forEach(l => {
         const d = l.dong || '기타';
         if (!dongMap[d]) dongMap[d] = { total: 0, conn: 0, pos: 0 };
         dongMap[d].total++;
@@ -2023,7 +2100,7 @@
       });
       document.getElementById('rep-dong-tbody').innerHTML = dHtml || `<tr><td colspan="3" class="p-3 text-center text-slate-400">집계 데이터 없음</td></tr>`;
 
-      const memoLogs = globalCampCallLogs.filter(l => l.memo && l.memo.trim().length > 0).slice(0, 8);
+      const memoLogs = campLogs.filter(l => l.memo && l.memo.trim().length > 0).slice(0, 8);
       let mHtml = '';
       memoLogs.forEach(l => {
         mHtml += `<tr>
@@ -2043,20 +2120,20 @@
     }
 
     function toggleCampGlobalCalling() {
-      const currentStopped = localStorage.getItem('easycall_camp_global_stopped') === 'true';
-      localStorage.setItem('easycall_camp_global_stopped', String(!currentStopped));
+      const cfg = getCampConfig(currentAdminId);
+      cfg.globalStopped = !cfg.globalStopped;
       savePersistentData();
       updateAdminGlobalStopUI();
-      showToast(!currentStopped ? "🛑 모든 태블릿의 전화 발신이 중지되었습니다." : "🟢 전화 홍보 업무가 재개되었습니다.");
+      showToast(cfg.globalStopped ? "🛑 우리 캠프 모든 태블릿의 전화 발신이 중지되었습니다." : "🟢 우리 캠프 전화 홍보 업무가 재개되었습니다.");
     }
 
     function updateAdminGlobalStopUI() {
-      const isStopped = localStorage.getItem('easycall_camp_global_stopped') === 'true';
+      const cfg = getCampConfig(currentAdminId);
       const badge = document.getElementById('camp-global-status-badge');
       const btn = document.getElementById('btn-toggle-camp-call');
       if (!badge || !btn) return;
 
-      if (isStopped) {
+      if (cfg.globalStopped) {
         badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800";
         badge.innerText = "전화 업무 일괄 중지됨 🛑";
         btn.className = "px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition";
@@ -2070,14 +2147,14 @@
     }
 
     function loadScenarioTextsToInputs() {
+      const cfg = getCampConfig(currentAdminId);
       for (let i = 1; i <= 3; i++) {
-        const savedText = localStorage.getItem(`easycall_scenario_step_${i}`);
+        const savedText = cfg.stepScripts && cfg.stepScripts[i];
         const el = document.getElementById(`scenario-step-${i}`);
         if (savedText && el) el.value = savedText;
       }
-      const activeStep = localStorage.getItem('easycall_active_step_num') || '1';
       const badge = document.getElementById('current-active-step-badge');
-      if (badge) badge.innerText = `현재 배포됨: ${activeStep}단계`;
+      if (badge) badge.innerText = `현재 배포됨: ${cfg.activeStepNum || '1'}단계`;
     }
 
     function saveAndDeployStep(stepNum) {
@@ -2088,33 +2165,35 @@
         alert(`${stepNum}단계 대본을 입력해 주세요.`);
         return;
       }
-      localStorage.setItem(`easycall_scenario_step_${stepNum}`, text);
-      localStorage.setItem('easycall_current_script', text);
-      localStorage.setItem('easycall_active_step_num', String(stepNum));
+      const cfg = getCampConfig(currentAdminId);
+      if (!cfg.stepScripts) cfg.stepScripts = {};
+      cfg.stepScripts[stepNum] = text;
+      cfg.currentScript = text;
+      cfg.activeStepNum = String(stepNum);
       savePersistentData();
 
       const badge = document.getElementById('current-active-step-badge');
       if (badge) badge.innerText = `현재 배포됨: ${stepNum}단계`;
 
-      const agentScriptEl = document.getElementById('agent-script-display');
-      if (agentScriptEl) agentScriptEl.innerText = `"${text}"`;
-
-      showToast(`📢 [${stepNum}단계 대본 배포 완료] 전체 태블릿에 동기화되었습니다!`);
+      showToast(`📢 [${stepNum}단계 대본 배포 완료] 우리 캠프 태블릿에 동기화되었습니다!`);
     }
 
     function saveSmsTemplate() {
       const smsTxt = document.getElementById('admin-sms-template').value.trim();
       if (!smsTxt) { alert("문자 문구를 입력해 주세요."); return; }
-      localStorage.setItem('easycall_sms_template', smsTxt);
+      const cfg = getCampConfig(currentAdminId);
+      cfg.smsTemplate = smsTxt;
       savePersistentData();
       showToast("✉️ 콜백 문자 문구가 저장되었습니다!");
     }
 
-    // ==================== [추가] 엑셀(.xlsx, .xls) 및 CSV 통합 업로드 파서 ====================
+    // ==================== 엑셀(.xlsx, .xls) 및 CSV 통합 업로드 파서 (캠프별 격리 적용) ====================
     function handleCsvUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
+      const cid = currentAdminId.toLowerCase();
+      const cfg = getCampConfig(cid);
       const fileName = file.name;
       const ext = fileName.split('.').pop().toLowerCase();
       const reader = new FileReader();
@@ -2175,7 +2254,7 @@
               }
               if (cleanPhone.length < 8) continue;
 
-              if (dncPhonesList.includes(cleanPhone)) {
+              if ((cfg.dncPhones || []).includes(cleanPhone)) {
                 skippedDncCount++;
                 continue;
               }
@@ -2187,6 +2266,7 @@
 
               parsedVoters.push({
                 id: String(2000 + parsedVoters.length + 1),
+                campId: cid,
                 name: vName,
                 phone: formattedPhone,
                 dong: vDong,
@@ -2202,11 +2282,12 @@
             return;
           }
 
-          votersList = parsedVoters;
+          // 타 캠프 유권자는 보존하고 우리 캠프 유권자만 교체
+          votersList = votersList.filter(v => (v.campId || 'camp01').toLowerCase() !== cid).concat(parsedVoters);
           currentVoterIdx = 0;
           savePersistentData();
           updateVoterQueueStatusText();
-          document.getElementById('upload-status').innerText = `✅ [${fileName}] 유권자 ${parsedVoters.length}명 적재 완료 (DNC 제외: ${skippedDncCount}명)`;
+          document.getElementById('upload-status').innerText = `✅ [${fileName}] 우리 캠프 유권자 ${parsedVoters.length}명 적재 완료 (DNC 제외: ${skippedDncCount}명)`;
           showToast(`📥 유권자 ${parsedVoters.length}명 적재 완료!`);
         } catch (err) {
           console.error(err);
@@ -2221,7 +2302,6 @@
       }
     }
 
-    // ==================== [추가] 표준 엑셀 양식(.xlsx) 다운로드 ====================
     function downloadExcelTemplate() {
       if (typeof XLSX === 'undefined') {
         alert("엑셀 생성 엔진을 불러오지 못했습니다.");
@@ -2244,21 +2324,31 @@
     }
 
     function resetVoterQueueToSample() {
-      votersList = [...DEFAULT_VOTERS];
-      dncPhonesList = [];
+      const cid = currentAdminId.toLowerCase();
+      const cfg = getCampConfig(cid);
+      cfg.dncPhones = [];
+
+      const samples = DEFAULT_VOTERS.map(v => ({
+        ...v,
+        campId: cid,
+        lockedBy: null
+      }));
+      votersList = votersList.filter(v => (v.campId || 'camp01').toLowerCase() !== cid).concat(samples);
       currentVoterIdx = 0;
       savePersistentData();
       updateVoterQueueStatusText();
-      document.getElementById('upload-status').innerText = `🔄 기본 샘플 유권자 5명으로 복원되었습니다.`;
+      document.getElementById('upload-status').innerText = `🔄 우리 캠프 기본 샘플 유권자 5명으로 복원되었습니다.`;
       showToast("기본 샘플 복원 완료!");
     }
 
     function updateVoterQueueStatusText() {
       const el = document.getElementById('voter-queue-status');
       if (!el) return;
-      const readyCnt = votersList.filter(v => v.lastResult === 'READY').length;
-      const callbackCnt = votersList.filter(v => v.lastResult === 'ABSENT' || v.lastResult === 'CALLBACK').length;
-      el.innerText = `총 ${votersList.length}명 (미통화: ${readyCnt}명 / 콜백대기: ${callbackCnt}명 / DNC차단: ${dncPhonesList.length}명)`;
+      const myVoters = getCampVoters(currentAdminId);
+      const cfg = getCampConfig(currentAdminId);
+      const readyCnt = myVoters.filter(v => v.lastResult === 'READY').length;
+      const callbackCnt = myVoters.filter(v => v.lastResult === 'ABSENT' || v.lastResult === 'CALLBACK').length;
+      el.innerText = `총 ${myVoters.length}명 (미통화: ${readyCnt}명 / 콜백대기: ${callbackCnt}명 / DNC차단: ${(cfg.dncPhones || []).length}명)`;
     }
 
     function downloadCsvTemplate() {
@@ -2275,25 +2365,25 @@
 
     function exportCallLogsToCsv(filterType) {
       loadPersistentData();
-      let targetLogs = globalCampCallLogs;
+      let targetLogs = getCampCallLogs(currentAdminId);
       if (filterType === 'POSITIVE_ONLY') {
-        targetLogs = globalCampCallLogs.filter(l => l.callResult === 'CONNECTED' && (l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER'));
+        targetLogs = targetLogs.filter(l => l.callResult === 'CONNECTED' && (l.status === 'SUPPORT' || l.status === 'FAVORABLE' || l.status === 'VOLUNTEER'));
       }
-      if (targetLogs.length === 0) { alert("다운로드할 데이터가 없습니다."); return; }
+      if (targetLogs.length === 0) { alert("다운로드할 통화 기록 데이터가 없습니다."); return; }
 
-      let csvContent = "순번,담당단말기,발신회선번호,유권자명,연락처,행정동,성별,연령대,통화결과,지지성향,통화시간,민원메모,기록시각\n";
+      let csvContent = "순번,소속캠프,담당단말기,발신회선번호,유권자명,연락처,행정동,성별,연령대,통화결과,지지성향,통화시간,민원메모,기록시각\n";
       targetLogs.forEach((l, idx) => {
         const cleanMemo = (l.memo || '').replace(/,/g, ' ').replace(/\r?\n/g, ' ');
         const statusKr = l.callResult === 'CONNECTED' ? (l.status === 'SUPPORT' ? '적극지지' : l.status === 'FAVORABLE' ? '우호호의' : l.status === 'VOLUNTEER' ? '자원봉사' : '비지지') : '-';
         const connKr = l.callResult === 'CONNECTED' ? '통화성공' : l.callResult === 'ABSENT' ? '부재중' : l.callResult === 'CALLBACK' ? '재통화' : l.callResult === 'REJECT' ? '수신거부' : '결번';
-        csvContent += `${idx + 1},${l.agentId},${l.usedPhone || '-'},${l.voterName},${l.voterPhone},${l.dong},${l.gender || '미상'},${l.age || '미상'},${connKr},${statusKr},${l.duration || '00:00'},${cleanMemo},${l.time}\n`;
+        csvContent += `${idx + 1},${l.campId || currentAdminId},${l.agentId},${l.usedPhone || '-'},${l.voterName},${l.voterPhone},${l.dong},${l.gender || '미상'},${l.age || '미상'},${connKr},${statusKr},${l.duration || '00:00'},${cleanMemo},${l.time}\n`;
       });
 
       const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      const fileName = filterType === 'POSITIVE_ONLY' ? `이지콜_핵심지지자_${new Date().toLocaleDateString()}.csv` : `이지콜_전체통화결과_${new Date().toLocaleDateString()}.csv`;
+      const fileName = filterType === 'POSITIVE_ONLY' ? `이지콜_${currentAdminId}_핵심지지자_${new Date().toLocaleDateString()}.csv` : `이지콜_${currentAdminId}_전체통화결과_${new Date().toLocaleDateString()}.csv`;
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
@@ -2302,16 +2392,12 @@
     }
 
     function saveDialSettings() {
-      const mode = document.getElementById('setting-dial-mode').value;
-      const secs = document.getElementById('setting-wait-secs').value;
-      const goal = document.getElementById('setting-daily-goal').value || '250';
-      localStorage.setItem('easycall_dial_mode', mode);
-      localStorage.setItem('easycall_wait_secs', secs);
-      localStorage.setItem('easycall_daily_goal', goal);
+      const cfg = getCampConfig(currentAdminId);
+      cfg.dialMode = document.getElementById('setting-dial-mode').value;
+      cfg.waitSecs = document.getElementById('setting-wait-secs').value;
+      cfg.dailyGoal = document.getElementById('setting-daily-goal').value || '250';
       savePersistentData();
-      updateAgentButtonTextPreview();
-      updateAgentGoalGauge();
-      showToast(`⚙️ 오토다이얼 및 목표(${goal}건) 설정 저장 완료`);
+      showToast(`⚙️ 오토다이얼 및 목표(${cfg.dailyGoal}건) 설정 저장 완료`);
     }
 
     function changeAdminPassword() {
@@ -2357,12 +2443,13 @@
     }
 
     function renderStatsAndCharts() {
-      const totalCalls = globalCampCallLogs.length;
-      const connectedLogs = globalCampCallLogs.filter(l => l.callResult === 'CONNECTED');
-      const absentCnt = globalCampCallLogs.filter(l => l.callResult === 'ABSENT').length;
-      const callbackCnt = globalCampCallLogs.filter(l => l.callResult === 'CALLBACK').length;
-      const rejectCnt = globalCampCallLogs.filter(l => l.callResult === 'REJECT').length;
-      const invalidCnt = globalCampCallLogs.filter(l => l.callResult === 'INVALID').length;
+      const campLogs = getCampCallLogs(currentAdminId);
+      const totalCalls = campLogs.length;
+      const connectedLogs = campLogs.filter(l => l.callResult === 'CONNECTED');
+      const absentCnt = campLogs.filter(l => l.callResult === 'ABSENT').length;
+      const callbackCnt = campLogs.filter(l => l.callResult === 'CALLBACK').length;
+      const rejectCnt = campLogs.filter(l => l.callResult === 'REJECT').length;
+      const invalidCnt = campLogs.filter(l => l.callResult === 'INVALID').length;
 
       const pctTotal = (cnt) => totalCalls === 0 ? 0 : Math.round((cnt / totalCalls) * 100);
       document.getElementById('stat-conn-success').innerText = `${connectedLogs.length}건 (${pctTotal(connectedLogs.length)}%)`;
@@ -2412,7 +2499,7 @@
       document.getElementById('gender-cross-chart').innerHTML = genderHtml;
 
       const dongMap = {};
-      globalCampCallLogs.forEach(l => {
+      campLogs.forEach(l => {
         const d = l.dong || '기타';
         if (!dongMap[d]) dongMap[d] = { total: 0, connected: 0, pos: 0 };
         dongMap[d].total++;
@@ -2442,7 +2529,7 @@
       }
 
       const agentCounts = {};
-      globalCampCallLogs.forEach(l => {
+      campLogs.forEach(l => {
         if (!agentCounts[l.agentId]) agentCounts[l.agentId] = { total: 0, conn: 0, phone: l.usedPhone || '-' };
         agentCounts[l.agentId].total++;
         if (l.callResult === 'CONNECTED') agentCounts[l.agentId].conn++;
@@ -2491,13 +2578,14 @@
     function renderAdminLogsTable() {
       const tbody = document.getElementById('admin-all-logs-tbody');
       if (!tbody) return;
-      document.getElementById('admin-total-calls').innerText = globalCampCallLogs.length + '건';
-      if (globalCampCallLogs.length === 0) {
+      const campLogs = getCampCallLogs(currentAdminId);
+      document.getElementById('admin-total-calls').innerText = campLogs.length + '건';
+      if (campLogs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-slate-400">통화 이력이 없습니다.</td></tr>`;
         return;
       }
       let html = '';
-      globalCampCallLogs.forEach(l => {
+      campLogs.forEach(l => {
         const demoStr = `${l.gender || '미상'}/${l.age || '미상'}`;
         const agObj = agentsList.find(a => a.agentId.toLowerCase() === l.agentId.toLowerCase());
         const agDisplay = agObj ? `${agObj.alias}` : l.agentId;
@@ -2518,16 +2606,20 @@
       tbody.innerHTML = html;
     }
 
-    // ==================== 태블릿 요원(tab01) ====================
+    // ==================== 태블릿 요원(소속 캠프 자동 매핑 & 격리) ====================
     function initAgentView() {
       loadPersistentData();
       document.getElementById('agent-view').classList.remove('hidden');
       document.getElementById('agent-display-id').innerText = currentAgentId;
 
+      const cid = getActiveCampId();
+      const cfg = getCampConfig(cid);
+
       updateAgentDeviceHeaderBadge();
 
-      const savedScript = localStorage.getItem('easycall_current_script');
-      if (savedScript) document.getElementById('agent-script-display').innerText = `"${savedScript}"`;
+      if (cfg.currentScript) {
+        document.getElementById('agent-script-display').innerText = `"${cfg.currentScript}"`;
+      }
 
       checkAgentGlobalStopBanner();
       renderAgentFaqButtons();
@@ -2544,12 +2636,15 @@
       const agObj = agentsList.find(a => a.agentId.toLowerCase() === currentAgentId.toLowerCase());
       const devBadge = document.getElementById('agent-header-device-badge');
       if (devBadge && agObj) {
-        devBadge.innerText = `📱 ${agObj.alias} | 회선: ${agObj.assignedPhone || '041-930-1001'}`;
+        const campObj = campsList.find(c => c.campId.toLowerCase() === agObj.campId.toLowerCase());
+        const campTitle = campObj ? campObj.name : agObj.campId;
+        devBadge.innerText = `📱 [${campTitle}] ${agObj.alias} | 회선: ${agObj.assignedPhone || '041-930-1001'}`;
       }
     }
 
     function renderAgentFaqButtons() {
-      faqCardsList.forEach((item, idx) => {
+      const cfg = getCampConfig(getActiveCampId());
+      (cfg.faqs || DEFAULT_FAQS).forEach((item, idx) => {
         const btn = document.getElementById(`agent-faq-btn-${idx + 1}`);
         if (btn) btn.innerText = item.q;
       });
@@ -2564,14 +2659,17 @@
         return;
       }
       activeFaqNum = num;
-      const item = faqCardsList[num - 1] || DEFAULT_FAQS[num - 1];
+      const cfg = getCampConfig(getActiveCampId());
+      const item = (cfg.faqs && cfg.faqs[num - 1]) || DEFAULT_FAQS[num - 1];
       box.innerHTML = `<span class="text-indigo-600 mr-1">[답변]</span> ${item.a}`;
       box.classList.remove('hidden');
     }
 
     function updateAgentGoalGauge() {
-      const myCount = globalCampCallLogs.filter(l => l.agentId === currentAgentId).length;
-      const dailyGoal = parseInt(localStorage.getItem('easycall_daily_goal') || '250', 10);
+      const cid = getActiveCampId();
+      const cfg = getCampConfig(cid);
+      const myCount = getCampCallLogs(cid).filter(l => l.agentId === currentAgentId).length;
+      const dailyGoal = parseInt(cfg.dailyGoal || '250', 10);
       const pct = Math.min(100, Math.round((myCount / dailyGoal) * 100));
 
       const txtEl = document.getElementById('agent-goal-txt');
@@ -2581,20 +2679,22 @@
     }
 
     function checkAgentGlobalStopBanner() {
-      const isStopped = localStorage.getItem('easycall_camp_global_stopped') === 'true';
-      const inHours = isWithinAllowedCallingHours();
+      const cid = getActiveCampId();
+      const cfg = getCampConfig(cid);
+      const isStopped = cfg.globalStopped === true;
+      const inHours = isWithinAllowedCallingHours(cid);
       const banner = document.getElementById('agent-global-stop-banner');
       const msg = document.getElementById('agent-stop-banner-msg');
 
       if (!banner) return false;
       if (isStopped) {
-        if (msg) msg.innerText = "상황실에서 전체 발신을 일시 중지했습니다. 대기해 주세요.";
+        if (msg) msg.innerText = "현재 소속 캠프 상황실에서 전체 발신을 일시 중지했습니다. 대기해 주세요.";
         banner.classList.remove('hidden');
         return true;
       }
       if (!inHours) {
-        const s = localStorage.getItem('easycall_start_time') || '08:00';
-        const e = localStorage.getItem('easycall_end_time') || '21:00';
+        const s = cfg.startTime || '08:00';
+        const e = cfg.endTime || '21:00';
         if (msg) msg.innerText = `🌙 [야간 발신 안전잠금] 선거법 준수를 위해 허용 시간대(${s} ~ ${e}) 외에는 발신이 차단됩니다.`;
         banner.classList.remove('hidden');
         return true;
@@ -2604,8 +2704,9 @@
     }
 
     function updateAgentButtonTextPreview() {
-      const mode = localStorage.getItem('easycall_dial_mode') || 'manual';
-      const secs = localStorage.getItem('easycall_wait_secs') || '2';
+      const cfg = getCampConfig(getActiveCampId());
+      const mode = cfg.dialMode || 'manual';
+      const secs = cfg.waitSecs || '2';
       const btn = document.getElementById('btn-save-next');
       if (!btn) return;
 
@@ -2619,24 +2720,25 @@
     }
 
     function loadCurrentVoterToDialer() {
-      if (votersList.length === 0) votersList = [...DEFAULT_VOTERS];
+      const cid = getActiveCampId();
+      const myVoters = getCampVoters(cid);
 
-      votersList.forEach((v, idx) => {
+      myVoters.forEach((v, idx) => {
         if (v.lockedBy === currentAgentId && idx !== currentVoterIdx) v.lockedBy = null;
       });
 
       let loopCount = 0;
-      while (loopCount < votersList.length) {
-        if (currentVoterIdx >= votersList.length || currentVoterIdx < 0) currentVoterIdx = 0;
-        const candidate = votersList[currentVoterIdx];
+      while (loopCount < myVoters.length) {
+        if (currentVoterIdx >= myVoters.length || currentVoterIdx < 0) currentVoterIdx = 0;
+        const candidate = myVoters[currentVoterIdx];
         if ((!candidate.lockedBy || candidate.lockedBy === currentAgentId) && candidate.lastResult !== 'REJECT') {
           break;
         }
-        currentVoterIdx = (currentVoterIdx + 1) % votersList.length;
+        currentVoterIdx = (currentVoterIdx + 1) % myVoters.length;
         loopCount++;
       }
 
-      const v = votersList[currentVoterIdx];
+      const v = myVoters[currentVoterIdx];
       v.lockedBy = currentAgentId;
       savePersistentData();
 
@@ -2670,9 +2772,12 @@
     }
 
     function sendCallbackSmsToVoter() {
-      const v = votersList[currentVoterIdx];
+      const cid = getActiveCampId();
+      const myVoters = getCampVoters(cid);
+      const v = myVoters[currentVoterIdx];
       if (!v || !v.phone) return;
-      const smsTemplate = localStorage.getItem('easycall_sms_template') || "[선거캠프 안내] 바쁘신 중에도 통화에 응해주셔서 감사드립니다. 우리 지역 발전을 위한 핵심 공약을 확인해 주세요!";
+      const cfg = getCampConfig(cid);
+      const smsTemplate = cfg.smsTemplate || "[선거캠프 안내] 바쁘신 중에도 통화에 응해주셔서 감사드립니다. 우리 지역 발전을 위한 핵심 공약을 확인해 주세요!";
       const cleanPhone = v.phone.replace(/[^0-9]/g, '');
       showToast(`✉️ [${v.name}] 유권자에게 문자 창을 엽니다.`);
       window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(smsTemplate)}`;
@@ -2694,7 +2799,9 @@
         return;
       }
 
-      const v = votersList[currentVoterIdx];
+      const cid = getActiveCampId();
+      const myVoters = getCampVoters(cid);
+      const v = myVoters[currentVoterIdx];
       if (v && v.lastResult === 'REJECT') {
         alert("🚫 수신거부 유권자입니다.");
         return;
@@ -2743,7 +2850,10 @@
       clearInterval(wrapUpTimer);
       clearInterval(callTimerInterval);
 
-      const v = votersList[currentVoterIdx];
+      const cid = getActiveCampId();
+      const cfg = getCampConfig(cid);
+      const myVoters = getCampVoters(cid);
+      const v = myVoters[currentVoterIdx];
       const memoVal = document.getElementById('memo-input').value.trim();
       const durationStr = callResult === 'CONNECTED' ? formatDuration(currentCallSeconds || 15) : '00:00';
 
@@ -2753,7 +2863,8 @@
         if (memoVal) v.lastMemo = memoVal;
         if (callResult === 'REJECT') {
           const cleanPhone = v.phone.replace(/[^0-9]/g, '');
-          if (cleanPhone && !dncPhonesList.includes(cleanPhone)) dncPhonesList.push(cleanPhone);
+          if (!cfg.dncPhones) cfg.dncPhones = [];
+          if (cleanPhone && !cfg.dncPhones.includes(cleanPhone)) cfg.dncPhones.push(cleanPhone);
         }
       }
 
@@ -2761,6 +2872,7 @@
       const usedPhone = agentObj ? (agentObj.assignedPhone || '041-930-1001') : '041-930-1001';
 
       const newLogEntry = {
+        campId: cid,
         agentId: currentAgentId,
         usedPhone: usedPhone,
         voterId: v ? v.id : '0000',
@@ -2780,7 +2892,7 @@
 
       if (sbClient) {
         sbClient.from('easycall_call_logs').insert({
-          camp_id: currentAdminId,
+          camp_id: cid,
           agent_id: newLogEntry.agentId,
           voter_id: newLogEntry.voterId,
           voter_name: newLogEntry.voterName,
@@ -2796,7 +2908,7 @@
         }).then(() => {});
       }
 
-      currentVoterIdx = (currentVoterIdx + 1) % votersList.length;
+      currentVoterIdx = (currentVoterIdx + 1) % myVoters.length;
       savePersistentData();
 
       document.getElementById('call-idle-state').classList.remove('hidden');
@@ -2806,8 +2918,8 @@
       updateCallbackBadgeCount();
       updateAgentGoalGauge();
 
-      const dialMode = localStorage.getItem('easycall_dial_mode') || 'manual';
-      const waitSecs = parseInt(localStorage.getItem('easycall_wait_secs') || '2', 10);
+      const dialMode = cfg.dialMode || 'manual';
+      const waitSecs = parseInt(cfg.waitSecs || '2', 10);
 
       loadCurrentVoterToDialer();
 
@@ -2855,7 +2967,8 @@
     }
 
     function updateCallbackBadgeCount() {
-      const cnt = votersList.filter(v => v.lastResult === 'ABSENT' || v.lastResult === 'CALLBACK').length;
+      const myVoters = getCampVoters(getActiveCampId());
+      const cnt = myVoters.filter(v => v.lastResult === 'ABSENT' || v.lastResult === 'CALLBACK').length;
       const badge = document.getElementById('callback-count-badge');
       if (badge) badge.innerText = String(cnt);
     }
@@ -2879,8 +2992,9 @@
       const tbody = document.getElementById('agent-search-voters-tbody');
       if (!tbody) return;
 
+      const myVoters = getCampVoters(getActiveCampId());
       let html = '';
-      votersList.forEach((v, idx) => {
+      myVoters.forEach((v, idx) => {
         if (searchFilterMode === 'CALLBACK_ONLY' && v.lastResult !== 'ABSENT' && v.lastResult !== 'CALLBACK') return;
         const kw = `${v.name} ${v.phone} ${v.dong} ${v.id}`.toLowerCase();
         if (query && !kw.includes(query)) return;
@@ -2918,8 +3032,9 @@
       savePersistentData();
       loadCurrentVoterToDialer();
       switchAgentTab('dialer');
-      const v = votersList[idx];
-      showToast(`📞 [${v.name}] 유권자가 로드되었습니다.`);
+      const myVoters = getCampVoters(getActiveCampId());
+      const v = myVoters[idx];
+      if (v) showToast(`📞 [${v.name}] 유권자가 로드되었습니다.`);
     }
 
     function selectVoterGender(gender) {
@@ -2967,7 +3082,7 @@
 
     function renderAgentHistoryTable() {
       const tbody = document.getElementById('agent-history-tbody');
-      const myLogs = globalCampCallLogs.filter(l => l.agentId === currentAgentId);
+      const myLogs = getCampCallLogs(getActiveCampId()).filter(l => l.agentId === currentAgentId);
 
       document.getElementById('my-stat-total').innerText = `${myLogs.length}건`;
       document.getElementById('my-stat-support').innerText = `${myLogs.filter(l => l.callResult === 'CONNECTED' && l.status === 'SUPPORT').length}건`;
