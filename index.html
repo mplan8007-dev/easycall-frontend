@@ -252,14 +252,12 @@
           </div>
         </div>
 
-        <!-- [3단계 신규 반영] 시기별 다중 시나리오(템플릿) 등록 및 원클릭 태블릿 배포 시스템 -->
+        <!-- 3단계 시나리오 템플릿 배포 패널 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 시기별 맞춤 홍보 시나리오 (템플릿 관리)</h3>
             <span class="text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md font-semibold">선택 즉시 모든 태블릿 대본 실시간 변경</span>
           </div>
-
-          <!-- 시나리오 카드 리스트 -->
           <div class="grid grid-cols-3 gap-3">
             <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl flex flex-col justify-between space-y-2">
               <div>
@@ -289,7 +287,6 @@
             </div>
           </div>
 
-          <!-- 커스텀 시나리오 직접 등록 -->
           <div class="pt-3 border-t border-slate-100 space-y-2">
             <label class="block text-xs font-bold text-slate-700">커스텀 스크립트 직접 입력 및 즉시 배포</label>
             <div class="flex gap-2">
@@ -831,7 +828,6 @@
       document.getElementById('new-camp-manager').value = '';
     }
 
-    // --- [3단계 신규] 시나리오 원클릭 배포 함수 ---
     function deployScenario(scriptText) {
       localStorage.setItem('easycall_current_script', scriptText);
       document.getElementById('agent-script-display').innerText = `"${scriptText}"`;
@@ -1233,7 +1229,7 @@
       clearInterval(wrapUpTimer);
       wrapUpTimer = setInterval(() => {
         remainingSecs--;
-        if (remainingSects <= 0) {
+        if (remainingSecs <= 0) {
           clearInterval(wrapUpTimer);
           saveResultToSupabase(selectedStatus || 'SUPPORT', 'CONNECTED');
         }
