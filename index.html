@@ -84,7 +84,7 @@
         <div class="col-span-2 space-y-6">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div class="flex justify-between items-center mb-4">
-              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스 및 잔여 예치금 관제</h3>
+              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스 및 발신 모드 관제</h3>
               <div class="relative w-64">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
                 <input type="text" id="camp-search-input" onkeyup="filterCampsTable()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="캠프명, 담당직원 검색...">
@@ -92,19 +92,24 @@
             </div>
             <table class="w-full text-left text-sm">
               <thead class="text-slate-400 border-b border-slate-800">
-                <tr><th class="pb-3">관할 지역</th><th class="pb-3">캠프명 (상세조회)</th><th class="pb-3">관리자 ID</th><th class="pb-3">본사 담당직원</th><th class="pb-3 text-amber-400">잔여 예치금 💰</th><th class="pb-3">상태</th><th class="pb-3">제어</th></tr>
+                <tr><th class="pb-3">관할 지역</th><th class="pb-3">캠프명 (상세조회)</th><th class="pb-3">관리자 ID</th><th class="pb-3 text-indigo-400">발신 모드 ⚡</th><th class="pb-3 text-amber-400">잔여 예치금 💰</th><th class="pb-3">상태</th><th class="pb-3">제어</th></tr>
               </thead>
               <tbody id="super-camps-body" class="divide-y divide-slate-800">
                 <tr class="camp-row" data-keyword="보령시·서천군 선거캠프 camp01 충청남도 보령시 김본사">
                   <td class="py-3 text-xs text-slate-400 font-bold">충청남도 보령시</td>
                   <td class="py-3">
                     <button type="button" class="font-bold text-indigo-400 cursor-pointer hover:underline text-left" 
-                        onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김본사 팀장', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원')">
+                        onclick="openCampDetailModal('보령시·서천군 선거캠프', 'camp01', '충청남도 보령시', '김본사 팀장', '김철수', '010-9999-8888', 'chulsoo@camp.com', '2026-04-01 ~ 2026-06-03', '15대', '350,000원', '150,000원', 'sim')">
                       보령시·서천군 선거캠프 🔍
                     </button>
                   </td>
                   <td class="py-3 font-mono text-xs">camp01</td>
-                  <td class="py-3 text-indigo-300 font-bold text-xs">김본사 팀장</td>
+                  <td class="py-3">
+                    <select id="mode-select-camp01" onchange="changeCampModeByMaster('camp01', this.value)" class="bg-slate-950 border border-indigo-500/60 rounded-lg p-1 text-[11px] text-indigo-300 font-bold">
+                      <option value="sim" selected>무제한 유심 직발신 (0원)</option>
+                      <option value="sip">SIP 망발신 (종량제)</option>
+                    </select>
+                  </td>
                   <td class="py-3 font-mono text-amber-400 font-bold">150,000원</td>
                   <td class="py-3"><span id="camp-badge-camp01" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
                   <td class="py-3 flex gap-1">
@@ -149,6 +154,13 @@
                   <input type="text" id="new-camp-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" value="1234">
                 </div>
               </div>
+              <div>
+                <label class="block text-[11px] text-indigo-300 mb-0.5 font-bold">⚡ 초기 발신 모드 정책 선택</label>
+                <select id="new-camp-mode" class="w-full bg-slate-950 border border-indigo-500/60 rounded-xl p-2 text-xs text-white font-bold">
+                  <option value="sim">무제한 유심 직발신 (통신비 0원 추천)</option>
+                  <option value="sip">SIP 종량제 망발신</option>
+                </select>
+              </div>
               <div class="grid grid-cols-2 gap-2">
                 <div><label class="block text-[11px] text-slate-400 mb-0.5">캠프 담당자</label><input type="text" id="new-camp-manager" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="홍길동"></div>
                 <div><label class="block text-[11px] text-slate-400 mb-0.5">캠프 연락처</label><input type="text" id="new-camp-phone" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" placeholder="010-0000-0000"></div>
@@ -180,7 +192,7 @@
     </main>
   </div>
 
-  <!-- ==================== 캠프 상세 정보 모달 ==================== -->
+  <!-- ==================== 캠프 상세 정보 모달 (발신 모드 표시 포함) ==================== -->
   <div id="camp-detail-modal" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[9999] items-center justify-center">
     <div class="bg-slate-900 border border-slate-700 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
       <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
@@ -201,6 +213,10 @@
           <span id="modal-camp-id" class="font-mono font-bold text-white">camp01</span>
         </div>
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">현재 적용된 발신 인프라 모드</span>
+          <span id="modal-camp-mode" class="font-bold text-indigo-400">무제한 유심 직발신 (0원)</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
           <span class="text-slate-400">캠프 담당자 (연락처 / 이메일)</span>
           <span id="modal-camp-manager" class="font-bold text-white">김철수 (010-9999-8888)</span>
         </div>
@@ -211,10 +227,6 @@
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
           <span class="text-slate-400">할당 태블릿 라이선스</span>
           <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">누적 전화 통화 요금</span>
-          <span id="modal-camp-fee" class="font-mono font-bold text-slate-300">350,000원</span>
         </div>
         <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
           <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
@@ -252,7 +264,6 @@
           </div>
         </div>
 
-        <!-- 3단계 시나리오 템플릿 배포 패널 -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 시기별 맞춤 홍보 시나리오 (템플릿 관리)</h3>
@@ -431,7 +442,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (4단계: 유권자 직접 검색 및 콜백 대기열 탭 추가) ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -440,10 +451,11 @@
       </div>
       <div class="flex items-center gap-3">
         <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-          <button id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition">전화 다이얼러</button>
-          <button id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">내 통화 이력 및 개인 통계</button>
+          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition">전화 다이얼러</button>
+          <button type="button" id="tab-search-btn" onclick="switchAgentTab('search')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">🔍 유권자 검색 및 콜백</button>
+          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">내 통화 이력 및 통계</button>
         </div>
-        <button id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+        <button type="button" id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식/업무 중지</span>
         </button>
         <div class="bg-slate-100 text-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
@@ -452,10 +464,11 @@
         <div class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
           <span>오늘 완료: <strong id="completed-count">0</strong>건</span>
         </div>
-        <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">로그아웃</button>
+        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">로그아웃</button>
       </div>
     </header>
 
+    <!-- [다이얼러 탭 패널] -->
     <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
       <section class="w-[38%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
@@ -469,13 +482,13 @@
           </div>
           <div class="space-y-3">
             <div id="call-idle-state">
-              <button id="btn-dial-action" onclick="startCallSimulation()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl shadow-lg transition flex items-center justify-center gap-3">
-                <i class="fa-solid fa-phone text-xl"></i><span>📞 통신사 망 연결 (보안 발신)</span>
+              <button type="button" id="btn-dial-action" onclick="startCallSimulation()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl shadow-lg transition flex items-center justify-center gap-3">
+                <i class="fa-solid fa-phone text-xl"></i><span id="dial-mode-label">📞 통신사 망 연결 (보안 발신)</span>
               </button>
             </div>
             <div id="call-active-state" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
               <span class="text-emerald-800 font-bold text-base">🎙 보안 통화 중...</span>
-              <button onclick="endCallSimulation()" class="w-full mt-2 py-2.5 bg-red-500 text-white font-bold text-sm rounded-lg">통화 종료</button>
+              <button type="button" onclick="endCallSimulation()" class="w-full mt-2 py-2.5 bg-red-500 text-white font-bold text-sm rounded-lg">통화 종료</button>
             </div>
           </div>
         </div>
@@ -540,6 +553,61 @@
       </section>
     </main>
 
+    <!-- [4단계 신규] 유권자 직접 검색 및 콜백 대기열 탭 패널 -->
+    <main id="agent-tab-search" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">🔍 유권자 직접 검색 및 재통화(콜백) 대기열</h2>
+          <p class="text-xs text-slate-500">지인 번호 검색 또는 부재중·재통화 예약된 유권자를 선택하여 즉시 발신합니다.</p>
+        </div>
+        <div class="relative w-72">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
+          <input type="text" id="agent-voter-search" onkeyup="filterAgentVotersTable()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500" placeholder="이름, 전화번호, 동 검색...">
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
+            <tr><th class="p-3">유권자 ID</th><th class="p-3">유권자명</th><th class="p-3">연락처</th><th class="p-3">관할 동</th><th class="p-3">최근 상태</th><th class="p-3 text-right">선택 발신</th></tr>
+          </thead>
+          <tbody id="agent-search-voters-tbody" class="divide-y divide-slate-100">
+            <tr class="voter-search-row" data-keyword="홍길동 유권자 010-1234-5678 대천1동">
+              <td class="p-3 font-mono font-bold text-slate-500">#1042</td>
+              <td class="p-3 font-bold text-slate-900">홍길동 유권자</td>
+              <td class="p-3 font-mono text-blue-600 font-bold">010-1234-5678</td>
+              <td class="p-3">대천1동</td>
+              <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">대기 중</span></td>
+              <td class="p-3 text-right">
+                <button type="button" onclick="selectVoterAndCall('홍길동 유권자', '010-1234-5678', '대천1동', '1042')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition">즉시 통화</button>
+              </td>
+            </tr>
+            <tr class="voter-search-row" data-keyword="김영희 유권자 010-9876-5432 대천2동">
+              <td class="p-3 font-mono font-bold text-slate-500">#1043</td>
+              <td class="p-3 font-bold text-slate-900">김영희 유권자</td>
+              <td class="p-3 font-mono text-blue-600 font-bold">010-9876-5432</td>
+              <td class="p-3">대천2동</td>
+              <td class="p-3"><span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold">🔔 부재중 (콜백요망)</span></td>
+              <td class="p-3 text-right">
+                <button type="button" onclick="selectVoterAndCall('김영희 유권자', '010-9876-5432', '대천2동', '1043')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition">즉시 통화</button>
+              </td>
+            </tr>
+            <tr class="voter-search-row" data-keyword="박민수 유권자 010-5555-4444 오천면">
+              <td class="p-3 font-mono font-bold text-slate-500">#1044</td>
+              <td class="p-3 font-bold text-slate-900">박민수 유권자</td>
+              <td class="p-3 font-mono text-blue-600 font-bold">010-5555-4444</td>
+              <td class="p-3">오천면</td>
+              <td class="p-3"><span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded font-bold">⏰ 재통화예약</span></td>
+              <td class="p-3 text-right">
+                <button type="button" onclick="selectVoterAndCall('박민수 유권자', '010-5555-4444', '오천면', '1044')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition">즉시 통화</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- [통계 탭 패널] -->
     <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-6">
       <div class="flex justify-between items-center">
         <div>
@@ -624,6 +692,10 @@
           document.getElementById('master-bank-name').value = bName;
           document.getElementById('master-bank-account').value = bAcc;
           document.getElementById('master-bank-holder').value = bHold;
+
+          const savedHybrid = localStorage.getItem('easycall_hybrid_mode') || 'sim';
+          const modeSelect = document.getElementById('mode-select-camp01');
+          if(modeSelect) modeSelect.value = savedHybrid;
         } else if (savedRole === 'admin') {
           currentAdminId = savedId || 'camp01';
           const isApproved = localStorage.getItem(`camp_${currentAdminId}_approved`) !== 'false';
@@ -653,6 +725,7 @@
           selectVoterGender('미상');
           selectVoterAge('미상');
           updateAgentButtonTextPreview();
+          applyHybridModeUI();
         }
       }
 
@@ -710,6 +783,7 @@
       selectVoterGender('미상');
       selectVoterAge('미상');
       updateAgentButtonTextPreview();
+      applyHybridModeUI();
     }
 
     function handleLogout() {
@@ -731,6 +805,13 @@
           row.style.display = 'none';
         }
       });
+    }
+
+    // --- 최고관리자: 캠프별 하이브리드 발신 모드 개별 변경 ---
+    function changeCampModeByMaster(campId, modeVal) {
+      localStorage.setItem(`easycall_hybrid_mode_${campId}`, modeVal);
+      localStorage.setItem('easycall_hybrid_mode', modeVal);
+      alert(`⚡ 캠프 [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신 (통신비 0원)' : 'SIP 망발신 (종량제)'}]로 변경 배포되었습니다!`);
     }
 
     function masterResetCampPw(campId) {
@@ -775,6 +856,7 @@
       const staff = document.getElementById('new-camp-staff').value.trim();
       const admin = document.getElementById('new-camp-admin').value.trim().toLowerCase();
       const pw = document.getElementById('new-camp-pw').value.trim() || '1234';
+      const mode = document.getElementById('new-camp-mode').value;
       const manager = document.getElementById('new-camp-manager').value.trim();
       const phone = document.getElementById('new-camp-phone').value.trim() || '010-0000-0000';
       const email = document.getElementById('new-camp-email').value.trim() || 'admin@camp.com';
@@ -790,6 +872,7 @@
 
       localStorage.setItem(`pw_${admin}`, pw);
       localStorage.setItem(`camp_${admin}_approved`, 'true');
+      localStorage.setItem(`easycall_hybrid_mode_${admin}`, mode);
 
       const tbody = document.getElementById('super-camps-body');
       const regionStr = `${sido} ${sigungu}`;
@@ -801,12 +884,17 @@
         <td class="py-3 text-xs text-slate-400 font-bold">${regionStr}</td>
         <td class="py-3">
           <button type="button" class="font-bold text-indigo-400 cursor-pointer hover:underline text-left" 
-              onclick="openCampDetailModal('${name}', '${admin}', '${regionStr}', '${staff}', '${manager}', '${phone}', '${email}', '${start} ~ ${end}', '${tablets}', '0원', '${balance}')">
+              onclick="openCampDetailModal('${name}', '${admin}', '${regionStr}', '${staff}', '${manager}', '${phone}', '${email}', '${start} ~ ${end}', '${tablets}', '0원', '${balance}', '${mode}')">
             ${name} 🔍
           </button>
         </td>
         <td class="py-3 font-mono text-xs">${admin}</td>
-        <td class="py-3 text-indigo-300 font-bold text-xs">${staff}</td>
+        <td class="py-3">
+          <select id="mode-select-${admin}" onchange="changeCampModeByMaster('${admin}', this.value)" class="bg-slate-950 border border-indigo-500/60 rounded-lg p-1 text-[11px] text-indigo-300 font-bold">
+            <option value="sim" ${mode==='sim'?'selected':''}>무제한 유심 직발신 (0원)</option>
+            <option value="sip" ${mode==='sip'?'selected':''}>SIP 망발신 (종량제)</option>
+          </select>
+        </td>
         <td class="py-3 font-mono text-amber-400 font-bold">${balance}</td>
         <td class="py-3"><span id="camp-badge-${admin}" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">승인됨</span></td>
         <td class="py-3 flex gap-1">
@@ -820,7 +908,7 @@
       let currentTotal = parseInt(totalCampsEl.innerText) || 1;
       totalCampsEl.innerText = `${currentTotal + 1}개`;
 
-      alert(`🎉 [신규 캠프 개설 완료]\n- 관할 지역: ${regionStr}\n- 본사 담당: ${staff}\n- 캠프명: ${name}`);
+      alert(`🎉 [신규 캠프 개설 완료]\n- 캠프명: ${name}\n- 발신모드: ${mode === 'sim' ? '무제한 유심 직발신' : 'SIP 종량제'}`);
       
       document.getElementById('new-camp-name').value = '';
       document.getElementById('new-camp-staff').value = '';
@@ -867,10 +955,21 @@
 
       if (mode === 'auto') {
         btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> 통화성공 저장 후 ${secs}초 뒤 다음 유권자 자동 연결 ➔`;
-        btn.className = "w-full mt-3 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
+        btn.className = "w-full mt-3 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow-lg transition";
       } else {
         btn.innerHTML = `💾 통화성공 저장 후 다음 유권자 ➔`;
-        btn.className = "w-full mt-3 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition";
+        btn.className = "w-full mt-3 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-lg shadow-lg transition";
+      }
+    }
+
+    function applyHybridModeUI() {
+      const mode = localStorage.getItem(`easycall_hybrid_mode_${currentAdminId}`) || localStorage.getItem('easycall_hybrid_mode') || 'sim';
+      const label = document.getElementById('dial-mode-label');
+      if (!label) return;
+      if (mode === 'sim') {
+        label.innerText = "📱 통신사 무제한 유심 직발신 (통신비 0원)";
+      } else {
+        label.innerText = "📞 본사 SIP 트렁크 망 연결 (보안 발신)";
       }
     }
 
@@ -889,7 +988,7 @@
       }
     }
 
-    function openCampDetailModal(campName, campId, region, staffName, managerName, managerPhone, managerEmail, period, tablets, fee, balance) {
+    function openCampDetailModal(campName, campId, region, staffName, managerName, managerPhone, managerEmail, period, tablets, fee, balance, mode = 'sim') {
       const setTxt = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.innerText = val;
@@ -904,6 +1003,7 @@
       setTxt('modal-camp-tablet', tablets);
       setTxt('modal-camp-fee', fee);
       setTxt('modal-camp-balance', balance);
+      setTxt('modal-camp-mode', mode === 'sim' ? '무제한 유심 직발신 (통신비 0원)' : 'SIP 망발신 (종량제)');
       
       const modal = document.getElementById('camp-detail-modal');
       if (modal) {
@@ -1063,7 +1163,7 @@
           <td class="p-3">${formatCallResultBadge(l.callResult)}</td>
           <td class="p-3 font-bold">${formatSupportStatus(l.status, l.callResult)}</td>
           <td class="p-3 text-slate-600">${l.memo || '-'}</td>
-          <td class="p-3"><button onclick="alert('암호화 통화 녹음 파일 스트리밍 중...')" class="text-indigo-600 font-bold hover:underline">청취</button></td>
+          <td class="p-3"><button type="button" onclick="alert('암호화 통화 녹음 파일 스트리밍 중...')" class="text-indigo-600 font-bold hover:underline">청취</button></td>
           <td class="p-3 font-mono text-slate-400">${l.time}</td>
         </tr>`;
       });
@@ -1094,25 +1194,53 @@
       }
     }
 
-    // --- 요원 워크스페이스 기능 ---
+    // --- 요원 워크스페이스 기능 및 4단계 탭 전환 ---
     function switchAgentTab(tabName) {
       const dialerTab = document.getElementById('agent-tab-dialer');
+      const searchTab = document.getElementById('agent-tab-search');
       const historyTab = document.getElementById('agent-tab-history');
+
       const dialerBtn = document.getElementById('tab-dialer-btn');
+      const searchBtn = document.getElementById('tab-search-btn');
       const historyBtn = document.getElementById('tab-history-btn');
+
+      dialerTab.classList.add('hidden');
+      searchTab.classList.add('hidden');
+      historyTab.classList.add('hidden');
+
+      dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      searchBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      historyBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
 
       if (tabName === 'dialer') {
         dialerTab.classList.remove('hidden');
-        historyTab.classList.add('hidden');
         dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
-        historyBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      } else if (tabName === 'search') {
+        searchTab.classList.remove('hidden');
+        searchBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
       } else {
-        dialerTab.classList.add('hidden');
         historyTab.classList.remove('hidden');
         historyBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-xs transition";
-        dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
         renderAgentHistoryTable();
       }
+    }
+
+    function filterAgentVotersTable() {
+      const query = document.getElementById('agent-voter-search').value.trim().toLowerCase();
+      const rows = document.querySelectorAll('.voter-search-row');
+      rows.forEach(r => {
+        const kw = r.getAttribute('data-keyword').toLowerCase();
+        r.style.display = kw.includes(query) ? '' : 'none';
+      });
+    }
+
+    function selectVoterAndCall(name, phone, dong, id) {
+      document.getElementById('voter-name').innerText = name;
+      document.getElementById('voter-phone').innerText = phone;
+      document.getElementById('voter-dong').innerText = dong;
+      document.getElementById('voter-id').innerText = `ID #${id}`;
+      switchAgentTab('dialer');
+      showToast(`📞 [즉시발신 연동] ${name} (${phone}) 선택 완료!`);
     }
 
     function selectVoterGender(gender) {
