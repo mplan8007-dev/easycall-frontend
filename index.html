@@ -192,7 +192,7 @@
     </main>
   </div>
 
-  <!-- ==================== 캠프 상세 정보 모달 (발신 모드 표시 포함) ==================== -->
+  <!-- ==================== 캠프 상세 정보 모달 ==================== -->
   <div id="camp-detail-modal" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[9999] items-center justify-center">
     <div class="bg-slate-900 border border-slate-700 p-7 rounded-2xl w-[500px] shadow-2xl text-slate-100">
       <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
@@ -227,6 +227,10 @@
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
           <span class="text-slate-400">할당 태블릿 라이선스</span>
           <span id="modal-camp-tablet" class="font-mono font-bold text-indigo-400">15대</span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+          <span class="text-slate-400">누적 전화 통화 요금</span>
+          <span id="modal-camp-fee" class="font-mono font-bold text-slate-300">350,000원</span>
         </div>
         <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/20">
           <span class="text-amber-300 font-bold">실시간 잔여 예치금 잔액</span>
@@ -264,11 +268,14 @@
           </div>
         </div>
 
+        <!-- [캠프관리자 시나리오 관리 및 등록 폼] -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
-            <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 시기별 맞춤 홍보 시나리오 (템플릿 관리)</h3>
-            <span class="text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md font-semibold">선택 즉시 모든 태블릿 대본 실시간 변경</span>
+            <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 캠프 맞춤 홍보 시나리오 및 대본 등록 센터</h3>
+            <span class="text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md font-semibold">등록 즉시 태블릿 전파</span>
           </div>
+
+          <!-- 시나리오 프리셋 카드 -->
           <div class="grid grid-cols-3 gap-3">
             <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl flex flex-col justify-between space-y-2">
               <div>
@@ -298,11 +305,15 @@
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 space-y-2">
-            <label class="block text-xs font-bold text-slate-700">커스텀 스크립트 직접 입력 및 즉시 배포</label>
-            <div class="flex gap-2">
-              <input type="text" id="custom-scenario-input" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900" placeholder="상황에 맞는 새로운 홍보 대본 문구를 입력하세요...">
-              <button type="button" onclick="deployCustomScenario()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition">맞춤 배포</button>
+          <!-- 신규 시나리오 직접 작성 및 등록 입력폼 -->
+          <div class="pt-3 border-t border-slate-100 space-y-2.5">
+            <label class="block text-xs font-bold text-slate-800"><i class="fa-solid fa-pen-nib mr-1 text-indigo-600"></i> 캠프 맞춤 신규 시나리오 대본 등록 및 배포</label>
+            <div class="space-y-2">
+              <input type="text" id="custom-scenario-title" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs text-slate-900 font-bold" placeholder="시나리오 제목 (예: 4단계 - 사전투표 집중 독려)">
+              <div class="flex gap-2">
+                <textarea id="custom-scenario-content" rows="2" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900" placeholder="상세 대본 내용을 입력하세요..."></textarea>
+                <button type="button" onclick="addNewAndDeployScenario()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-sm shrink-0">등록 후 즉시 배포</button>
+              </div>
             </div>
           </div>
         </div>
@@ -442,7 +453,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 (4단계: 유권자 직접 검색 및 콜백 대기열 탭 추가) ==================== -->
+  <!-- ==================== 3. 태블릿 요원 워크스페이스 화면 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
       <div class="flex items-center gap-3">
@@ -468,7 +479,6 @@
       </div>
     </header>
 
-    <!-- [다이얼러 탭 패널] -->
     <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
       <section class="w-[38%] bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
         <div>
@@ -553,7 +563,6 @@
       </section>
     </main>
 
-    <!-- [4단계 신규] 유권자 직접 검색 및 콜백 대기열 탭 패널 -->
     <main id="agent-tab-search" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
       <div class="flex justify-between items-center">
         <div>
@@ -607,7 +616,6 @@
       </div>
     </main>
 
-    <!-- [통계 탭 패널] -->
     <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-6">
       <div class="flex justify-between items-center">
         <div>
@@ -692,10 +700,6 @@
           document.getElementById('master-bank-name').value = bName;
           document.getElementById('master-bank-account').value = bAcc;
           document.getElementById('master-bank-holder').value = bHold;
-
-          const savedHybrid = localStorage.getItem('easycall_hybrid_mode') || 'sim';
-          const modeSelect = document.getElementById('mode-select-camp01');
-          if(modeSelect) modeSelect.value = savedHybrid;
         } else if (savedRole === 'admin') {
           currentAdminId = savedId || 'camp01';
           const isApproved = localStorage.getItem(`camp_${currentAdminId}_approved`) !== 'false';
@@ -807,11 +811,9 @@
       });
     }
 
-    // --- 최고관리자: 캠프별 하이브리드 발신 모드 개별 변경 ---
     function changeCampModeByMaster(campId, modeVal) {
       localStorage.setItem(`easycall_hybrid_mode_${campId}`, modeVal);
-      localStorage.setItem('easycall_hybrid_mode', modeVal);
-      alert(`⚡ 캠프 [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신 (통신비 0원)' : 'SIP 망발신 (종량제)'}]로 변경 배포되었습니다!`);
+      alert(`⚡ 캠프 [${campId}] 발신 모드가 [${modeVal === 'sim' ? '무제한 유심 직발신 (0원)' : 'SIP 망발신 (종량제)'}]로 변경 배포되었습니다!`);
     }
 
     function masterResetCampPw(campId) {
@@ -922,20 +924,17 @@
       showToast("📢 [시나리오 배포] 모든 태블릿 요원 대본에 실시간 반영되었습니다!");
     }
 
-    function deployCustomScenario() {
-      const customText = document.getElementById('custom-scenario-input').value.trim();
-      if (!customText) {
-        alert("배포할 커스텀 스크립트 문구를 입력해 주세요.");
+    function addNewAndDeployScenario() {
+      const title = document.getElementById('custom-scenario-title').value.trim();
+      const content = document.getElementById('custom-scenario-content').value.trim();
+      if (!title || !content) {
+        alert("시나리오 제목과 상세 내용을 모두 입력해 주세요.");
         return;
       }
-      deployScenario(customText);
-      document.getElementById('custom-scenario-input').value = '';
-    }
-
-    function saveAdminScript() {
-      const text = document.getElementById('admin-script-input').value.trim();
-      if (!text) { alert("스크립트 내용을 입력하세요."); return; }
-      deployScenario(text);
+      const fullText = `[${title}] ${content}`;
+      deployScenario(fullText);
+      document.getElementById('custom-scenario-title').value = '';
+      document.getElementById('custom-scenario-content').value = '';
     }
 
     function saveDialSettings() {
@@ -963,7 +962,7 @@
     }
 
     function applyHybridModeUI() {
-      const mode = localStorage.getItem(`easycall_hybrid_mode_${currentAdminId}`) || localStorage.getItem('easycall_hybrid_mode') || 'sim';
+      const mode = localStorage.getItem(`easycall_hybrid_mode_${currentAdminId}`) || 'sim';
       const label = document.getElementById('dial-mode-label');
       if (!label) return;
       if (mode === 'sim') {
@@ -1194,7 +1193,6 @@
       }
     }
 
-    // --- 요원 워크스페이스 기능 및 4단계 탭 전환 ---
     function switchAgentTab(tabName) {
       const dialerTab = document.getElementById('agent-tab-dialer');
       const searchTab = document.getElementById('agent-tab-search');
@@ -1385,6 +1383,7 @@
       clearInterval(callTimerInterval);
       document.getElementById('call-idle-state').classList.remove('hidden');
       document.getElementById('call-active-state').classList.add('hidden');
+      document.getElementById('memo-input-input']?.value || '').value = '';
       document.getElementById('memo-input').value = '';
       
       const dialMode = localStorage.getItem('easycall_dial_mode') || 'manual';
