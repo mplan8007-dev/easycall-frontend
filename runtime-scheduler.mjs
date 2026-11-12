@@ -6,7 +6,7 @@ export class AdaptivePoller {
  start(){this.stop();this.active=true;this.schedule(Math.floor(this.random()*this.interval));}
  stop(){this.active=false;this.generation++;this.clearTimer(this.timer);}
  schedule(delay){if(!this.active)return;this.clearTimer(this.timer);this.timer=this.setTimer(()=>this.tick(),delay);}
- poke(){if(this.active&&!this.running)this.schedule(0);}
+ poke(){if(this.active&&!this.running)this.schedule(Math.floor(this.random()*Math.min(this.interval,5000)));}
  async tick(){
   if(!this.active)return;if(this.running){this.schedule(250);return;}
   const generation=this.generation;
@@ -14,7 +14,7 @@ export class AdaptivePoller {
   this.running=true;
   try{await this.task();this.failures=0;}catch(e){this.failures=Math.min(8,this.failures+1);this.onError(e);}finally{
    this.running=false;
-   if(this.active&&generation===this.generation){const base=this.isHidden()?this.hiddenInterval:this.interval;this.schedule(Math.min(this.maxDelay,base*2**this.failures)*(0.8+this.random()*0.4));}
+   if(this.active&&generation===this.generation){const base=this.isHidden()?this.hiddenInterval:this.interval;this.schedule(Math.min(this.maxDelay,base*2**this.failures*(0.8+this.random()*0.4)));}
   }
  }
 }
