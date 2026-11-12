@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   soak:
+    if: ${{ !contains(github.event.head_commit.message, '[sip-only]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 330
     strategy:

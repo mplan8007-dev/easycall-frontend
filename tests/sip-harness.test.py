@@ -20,7 +20,7 @@ class SipHarnessTests(unittest.TestCase):
             self.assertEqual('rtp_stream=' in xml, media)
 
     def test_non_loopback_interface_refuses_execution(self):
-        with patch.object(pathlib.Path, 'iterdir', return_value=iter([pathlib.Path('lo'), pathlib.Path('eth0')])):
+        with patch.object(harness.socket, 'if_nameindex', return_value=[(1, 'lo'), (2, 'eth0')]):
             with self.assertRaises(RuntimeError):
                 harness.require_isolation()
 

@@ -16,7 +16,7 @@ OUT = ROOT / 'results'
 
 
 def require_isolation():
-    interfaces = {p.name for p in pathlib.Path('/sys/class/net').iterdir()}
+    interfaces = {name for _, name in socket.if_nameindex()}
     if interfaces != {'lo'}:
         raise RuntimeError('Refusing SIP test: only loopback may exist in this network namespace')
 
