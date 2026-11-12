@@ -458,12 +458,9 @@
                 <input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 홍길동 필승캠프">
               </div>
               <div>
-                <label class="block text-[11px] text-amber-300 font-bold mb-0.5">정산 / 계약 상태</label>
-                <select id="new-camp-billing" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-amber-300 font-bold">
-                  <option value="완납(가동중)">완납(가동중)</option>
-                  <option value="계약확정(선금)">계약확정(선금)</option>
-                  <option value="시범운영(무료)">시범운영(무료)</option>
-                </select>
+                <label class="block text-[11px] text-amber-300 font-bold mb-0.5">계약 구분</label>
+                <select id="new-camp-billing" onchange="updateNewCampRevenuePreview()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-amber-300 font-bold">
+                  <option value="유료계약">유료계약 (입금은 별도 기록)</option><option value="시범운영(무료)">시범운영(무료)</option></select>
               </div>
             </div>
 
