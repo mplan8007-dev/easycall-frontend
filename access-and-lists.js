@@ -45,6 +45,7 @@ import './admin-console.js';
    text('admin-total-calls',p.total.toLocaleString()+'건');
   }else if(kind==='history'){
    const previous=globalCampCallLogs;globalCampCallLogs=p.items.map(logFromRow);try{legacy.history();}finally{globalCampCallLogs=previous;}
+   $('agent-history-tbody')?.querySelectorAll?.('tr').forEach((row,i)=>{if(row.cells?.length>1)row.cells[0].textContent=String(p.total-p.offset-i);});
    renderAggregateStats();
   }else{
    const previous=votersList,search=$('agent-voter-search'),q=search?.value;
