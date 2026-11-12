@@ -124,7 +124,12 @@
           <span id="modal-camp-tablet" class="font-mono font-black text-indigo-400 text-sm"></span>
         </div>
       </div>
-      <button type="button" onclick="closeCampDetailModal()" class="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">확인 완료</button>
+      <div class="flex gap-2 mt-6">
+        <button type="button" id="modal-btn-impersonate" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md">
+          <i class="fa-solid fa-desktop mr-1"></i> 이 캠프 상황실 원격 접속
+        </button>
+        <button type="button" onclick="closeCampDetailModal()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition">닫기</button>
+      </div>
     </div>
   </div>
 
@@ -254,8 +259,8 @@
         <div class="col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div class="flex justify-between items-center mb-4">
             <div>
-              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스(Quota) 및 독립 샤드(Shard) 관제</h3>
-              <p class="text-xs text-slate-400 mt-0.5">각 캠프는 클라우드 DB에 개별 키(`STATE_캠프ID`)로 분산 저장되어 2,000대 동시 클릭 시에도 병목이 없습니다.</p>
+              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스(Quota) 및 원격 대리 접속 관제</h3>
+              <p class="text-xs text-slate-400 mt-0.5">각 캠프 우측의 <strong>[🖥️ 상황실]</strong> 버튼을 누르면 비밀번호 없이 해당 캠프 상황실로 즉시 진입하여 설정을 지원할 수 있습니다.</p>
             </div>
             <div class="relative w-64">
               <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
@@ -272,7 +277,7 @@
                   <th class="pb-3 text-emerald-400">태블릿 라이선스 (등록/한도)</th>
                   <th class="pb-3 text-indigo-400">독립 명부/콜수</th>
                   <th class="pb-3">상태</th>
-                  <th class="pb-3 text-right">제어</th>
+                  <th class="pb-3 text-right">원격 접속 및 제어</th>
                 </tr>
               </thead>
               <tbody id="super-camps-body" class="divide-y divide-slate-800 text-xs"></tbody>
@@ -443,7 +448,18 @@
 
   <!-- ==================== 2. 캠프관리자(camp01 등) 상황실 ==================== -->
   <div id="admin-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-800">
-    <div id="admin-sos-alert-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 flex items-center justify-between shadow-lg z-40">
+    <!-- [신규] 본사 마스터 원격 대리 접속 시 상단 복귀 배너 -->
+    <div id="admin-master-impersonate-banner" class="hidden bg-indigo-900 text-white px-6 py-2.5 flex items-center justify-between shadow-md z-50 border-b border-indigo-700 shrink-0">
+      <div class="flex items-center gap-2.5 text-xs font-extrabold">
+        <span class="px-2.5 py-0.5 bg-amber-400 text-slate-950 rounded font-black">👑 본사 마스터 원격 지원 모드</span>
+        <span id="admin-impersonate-camp-label">현재 [보령시 선거캠프] 상황실에 대리 접속하여 설정을 관리하고 있습니다.</span>
+      </div>
+      <button type="button" onclick="returnToSuperAdmin()" class="px-4 py-1.5 bg-white hover:bg-indigo-50 text-indigo-950 rounded-lg text-xs font-black transition shadow-sm flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-rotate-left"></i> 본사 마스터 관제센터로 복귀
+      </button>
+    </div>
+
+    <div id="admin-sos-alert-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 flex items-center justify-between shadow-lg z-40 shrink-0">
       <div class="flex items-center gap-2.5 text-xs font-extrabold">
         <span class="px-2 py-0.5 bg-white text-rose-600 rounded font-black animate-pulse">🚨 SOS 긴급호출</span>
         <span id="admin-sos-alert-text">태블릿 요원으로부터 긴급 도움 요청이 접수되었습니다!</span>
@@ -1117,7 +1133,7 @@
     let sbClient = null;
     let sbRealtimeChannel = null;
     let isCloudSyncing = false;
-    let isEnterpriseRpcAvailable = false; // easycall_voters 테이블 & claim_next_voter RPC 활성화 여부
+    let isEnterpriseRpcAvailable = false;
 
     const DEFAULT_CAMPS = [
       {
@@ -1243,6 +1259,63 @@
       return token;
     }
 
+    // ==================== [신규] 최고관리자 -> 캠프 상황실 원클릭 대리 접속 및 복귀 ====================
+    async function impersonateCampAdmin(campId) {
+      loadPersistentData();
+      const targetCid = (campId || '').toLowerCase();
+      const campObj = campsList.find(c => c.campId.toLowerCase() === targetCid);
+      if (!campObj) {
+        alert("존재하지 않는 캠프입니다.");
+        return;
+      }
+
+      closeCampDetailModal();
+
+      // 현재 마스터 계정을 세션에 백업 후 해당 캠프 관리자로 즉시 전환
+      const masterId = localStorage.getItem('easycall_id') || 'super';
+      sessionStorage.setItem('easycall_master_impersonator', masterId);
+
+      localStorage.setItem('easycall_role', 'admin');
+      localStorage.setItem('easycall_id', targetCid);
+      currentAdminId = targetCid;
+      sessionStorage.setItem('easycall_admin_tab', 'config');
+
+      document.getElementById('super-view').classList.add('hidden');
+      await initSupabaseEngine(false);
+      initAdminView();
+      showToast(`👑 [${campObj.name}] 상황실로 원격 대리 접속했습니다.`);
+    }
+
+    async function returnToSuperAdmin() {
+      const masterId = sessionStorage.getItem('easycall_master_impersonator') || 'super';
+      sessionStorage.removeItem('easycall_master_impersonator');
+      sessionStorage.removeItem('easycall_admin_tab');
+
+      localStorage.setItem('easycall_role', 'super');
+      localStorage.setItem('easycall_id', masterId);
+
+      document.getElementById('admin-view').classList.add('hidden');
+      await initSupabaseEngine(false);
+      initSuperView();
+      showToast("🌐 본사 마스터 관제센터로 복귀했습니다.");
+    }
+
+    function updateAdminImpersonateBanner() {
+      const banner = document.getElementById('admin-master-impersonate-banner');
+      const label = document.getElementById('admin-impersonate-camp-label');
+      if (!banner) return;
+
+      const isImpersonating = !!sessionStorage.getItem('easycall_master_impersonator');
+      if (isImpersonating) {
+        const campObj = campsList.find(c => c.campId.toLowerCase() === currentAdminId.toLowerCase());
+        const campTitle = campObj ? `${campObj.name} (${campObj.campId})` : currentAdminId;
+        if (label) label.innerText = `현재 [${campTitle}] 상황실에 원격 대리 접속하여 설정을 관리하고 있습니다.`;
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
     // ==================== [2,000대 엔터프라이즈] 캠프별 분할 샤딩 & 무충돌 동기화 엔진 ====================
     function openSupabaseModal() {
       document.getElementById('sb-url-input').value = localStorage.getItem('easycall_sb_url') || DEFAULT_SB_URL;
@@ -1291,7 +1364,7 @@
 
       try {
         const tempClient = window.supabase.createClient(url, key);
-        const { data: syncData, error: syncErr } = await tempClient.from('easycall_sync_store').select('store_key').limit(5);
+        const { error: syncErr } = await tempClient.from('easycall_sync_store').select('store_key').limit(5);
         const { error: voterErr } = await tempClient.from('easycall_voters').select('uid').limit(1);
 
         if (syncErr) {
@@ -1359,7 +1432,6 @@
       try {
         sbClient = window.supabase.createClient(url, key);
 
-        // easycall_voters 전용 테이블 존재 여부 자동 감지
         const { error: voterTblErr } = await sbClient.from('easycall_voters').select('uid').limit(1);
         isEnterpriseRpcAvailable = !voterTblErr;
 
@@ -1372,9 +1444,6 @@
           await pullStateFromSupabase();
         }
 
-        // [2,000대 핵심 최적화]
-        // 태블릿 요원(agent)은 상시 WebSocket 채널을 열지 않고 On-Demand REST/RPC로만 통신하여 동시접속 부하를 90% 이상 제거합니다.
-        // 마스터(super)와 캠프 상황실(admin)만 실시간 채널을 구독합니다.
         const role = localStorage.getItem('easycall_role');
         if (sbRealtimeChannel) sbClient.removeChannel(sbRealtimeChannel);
 
@@ -1425,7 +1494,6 @@
       }
     }
 
-    // [캠프별 독립 샤딩 Push] 단일 GLOBAL_STATE 병목을 없애고 MASTER_META와 STATE_{campId}로 분리 저장
     async function pushStateToSupabase(targetCampId = null) {
       if (!sbClient) return;
       isCloudSyncing = true;
@@ -1433,14 +1501,12 @@
         const activeCid = (targetCampId || getActiveCampId() || 'camp01').toLowerCase();
         const upserts = [];
 
-        // 1. 본사 메타 샤드 (캠프 목록 + 단말기 계정 목록)
         upserts.push({
           store_key: 'MASTER_META',
           payload: { campsList, agentsList },
           updated_at: new Date().toISOString()
         });
 
-        // 2. 현재 활성 캠프의 전용 샤드 (타 캠프 데이터와 절대 충돌하지 않음)
         const myCampVoters = votersList.filter(v => (v.campId || 'camp01').toLowerCase() === activeCid);
         const myCampLogs = globalCampCallLogs.filter(l => (l.campId || 'camp01').toLowerCase() === activeCid).slice(0, 1000);
         const myCampCfg = getCampConfig(activeCid);
@@ -1464,14 +1530,12 @@
       }
     }
 
-    // [캠프별 독립 샤딩 Pull] 필요한 캠프 샤드만 가볍게 불러와 2,000대 트래픽을 최소화
     async function pullStateFromSupabase() {
       if (!sbClient) return;
       try {
         const role = localStorage.getItem('easycall_role');
         const activeCid = getActiveCampId();
 
-        // 마스터는 전체 샤드 조회, 캠프/요원은 MASTER_META + 자기 캠프 샤드(STATE_campId)만 조회
         let query = sbClient.from('easycall_sync_store').select('store_key, payload');
         if (role && role !== 'super') {
           query = query.in('store_key', ['MASTER_META', `STATE_${activeCid}`, 'GLOBAL_STATE']);
@@ -1482,7 +1546,6 @@
           const legacyRow = data.find(r => r.store_key === 'GLOBAL_STATE');
           const metaRow = data.find(r => r.store_key === 'MASTER_META');
 
-          // 기존 GLOBAL_STATE 데이터 호환 마이그레이션
           if (legacyRow && legacyRow.payload && !metaRow) {
             const b = legacyRow.payload;
             if (b.campsList) campsList = b.campsList;
@@ -1498,7 +1561,6 @@
             if (metaRow.payload.agentsList) agentsList = metaRow.payload.agentsList.map((a, i) => ensureAgentStructure(a, i));
           }
 
-          // 각 캠프별 독립 샤드 병합
           data.filter(r => r.store_key.startsWith('STATE_')).forEach(shard => {
             const p = shard.payload;
             if (!p || !p.campId) return;
@@ -1673,6 +1735,7 @@
       }
 
       if (idInput === 'super' || idInput.includes('master')) {
+        sessionStorage.removeItem('easycall_master_impersonator');
         document.getElementById('login-view').classList.add('hidden');
         localStorage.setItem('easycall_role', 'super');
         localStorage.setItem('easycall_id', idInput);
@@ -1691,6 +1754,7 @@
           errorEl.innerText = "🛑 본사 마스터로부터 이용이 중지된 캠프 계정입니다.";
           return;
         }
+        sessionStorage.removeItem('easycall_master_impersonator');
         document.getElementById('login-view').classList.add('hidden');
         localStorage.setItem('easycall_role', 'admin');
         localStorage.setItem('easycall_id', idInput);
@@ -1740,6 +1804,7 @@
       localStorage.removeItem('easycall_role');
       localStorage.removeItem('easycall_id');
       sessionStorage.removeItem('easycall_admin_tab');
+      sessionStorage.removeItem('easycall_master_impersonator');
       window.location.href = window.location.pathname;
     }
 
@@ -1803,6 +1868,7 @@
             <td class="py-3 font-mono text-slate-300">명부 ${campVotersCnt}명 / 통화 ${campCallsCnt}건</td>
             <td class="py-3"><span class="${badgeClass}">${badgeText}</span></td>
             <td class="py-3 flex gap-1 justify-end">
+              <button type="button" onclick="impersonateCampAdmin('${c.campId}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-[11px] font-extrabold transition shadow-xs">🖥️ 상황실</button>
               <button type="button" onclick="masterResetCampPw('${c.campId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold transition">비번초기화</button>
               <button type="button" onclick="masterToggleCampApproval('${c.campId}')" class="${toggleBtnClass}">${toggleBtnText}</button>
             </td>
@@ -1882,6 +1948,11 @@
       document.getElementById('modal-camp-period').innerText = c.period || '-';
       document.getElementById('modal-camp-tablet').innerText = `등록 ${regCount}대 / 계약한도 ${c.tablets}대 (예상매출: ${(Number(c.tablets) * 700000).toLocaleString()}원)`;
 
+      const impBtn = document.getElementById('modal-btn-impersonate');
+      if (impBtn) {
+        impBtn.onclick = function() { impersonateCampAdmin(c.campId); };
+      }
+
       const modal = document.getElementById('camp-detail-modal');
       modal.style.display = 'flex';
     }
@@ -1932,6 +2003,8 @@
       if (campObj) {
         document.getElementById('admin-header-camp-name').innerText = `${campObj.name} (${campObj.campId})`;
       }
+
+      updateAdminImpersonateBanner();
 
       const cfg = getCampConfig(currentAdminId);
 
@@ -2324,7 +2397,6 @@
       showToast("✉️ 콜백 문자 문구가 저장되었습니다!");
     }
 
-    // [2,000대 대용량 최적화] 엑셀/CSV 업로드 시 1,000건 단위 청크(Chunk) 분할 고속 적재
     function handleCsvUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -2423,7 +2495,6 @@
           currentVoterIdx = 0;
           savePersistentData(cid);
 
-          // easycall_voters 전용 테이블이 있을 경우 1,000건 단위 청크(Chunk) 배치 INSERT 수행
           if (sbClient && isEnterpriseRpcAvailable) {
             await sbClient.from('easycall_voters').delete().eq('camp_id', cid);
             const CHUNK_SIZE = 1000;
@@ -2914,7 +2985,6 @@
       const cid = getActiveCampId();
       const myVoters = getCampVoters(cid);
 
-      // [2,000대 엔터프라이즈] DB 서버의 claim_next_voter (SKIP LOCKED) 함수가 있으면 우선 호출해 원자적 배정 수행
       if (useRpcClaim && sbClient && isEnterpriseRpcAvailable) {
         try {
           const { data: claimedRows, error: rpcErr } = await sbClient.rpc('claim_next_voter', {
@@ -3110,7 +3180,6 @@
 
       globalCampCallLogs.unshift(newLogEntry);
 
-      // [2,000대 엔터프라이즈] 단건 INSERT & 단건 UPDATE로 네트워크 부하 99% 절감
       if (sbClient) {
         sbClient.from('easycall_call_logs').insert({
           camp_id: cid,
