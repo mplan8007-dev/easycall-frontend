@@ -157,10 +157,10 @@ def phase(name, devices, hold_seconds, ramp_seconds, media):
     xml = work / 'uac.xml'
     xml.write_text(scenario(ROOT / 'tone.raw', hold_seconds * 1000, media))
     common = ['-i', '127.0.0.1', '-mi', '127.0.0.1', '-nostdin', '-trace_stat', '-fd', '1', '-trace_err', '-trace_screen']
-    server_cmd = ['sipp', '-sn', 'uas', '-p', '5060', '-mp', '6000', '-m', str(devices), '-stf', 'server.csv'] + common
+    server_cmd = ['sipp', '-sn', 'uas', '-p', '5060', '-min_rtp_port', '6000', '-m', str(devices), '-stf', 'server.csv'] + common
     if media:
         server_cmd += ['-rtp_echo']
-    client_cmd = ['sipp', '127.0.0.1:5060', '-sf', str(xml), '-p', '5062', '-mp', '10000',
+    client_cmd = ['sipp', '127.0.0.1:5060', '-sf', str(xml), '-p', '5062', '-min_rtp_port', '10000',
                   '-r', str(devices / ramp_seconds), '-rp', '1000', '-l', str(devices), '-m', str(devices),
                   '-stf', 'client.csv', '-timeout', str(hold_seconds + ramp_seconds + 45), '-timeout_error'] + common
     result = {'name': name, 'devices': devices, 'holdSecondsPerCall': hold_seconds, 'media': media,
@@ -220,6 +220,10 @@ def phase(name, devices, hold_seconds, ramp_seconds, media):
             if pcap.exists():
                 pcap.unlink()  # Keep aggregate evidence, not a large packet capture.
             result['elapsedSeconds'] = round(time.monotonic() - start, 1)
+            if not result.get('passed', False):
+                server_log.flush()
+                client_log.flush()
+                result['diagnostics'] = {p.name: p.read_text(errors='replace')[:5000] for p in [work / 'server.log', work / 'client.log']}
             (work / 'result.json').write_text(json.dumps(result, indent=2))
             print(json.dumps(result), flush=True)
     return result
