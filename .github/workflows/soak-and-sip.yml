@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: soak-sip-${{ github.ref }}
+  group: soak-sip-${{ github.sha }}
   cancel-in-progress: false
 jobs:
   soak:
