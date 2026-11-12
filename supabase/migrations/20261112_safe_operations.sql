@@ -2,6 +2,31 @@
 -- Existing table columns must match the original index.html contract.
 begin;
 
+-- Keep the original operational data and access definitions inside a private schema.
+-- Re-running the migration preserves this first snapshot instead of overwriting it.
+create schema if not exists easycall_backup_20261112;
+revoke all on schema easycall_backup_20261112 from public, anon, authenticated;
+do $$ begin
+  if to_regclass('public.easycall_sync_store') is not null then
+    execute 'create table if not exists easycall_backup_20261112.sync_store as table public.easycall_sync_store';
+  end if;
+  if to_regclass('public.easycall_voters') is not null then
+    execute 'create table if not exists easycall_backup_20261112.voters as table public.easycall_voters';
+  end if;
+  if to_regclass('public.easycall_call_logs') is not null then
+    execute 'create table if not exists easycall_backup_20261112.call_logs as table public.easycall_call_logs';
+  end if;
+end $$;
+create table if not exists easycall_backup_20261112.policies as
+  select * from pg_policies where schemaname='public' and tablename like 'easycall%';
+create table if not exists easycall_backup_20261112.functions as
+  select p.oid::regprocedure::text as signature, pg_get_functiondef(p.oid) as definition, p.proacl
+  from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like '%easycall%'
+    or p.pronamespace='public'::regnamespace and p.proname='claim_next_voter';
+create table if not exists easycall_backup_20261112.grants as
+  select * from information_schema.role_table_grants where table_schema='public' and table_name like 'easycall%';
+revoke all on all tables in schema easycall_backup_20261112 from public, anon, authenticated;
+
 create table if not exists public.easycall_sync_store (
   store_key text primary key, payload jsonb not null default '{}',
   updated_at timestamptz not null default clock_timestamp()
@@ -17,14 +42,73 @@ create table if not exists public.easycall_call_logs (
   used_phone text, voter_id text, voter_name text, voter_phone text, dong text,
   gender text, age text, call_result text, status text, duration text, memo text, call_time text
 );
+create table if not exists easycall_backup_20261112.sync_store as table public.easycall_sync_store;
+create table if not exists easycall_backup_20261112.voters as table public.easycall_voters;
+create table if not exists easycall_backup_20261112.call_logs as table public.easycall_call_logs;
+revoke all on all tables in schema easycall_backup_20261112 from public, anon, authenticated;
 alter table public.easycall_voters add column if not exists lock_expires_at timestamptz;
 alter table public.easycall_call_logs add column if not exists call_id uuid default gen_random_uuid();
 alter table public.easycall_call_logs add column if not exists created_at timestamptz default now();
 alter table public.easycall_call_logs add column if not exists duration_seconds integer default 0;
+alter table public.easycall_call_logs add column if not exists used_phone text;
 create unique index if not exists easycall_call_id_unique on public.easycall_call_logs(call_id);
 create unique index if not exists easycall_voter_id_unique on public.easycall_voters(camp_id,voter_id);
 create index if not exists easycall_queue_idx on public.easycall_voters(camp_id,last_result,lock_expires_at);
 create index if not exists easycall_log_date_idx on public.easycall_call_logs(camp_id,created_at desc);
+
+-- The live project still contains contacts in JSON snapshots rather than voters rows.
+-- Merge newer GLOBAL_STATE first, then older camp snapshots, without removing either source.
+do $$ declare source record; v jsonb; l jsonb; c jsonb; cfg jsonb; cid text; legacy public.easycall_sync_store;
+begin
+  select * into legacy from public.easycall_sync_store where store_key='GLOBAL_STATE';
+  if found then
+    insert into public.easycall_sync_store(store_key,payload,updated_at)
+      values('MASTER_META',jsonb_build_object('campsList',coalesce(legacy.payload->'campsList','[]'),
+        'agentsList',coalesce(legacy.payload->'agentsList','[]')),legacy.updated_at)
+      on conflict(store_key) do update set payload=excluded.payload,updated_at=excluded.updated_at
+      where public.easycall_sync_store.updated_at<excluded.updated_at;
+    for c in select * from jsonb_array_elements(coalesce(legacy.payload->'campsList','[]')) loop
+      cid := c->>'campId';
+      cfg := legacy.payload->'campSettingsMap'->cid;
+      if cfg is not null then
+        insert into public.easycall_sync_store(store_key,payload,updated_at)
+          values('STATE_'||cid,jsonb_build_object('campId',cid,'config',cfg),legacy.updated_at)
+          on conflict(store_key) do update set payload=public.easycall_sync_store.payload||excluded.payload,updated_at=excluded.updated_at
+          where public.easycall_sync_store.updated_at<excluded.updated_at;
+      end if;
+    end loop;
+  end if;
+  for source in select * from easycall_backup_20261112.sync_store
+    where store_key='GLOBAL_STATE' or store_key like 'STATE_%' order by updated_at desc nulls last loop
+    for v in select * from jsonb_array_elements(coalesce(source.payload->'voters',source.payload->'votersList','[]')) loop
+      cid := coalesce(v->>'campId',source.payload->>'campId','camp01');
+      if nullif(v->>'id','') is not null and nullif(v->>'phone','') is not null then
+        insert into public.easycall_voters(camp_id,voter_id,name,phone,dong,last_result,last_memo,locked_by,lock_expires_at)
+          values(cid,v->>'id',coalesce(v->>'name','이름 미입력'),v->>'phone',coalesce(v->>'dong',''),
+            coalesce(v->>'lastResult','READY'),coalesce(v->>'lastMemo',''),null,null)
+          on conflict(camp_id,voter_id) do nothing;
+      end if;
+    end loop;
+    for l in select * from jsonb_array_elements(coalesce(source.payload->'recentLogs',source.payload->'globalCampCallLogs','[]')) loop
+      cid := coalesce(l->>'campId',source.payload->>'campId','camp01');
+      if not exists(select 1 from public.easycall_call_logs t where t.camp_id=cid
+        and t.agent_id is not distinct from l->>'agentId' and t.voter_phone is not distinct from l->>'voterPhone'
+        and t.call_time is not distinct from l->>'time') then
+        insert into public.easycall_call_logs(call_id,camp_id,agent_id,voter_id,voter_name,voter_phone,dong,gender,age,
+          call_result,status,duration,memo,call_time,used_phone,created_at)
+          values(md5(cid||l::text)::uuid,cid,coalesce(l->>'agentId','legacy'),l->>'voterId',l->>'voterName',l->>'voterPhone',
+            l->>'dong',l->>'gender',l->>'age',l->>'callResult',l->>'status',l->>'duration',l->>'memo',l->>'time',l->>'usedPhone',null)
+          on conflict(call_id) do nothing;
+      end if;
+    end loop;
+  end loop;
+  for c in select e from public.easycall_sync_store s,
+    lateral jsonb_array_elements(coalesce(s.payload->'campsList','[]')) e where s.store_key='MASTER_META' loop
+    cid := c->>'campId';
+    insert into public.easycall_sync_store(store_key,payload)
+      values('STATE_'||cid,jsonb_build_object('campId',cid,'config','{}'::jsonb)) on conflict(store_key) do nothing;
+  end loop;
+end $$;
 
 -- Live Auth metadata is checked on every operation, including after role revocation.
 create or replace function public.easycall_identity()
