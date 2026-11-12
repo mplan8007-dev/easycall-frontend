@@ -1,8 +1,8 @@
-https://github.com/<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>이지콜 (EasyCall) - 실무 완결형 선거 SaaS PDS 플랫폼</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -10,7 +10,7 @@ https://github.com/<!DOCTYPE html>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    body { font-family: 'Pretendard', sans-serif; user-select: none; background-color: #0f172a; }
+    body { font-family: 'Pretendard', sans-serif; user-select: none; background-color: #0f172a; height: 100dvh; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .custom-scrollbar-dark::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -43,7 +43,7 @@ https://github.com/<!DOCTYPE html>
     }
   </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col text-slate-800">
+<body class="w-screen overflow-hidden flex flex-col text-slate-800">
 
   <!-- ==================== A. 통합 로그인 화면 ==================== -->
   <div id="login-view" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-50">
@@ -805,210 +805,219 @@ https://github.com/<!DOCTYPE html>
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원(tab01 등) 워크스페이스 [가독성 대폭 확대 & 누락기능 복원] ==================== -->
-  <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-900 relative">
-    <div id="agent-global-stop-banner" class="hidden bg-rose-600 text-white px-6 py-3 text-center text-base font-extrabold flex items-center justify-center gap-2 shadow-md z-40">
+  <!-- ==================== 3. 태블릿 요원(tab01 등) 워크스페이스 [하단 버튼 고정 보장 & 특대 글자] ==================== -->
+  <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-900 relative overflow-hidden">
+    <div id="agent-global-stop-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 text-center text-base font-extrabold flex items-center justify-center gap-2 shadow-md z-40 shrink-0">
       <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
       <span id="agent-stop-banner-msg">현재 상황실에서 전체 발신을 일시 중지했습니다. 대기해 주세요.</span>
     </div>
 
-    <header class="h-20 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm shrink-0">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-2xl shadow-sm"><i class="fa-solid fa-phone-volume"></i></div>
+    <header class="h-16 bg-white border-b border-slate-200 px-5 flex items-center justify-between shadow-sm shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-sm"><i class="fa-solid fa-phone-volume"></i></div>
         <div>
-          <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <span>선거 전화홍보 시스템</span>
-            <span id="agent-header-device-badge" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-extrabold">1번단말 (회선: 041-930-1001)</span>
+          <h1 class="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <span>선거 전화홍보</span>
+            <span id="agent-header-device-badge" class="text-sm bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full font-extrabold">1번단말 (회선: 041-930-1001)</span>
           </h1>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <div class="bg-slate-100 p-1.5 rounded-xl flex gap-1.5">
-          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-4 py-2 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition">📞 전화 다이얼러</button>
-          <button type="button" id="tab-search-btn" onclick="switchAgentTab('search')" class="px-4 py-2 rounded-lg text-sm font-extrabold text-slate-700 transition flex items-center gap-1.5">
-            <span>🔍 명부검색 / 콜백</span>
+      <div class="flex items-center gap-2">
+        <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition">📞 다이얼러</button>
+          <button type="button" id="tab-search-btn" onclick="switchAgentTab('search')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition flex items-center gap-1">
+            <span>🔍 검색/콜백</span>
             <span id="callback-count-badge" class="px-2 py-0.5 bg-amber-500 text-white rounded-full text-xs font-black">0</span>
           </button>
-          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-4 py-2 rounded-lg text-sm font-extrabold text-slate-700 transition">📋 내 실적/이력</button>
+          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition">📋 내 실적</button>
         </div>
 
-        <div class="bg-slate-50 border border-slate-300 px-3.5 py-1.5 rounded-xl flex items-center gap-2 w-52">
+        <div class="bg-slate-50 border border-slate-300 px-3 py-1 rounded-xl flex items-center gap-2 w-44">
           <div class="flex-1">
-            <div class="flex justify-between text-xs font-extrabold text-slate-700 mb-1">
-              <span>🎯 오늘 목표</span>
+            <div class="flex justify-between text-[11px] font-extrabold text-slate-700 mb-0.5">
+              <span>🎯 목표</span>
               <span id="agent-goal-txt" class="text-blue-700 font-mono font-black">0 / 250건 (0%)</span>
             </div>
-            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div id="agent-goal-bar" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
             </div>
           </div>
         </div>
 
-        <button type="button" onclick="triggerAgentSosCall()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 border-2 border-rose-300 px-3.5 py-2 rounded-xl text-sm font-extrabold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-bell text-rose-600"></i><span>🚨 상황실 SOS</span>
+        <button type="button" onclick="triggerAgentSosCall()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 border-2 border-rose-300 px-3 py-1.5 rounded-xl text-sm font-extrabold transition flex items-center gap-1">
+          <i class="fa-solid fa-bell text-rose-600"></i><span>🚨 SOS</span>
         </button>
 
-        <button type="button" id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-xl text-sm font-extrabold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식중지</span>
+        <button type="button" id="btn-agent-break" onclick="toggleAgentBreak()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-xl text-sm font-extrabold transition shadow-xs flex items-center gap-1">
+          <i class="fa-solid fa-mug-hot"></i><span id="agent-break-text">휴식</span>
         </button>
-        <div class="bg-slate-100 text-slate-800 px-3 py-2 rounded-full text-sm font-bold border border-slate-200">
+        <div class="bg-slate-100 text-slate-800 px-2.5 py-1.5 rounded-full text-xs font-bold border border-slate-200">
           <strong class="text-slate-950 font-mono" id="agent-display-id">tab01</strong>
         </div>
-        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-sm font-extrabold transition">로그아웃</button>
+        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl text-sm font-extrabold transition">로그아웃</button>
       </div>
     </header>
 
-    <!-- [요원 탭 1: 다이얼러 (특대 글자 & 이전/다음/메모태그 복원)] -->
-    <main id="agent-tab-dialer" class="flex-1 flex gap-5 p-5 overflow-hidden">
-      <section class="w-[40%] bg-white rounded-2xl border border-slate-300 p-6 flex flex-col justify-between shadow-sm relative overflow-y-auto custom-scrollbar">
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="bg-blue-600 text-white font-extrabold text-base px-4 py-1.5 rounded-lg shadow-sm" id="voter-dong">대천1동</span>
+    <!-- [요원 탭 1: 다이얼러 (왼쪽 하단 버튼 100% 고정 노출 구조)] -->
+    <main id="agent-tab-dialer" class="flex-1 min-h-0 flex gap-4 p-4 overflow-hidden">
+      <!-- 왼쪽 유권자 & 발신 섹션 -->
+      <section class="w-[41%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
+        <!-- 상단 가변 스크롤 영역 -->
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-2.5">
+          <div class="flex justify-between items-center">
+            <span class="bg-blue-600 text-white font-extrabold text-base px-3.5 py-1 rounded-lg shadow-sm" id="voter-dong">대천1동</span>
             <div class="flex items-center gap-1.5">
-              <span class="text-xs font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-lg" id="voter-lock-badge">🔒 단독 점유중</span>
-              <span class="text-sm font-extrabold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg" id="voter-last-status">신규 대상</span>
-              <span class="text-sm font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg font-mono" id="voter-id">ID #1042</span>
+              <span class="text-xs font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-lg" id="voter-lock-badge">🔒 단독 점유중</span>
+              <span class="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg" id="voter-last-status">신규 대상</span>
+              <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg font-mono" id="voter-id">ID #1042</span>
             </div>
           </div>
 
-          <!-- [복원] 이전 유권자 / 다음 유권자 수동 이동 네비게이터 -->
-          <div class="flex items-center justify-between bg-slate-100 px-3 py-2 rounded-xl border border-slate-200 mb-3">
-            <button type="button" onclick="navigateVoter(-1)" class="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
+          <!-- 이전 유권자 / 다음 유권자 수동 이동 네비게이터 -->
+          <div class="flex items-center justify-between bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200">
+            <button type="button" onclick="navigateVoter(-1)" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
               <i class="fa-solid fa-chevron-left text-xs"></i> 이전 유권자
             </button>
-            <span id="voter-queue-progress" class="text-sm font-black text-slate-700 font-mono">명부 순번: 1 / 5명</span>
-            <button type="button" onclick="navigateVoter(1)" class="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
+            <span id="voter-queue-progress" class="text-sm font-black text-slate-700 font-mono">순번: 1 / 5명</span>
+            <button type="button" onclick="navigateVoter(1)" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
               건너뛰기 <i class="fa-solid fa-chevron-right text-xs"></i>
             </button>
           </div>
 
-          <div class="bg-gradient-to-br from-blue-50/90 to-slate-50 border-2 border-blue-200 rounded-2xl p-5 mb-4">
-            <h2 class="text-4xl font-black text-slate-900 mb-2 tracking-tight" id="voter-name">홍길동 유권자</h2>
-            <p class="text-3xl font-black text-blue-600 tracking-wider font-mono mt-2" id="voter-phone">010-1234-5678</p>
-            <!-- [복원] 이전 통화 메모 표시 박스 -->
-            <div id="voter-prev-memo-box" class="mt-3 pt-2.5 border-t border-blue-200/80 text-sm font-bold text-slate-700 flex items-start gap-1.5">
+          <!-- 유권자 이름/전화번호 특대 카드 -->
+          <div class="bg-gradient-to-br from-blue-50/90 to-slate-50 border-2 border-blue-200 rounded-2xl p-4">
+            <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight" id="voter-name">홍길동 유권자</h2>
+            <p class="text-3xl font-black text-blue-600 tracking-wider font-mono mt-1.5" id="voter-phone">010-1234-5678</p>
+            <div id="voter-prev-memo-box" class="mt-2 pt-2 border-t border-blue-200/80 text-sm font-bold text-slate-700 flex items-start gap-1.5">
               <i class="fa-solid fa-note-sticky text-amber-500 mt-0.5"></i>
               <span id="voter-prev-memo-txt">이전 기록된 통화 메모가 없습니다.</span>
             </div>
           </div>
 
-          <div class="space-y-3">
-            <div id="call-idle-state" class="space-y-2.5">
-              <button type="button" id="btn-dial-action" onclick="startCallSimulation(false)" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-xl rounded-xl shadow-lg transition flex items-center justify-center gap-3">
-                <i class="fa-solid fa-phone text-xl"></i><span>📞 통신사 공식 선거회선 발신</span>
+          <!-- 발신 / 전화앱 호출 / 문자 발송 버튼군 -->
+          <div>
+            <div id="call-idle-state" class="space-y-2">
+              <button type="button" id="btn-dial-action" onclick="startCallSimulation(false)" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-phone text-lg"></i><span>📞 통신사 공식 선거회선 발신</span>
               </button>
-              <div class="grid grid-cols-2 gap-2.5">
-                <button type="button" id="btn-native-tel" onclick="startCallSimulation(true)" class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-base rounded-xl border-2 border-slate-300 transition flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-mobile-screen-button text-blue-600 text-lg"></i><span>태블릿 전화앱 호출</span>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="btn-native-tel" onclick="startCallSimulation(true)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-base rounded-xl border-2 border-slate-300 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-mobile-screen-button text-blue-600"></i><span>태블릿 전화앱 호출</span>
                 </button>
-                <button type="button" onclick="sendCallbackSmsToVoter()" class="py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-extrabold text-base rounded-xl border-2 border-emerald-300 transition flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-comment-sms text-emerald-600 text-lg"></i><span>후보자 명함/문자</span>
+                <button type="button" onclick="sendCallbackSmsToVoter()" class="py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-extrabold text-base rounded-xl border-2 border-emerald-300 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-comment-sms text-emerald-600"></i><span>후보자 명함/문자</span>
                 </button>
               </div>
             </div>
-            <div id="call-active-state" class="hidden bg-emerald-50 border-2 border-emerald-400 rounded-xl p-5 text-center space-y-3">
-              <div class="flex items-center justify-center gap-2.5">
-                <span class="w-3.5 h-3.5 rounded-full bg-red-500 animate-ping"></span>
-                <span class="text-emerald-950 font-black text-xl">🎙 통화 연결 중...</span>
-                <span id="call-timer-display" class="font-mono font-black text-2xl text-emerald-700 bg-white px-3.5 py-1 rounded-lg border border-emerald-300">00:00</span>
+            <div id="call-active-state" class="hidden bg-emerald-50 border-2 border-emerald-400 rounded-xl p-3.5 text-center space-y-2">
+              <div class="flex items-center justify-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+                <span class="text-emerald-950 font-black text-lg">🎙 통화 연결 중...</span>
+                <span id="call-timer-display" class="font-mono font-black text-xl text-emerald-700 bg-white px-3 py-0.5 rounded-lg border border-emerald-300">00:00</span>
               </div>
-              <button type="button" onclick="endCallSimulation()" class="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-black text-lg rounded-xl shadow transition">통화 종료 (5초 자동저장)</button>
+              <button type="button" onclick="endCallSimulation()" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black text-base rounded-xl shadow transition">통화 종료 (5초 자동저장)</button>
             </div>
           </div>
         </div>
 
-        <div class="pt-4 border-t border-slate-200 mt-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-extrabold text-slate-700"><i class="fa-solid fa-phone-slash mr-1 text-rose-500"></i>통화 미연결 즉시 처리 (터치 시 다음 이동)</span>
+        <!-- [하단 100% 고정] 통화 미연결 즉시 처리 4대 버튼 (절대 잘리지 않음) -->
+        <div class="pt-3 border-t-2 border-slate-200 mt-2 shrink-0 bg-white">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-sm font-black text-slate-800"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>통화 미연결 즉시 처리 (터치 시 바로 다음 유권자)</span>
           </div>
           <div class="grid grid-cols-4 gap-2">
-            <button type="button" onclick="quickSaveUnconnected('ABSENT')" class="py-3.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-300 rounded-xl text-base font-extrabold transition">🔔 부재중</button>
-            <button type="button" onclick="quickSaveUnconnected('REJECT')" class="py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border-2 border-rose-300 rounded-xl text-base font-extrabold transition">🚫 수신거부</button>
-            <button type="button" onclick="quickSaveUnconnected('CALLBACK')" class="py-3.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border-2 border-indigo-300 rounded-xl text-base font-extrabold transition">⏰ 재통화</button>
-            <button type="button" onclick="quickSaveUnconnected('INVALID')" class="py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border-2 border-slate-300 rounded-xl text-base font-extrabold transition">❌ 결번</button>
+            <button type="button" onclick="quickSaveUnconnected('ABSENT')" class="py-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-300 rounded-xl text-base font-black transition shadow-2xs">🔔 부재중</button>
+            <button type="button" onclick="quickSaveUnconnected('REJECT')" class="py-3 bg-rose-50 hover:bg-rose-100 text-rose-800 border-2 border-rose-300 rounded-xl text-base font-black transition shadow-2xs">🚫 수신거부</button>
+            <button type="button" onclick="quickSaveUnconnected('CALLBACK')" class="py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border-2 border-indigo-300 rounded-xl text-base font-black transition shadow-2xs">⏰ 재통화</button>
+            <button type="button" onclick="quickSaveUnconnected('INVALID')" class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border-2 border-slate-300 rounded-xl text-base font-black transition shadow-2xs">❌ 결번</button>
           </div>
         </div>
       </section>
 
-      <section class="w-[60%] bg-white rounded-2xl border border-slate-300 p-6 flex flex-col justify-between shadow-sm overflow-y-auto custom-scrollbar">
-        <div class="space-y-4">
-          <!-- 대본 가독성 대폭 확대 (text-xl) -->
-          <div class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-4">
-            <span class="text-sm font-extrabold text-indigo-700 block mb-1.5">📢 캠프 홍보 시나리오 대본 (상황실 실시간 연동)</span>
-            <p id="agent-script-display" class="text-xl text-indigo-950 font-extrabold leading-relaxed tracking-tight">"안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!"</p>
+      <!-- 오른쪽 대본 & 성향 기록 섹션 -->
+      <section class="w-[59%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
+        <!-- 상단 가변 스크롤 영역 -->
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-3">
+          <!-- 대본 가독성 확대 -->
+          <div class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5">
+            <span class="text-xs font-extrabold text-indigo-700 block mb-1">📢 캠프 홍보 시나리오 대본 (상황실 실시간 연동)</span>
+            <p id="agent-script-display" class="text-xl text-indigo-950 font-extrabold leading-snug tracking-tight">"안녕하십니까, 기호 1번 후보 선거사무소입니다. 지역 발전을 위해 출마한 우리 후보에게 따뜻한 관심과 성원을 부탁드립니다!"</p>
           </div>
 
-          <!-- 돌발 질문 모범 답변 가독성 확대 -->
-          <div class="bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-3.5">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-extrabold text-amber-900"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>유권자 돌발 질문 모범 답변 (터치 시 답변 크게 보기)</span>
+          <!-- 돌발 질문 모범 답변 -->
+          <div class="bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-3">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-extrabold text-amber-900"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>유권자 돌발 질문 모범 답변 (터치 시 답변 크게 보기)</span>
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <button type="button" onclick="toggleFaqAnswer(1)" class="py-2.5 px-3 bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 rounded-xl text-sm font-extrabold truncate text-left shadow-2xs" id="agent-faq-btn-1">Q1. 핵심 공약</button>
-              <button type="button" onclick="toggleFaqAnswer(2)" class="py-2.5 px-3 bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 rounded-xl text-sm font-extrabold truncate text-left shadow-2xs" id="agent-faq-btn-2">Q2. 주요 경력</button>
-              <button type="button" onclick="toggleFaqAnswer(3)" class="py-2.5 px-3 bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 rounded-xl text-sm font-extrabold truncate text-left shadow-2xs" id="agent-faq-btn-3">Q3. 투표 안내</button>
+              <button type="button" onclick="toggleFaqAnswer(1)" class="py-2 px-2.5 bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 rounded-xl text-sm font-extrabold truncate text-left" id="agent-faq-btn-1">Q1. 핵심 공약</button>
+              <button type="button" onclick="toggleFaqAnswer(2)" class="py-2 px-2.5 bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 rounded-xl text-sm font-extrabold truncate text-left" id="agent-faq-btn-2">Q2. 주요 경력</button>
+              <button type="button" onclick="toggleFaqAnswer(3)" class="py-2 px-2.5 bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 rounded-xl text-sm font-extrabold truncate text-left" id="agent-faq-btn-3">Q3. 투표 안내</button>
             </div>
-            <div id="agent-faq-answer-box" class="hidden mt-2.5 p-3.5 bg-white rounded-xl border-2 border-amber-400 text-base font-extrabold text-slate-900 leading-relaxed"></div>
+            <div id="agent-faq-answer-box" class="hidden mt-2 p-3 bg-white rounded-xl border-2 border-amber-400 text-base font-extrabold text-slate-900 leading-relaxed"></div>
           </div>
 
-          <!-- 성별 및 연령대 버튼 확대 -->
-          <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 space-y-3">
-            <div class="flex items-center gap-3">
-              <span class="text-base font-black text-slate-800 w-20 shrink-0"><i class="fa-solid fa-venus-mars mr-1 text-blue-600"></i>성별</span>
+          <!-- 성별 및 연령대 버튼 -->
+          <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-3 space-y-2.5">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base font-black text-slate-800 w-16 shrink-0">성별</span>
               <div class="flex gap-2 flex-1">
-                <button type="button" onclick="selectVoterGender('미상')" id="btn-gender-미상" class="gender-btn px-5 py-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 text-base font-extrabold transition">미상</button>
-                <button type="button" onclick="selectVoterGender('남성')" id="btn-gender-남성" class="gender-btn flex-1 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition">👨 남성</button>
-                <button type="button" onclick="selectVoterGender('여성')" id="btn-gender-여성" class="gender-btn flex-1 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition">👩 여성</button>
+                <button type="button" onclick="selectVoterGender('미상')" id="btn-gender-미상" class="gender-btn px-4 py-2 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 text-base font-extrabold transition">미상</button>
+                <button type="button" onclick="selectVoterGender('남성')" id="btn-gender-남성" class="gender-btn flex-1 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition">👨 남성</button>
+                <button type="button" onclick="selectVoterGender('여성')" id="btn-gender-여성" class="gender-btn flex-1 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition">👩 여성</button>
               </div>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-base font-black text-slate-800 w-20 shrink-0"><i class="fa-solid fa-user-clock mr-1 text-indigo-600"></i>연령대</span>
-              <div class="grid grid-cols-7 gap-2 flex-1">
-                <button type="button" onclick="selectVoterAge('미상')" id="btn-age-미상" class="age-btn py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-base font-extrabold transition text-center">미상</button>
-                <button type="button" onclick="selectVoterAge('20대')" id="btn-age-20대" class="age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">20대</button>
-                <button type="button" onclick="selectVoterAge('30대')" id="btn-age-30대" class="age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">30대</button>
-                <button type="button" onclick="selectVoterAge('40대')" id="btn-age-40대" class="age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">40대</button>
-                <button type="button" onclick="selectVoterAge('50대')" id="btn-age-50대" class="age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">50대</button>
-                <button type="button" onclick="selectVoterAge('60대')" id="btn-age-60대" class="age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">60대</button>
-                <button type="button" onclick="selectVoterAge('70대+')" id="btn-age-70대+" class="age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">70대+</button>
+            <div class="flex items-center gap-2.5">
+              <span class="text-base font-black text-slate-800 w-16 shrink-0">연령대</span>
+              <div class="grid grid-cols-7 gap-1.5 flex-1">
+                <button type="button" onclick="selectVoterAge('미상')" id="btn-age-미상" class="age-btn py-2 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-base font-extrabold transition text-center">미상</button>
+                <button type="button" onclick="selectVoterAge('20대')" id="btn-age-20대" class="age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">20대</button>
+                <button type="button" onclick="selectVoterAge('30대')" id="btn-age-30대" class="age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">30대</button>
+                <button type="button" onclick="selectVoterAge('40대')" id="btn-age-40대" class="age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">40대</button>
+                <button type="button" onclick="selectVoterAge('50대')" id="btn-age-50대" class="age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">50대</button>
+                <button type="button" onclick="selectVoterAge('60대')" id="btn-age-60대" class="age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">60대</button>
+                <button type="button" onclick="selectVoterAge('70대+')" id="btn-age-70대+" class="age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center">70대+</button>
               </div>
             </div>
           </div>
 
-          <!-- 유권자 지지 성향 분류 버튼 확대 -->
+          <!-- 유권자 지지 성향 분류 -->
           <div>
-            <h3 class="text-base font-black text-slate-900 mb-2">📊 유권자 지지 성향 분류 (통화 성공 시 터치)</h3>
-            <div class="grid grid-cols-2 gap-2.5" id="status-grid">
-              <button type="button" onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3.5 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">👍 적극 지지</button>
-              <button type="button" onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3.5 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">😊 우호 / 호의</button>
-              <button type="button" onclick="selectSupportStatus('VOLUNTEER')" id="btn-status-VOLUNTEER" class="status-btn p-3.5 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">🙋 자원봉사 희망</button>
-              <button type="button" onclick="selectSupportStatus('OPPOSE')" id="btn-status-OPPOSE" class="status-btn p-3.5 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">👎 비지지 / 거부</button>
+            <h3 class="text-sm font-black text-slate-900 mb-1.5">📊 유권자 지지 성향 분류 (통화 성공 시 선택)</h3>
+            <div class="grid grid-cols-2 gap-2" id="status-grid">
+              <button type="button" onclick="selectSupportStatus('SUPPORT')" id="btn-status-SUPPORT" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">👍 적극 지지</button>
+              <button type="button" onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">😊 우호 / 호의</button>
+              <button type="button" onclick="selectSupportStatus('VOLUNTEER')" id="btn-status-VOLUNTEER" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">🙋 자원봉사 희망</button>
+              <button type="button" onclick="selectSupportStatus('OPPOSE')" id="btn-status-OPPOSE" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">👎 비지지 / 거부</button>
             </div>
           </div>
 
-          <!-- [복원] 원터치 빠른 메모 칩 & 큼직한 메모 입력창 -->
-          <div class="space-y-2">
+          <!-- 원터치 빠른 메모 칩 & 메모 입력창 -->
+          <div class="space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-extrabold text-slate-700">✍️ 민원 및 특이사항 메모 (아래 태그 터치 시 자동 입력)</span>
+              <span class="text-xs font-extrabold text-slate-700">✍️ 민원 메모 (태그 터치 시 자동 입력)</span>
               <button type="button" onclick="document.getElementById('memo-input').value=''" class="text-xs font-bold text-slate-500 hover:text-rose-600">지우기</button>
             </div>
             <div class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="appendQuickMemo('#명함문자요청')" class="px-3 py-1.5 bg-slate-100 hover:bg-blue-100 text-slate-800 hover:text-blue-900 border border-slate-300 rounded-lg text-sm font-bold transition">#명함문자요청</button>
-              <button type="button" onclick="appendQuickMemo('#공약자료요청')" class="px-3 py-1.5 bg-slate-100 hover:bg-blue-100 text-slate-800 hover:text-blue-900 border border-slate-300 rounded-lg text-sm font-bold transition">#공약자료요청</button>
-              <button type="button" onclick="appendQuickMemo('#사전투표안내')" class="px-3 py-1.5 bg-slate-100 hover:bg-blue-100 text-slate-800 hover:text-blue-900 border border-slate-300 rounded-lg text-sm font-bold transition">#사전투표안내</button>
-              <button type="button" onclick="appendQuickMemo('#지역민원건의')" class="px-3 py-1.5 bg-slate-100 hover:bg-blue-100 text-slate-800 hover:text-blue-900 border border-slate-300 rounded-lg text-sm font-bold transition">#지역민원건의</button>
-              <button type="button" onclick="appendQuickMemo('#바쁨/재통화요망')" class="px-3 py-1.5 bg-slate-100 hover:bg-blue-100 text-slate-800 hover:text-blue-900 border border-slate-300 rounded-lg text-sm font-bold transition">#바쁨/재통화요망</button>
+              <button type="button" onclick="appendQuickMemo('#명함문자요청')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-800 border border-slate-300 rounded-lg text-sm font-bold transition">#명함문자요청</button>
+              <button type="button" onclick="appendQuickMemo('#공약자료요청')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-800 border border-slate-300 rounded-lg text-sm font-bold transition">#공약자료요청</button>
+              <button type="button" onclick="appendQuickMemo('#사전투표안내')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-800 border border-slate-300 rounded-lg text-sm font-bold transition">#사전투표안내</button>
+              <button type="button" onclick="appendQuickMemo('#지역민원건의')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-800 border border-slate-300 rounded-lg text-sm font-bold transition">#지역민원건의</button>
+              <button type="button" onclick="appendQuickMemo('#바쁨/재통화요망')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-800 border border-slate-300 rounded-lg text-sm font-bold transition">#바쁨/재통화요망</button>
             </div>
-            <textarea id="memo-input" rows="2" placeholder="유권자 민원 사항이나 특이 메모 입력..." class="w-full p-3 border-2 border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:outline-none focus:border-blue-600"></textarea>
+            <textarea id="memo-input" rows="2" placeholder="유권자 민원 사항이나 특이 메모 입력..." class="w-full p-2.5 border-2 border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:outline-none focus:border-blue-600"></textarea>
           </div>
         </div>
 
-        <button type="button" id="btn-save-next" onclick="saveResultToStorage('SUPPORT', 'CONNECTED')" class="w-full mt-3 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-md">💾 통화성공 저장 후 다음 유권자 ➔</button>
+        <!-- [하단 100% 고정] 통화성공 저장 버튼 -->
+        <div class="pt-3 border-t-2 border-slate-200 mt-2 shrink-0 bg-white">
+          <button type="button" id="btn-save-next" onclick="saveResultToStorage('SUPPORT', 'CONNECTED')" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-md">💾 통화성공 저장 후 다음 유권자 ➔</button>
+        </div>
       </section>
     </main>
 
-    <!-- [요원 탭 2: 검색 및 콜백 대기열 (글자 크기 확대)] -->
-    <main id="agent-tab-search" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-5 custom-scrollbar">
+    <!-- [요원 탭 2: 검색 및 콜백 대기열] -->
+    <main id="agent-tab-search" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-4 rounded-2xl border border-slate-200 shadow-sm space-y-5 custom-scrollbar">
       <div class="flex justify-between items-center">
         <div>
           <h2 class="text-xl font-black text-slate-900">🔍 유권자 검색 및 재통화(콜백) 대기열</h2>
@@ -1043,8 +1052,8 @@ https://github.com/<!DOCTYPE html>
       </div>
     </main>
 
-    <!-- [요원 탭 3: 내 실적 통계 및 재발신 (글자 크기 확대)] -->
-    <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-5 rounded-2xl border border-slate-200 shadow-sm space-y-6 custom-scrollbar">
+    <!-- [요원 탭 3: 내 실적 통계 및 재발신] -->
+    <main id="agent-tab-history" class="hidden flex-1 p-6 overflow-y-auto bg-slate-50 m-4 rounded-2xl border border-slate-200 shadow-sm space-y-6 custom-scrollbar">
       <div class="grid grid-cols-5 gap-4">
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
           <span class="text-sm font-extrabold text-slate-500 block mb-1">총 시도 건수</span>
@@ -2663,7 +2672,6 @@ https://github.com/<!DOCTYPE html>
       updateAgentGoalGauge();
     }
 
-    // [복원] 이전 유권자 / 다음 유권자 수동 이동 함수
     function navigateVoter(delta) {
       const cid = getActiveCampId();
       const myVoters = getCampVoters(cid);
@@ -2679,7 +2687,6 @@ https://github.com/<!DOCTYPE html>
       showToast(`📌 [${v.name}] 유권자로 이동했습니다.`);
     }
 
-    // [복원] 원터치 빠른 메모 태그 입력 함수
     function appendQuickMemo(tagText) {
       const memoEl = document.getElementById('memo-input');
       if (!memoEl) return;
@@ -2767,10 +2774,10 @@ https://github.com/<!DOCTYPE html>
 
       if (mode === 'auto') {
         btn.innerHTML = `<i class="fa-solid fa-bolt mr-1"></i> 통화성공 저장 후 ${secs}초 뒤 자동 발신 ➔`;
-        btn.className = "w-full mt-3 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-xl shadow-lg transition";
+        btn.className = "w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-xl shadow-lg transition";
       } else {
         btn.innerHTML = `💾 통화성공 저장 후 다음 유권자 ➔`;
-        btn.className = "w-full mt-3 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-lg transition";
+        btn.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-lg transition";
       }
     }
 
@@ -2803,7 +2810,7 @@ https://github.com/<!DOCTYPE html>
       document.getElementById('voter-id').innerText = `ID #${v.id}`;
 
       const progEl = document.getElementById('voter-queue-progress');
-      if (progEl) progEl.innerText = `명부 순번: ${currentVoterIdx + 1} / ${myVoters.length}명`;
+      if (progEl) progEl.innerText = `순번: ${currentVoterIdx + 1} / ${myVoters.length}명`;
 
       const prevMemoTxt = document.getElementById('voter-prev-memo-txt');
       if (prevMemoTxt) {
@@ -2816,16 +2823,16 @@ https://github.com/<!DOCTYPE html>
 
       const statusEl = document.getElementById('voter-last-status');
       if (v.lastResult === 'ABSENT') {
-        statusEl.className = "text-sm font-extrabold text-amber-800 bg-amber-100 px-3 py-1 rounded-lg";
+        statusEl.className = "text-xs font-extrabold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg";
         statusEl.innerText = "🔔 이전 부재중";
       } else if (v.lastResult === 'CALLBACK') {
-        statusEl.className = "text-sm font-extrabold text-indigo-800 bg-indigo-100 px-3 py-1 rounded-lg";
+        statusEl.className = "text-xs font-extrabold text-indigo-800 bg-indigo-100 px-2.5 py-1 rounded-lg";
         statusEl.innerText = "⏰ 재통화 대상";
       } else if (v.lastResult === 'CONNECTED') {
-        statusEl.className = "text-sm font-extrabold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-lg";
+        statusEl.className = "text-xs font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg";
         statusEl.innerText = "🟢 통화 완료자";
       } else {
-        statusEl.className = "text-sm font-extrabold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg";
+        statusEl.className = "text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg";
         statusEl.innerText = "신규 대상";
       }
 
@@ -3012,20 +3019,20 @@ https://github.com/<!DOCTYPE html>
       searchTab.classList.add('hidden');
       historyTab.classList.add('hidden');
 
-      dialerBtn.className = "px-4 py-2 rounded-lg text-sm font-extrabold text-slate-700 transition";
-      searchBtn.className = "px-4 py-2 rounded-lg text-sm font-extrabold text-slate-700 transition flex items-center gap-1.5";
-      historyBtn.className = "px-4 py-2 rounded-lg text-sm font-extrabold text-slate-700 transition";
+      dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition";
+      searchBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition flex items-center gap-1";
+      historyBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition";
 
       if (tabName === 'dialer') {
         dialerTab.classList.remove('hidden');
-        dialerBtn.className = "px-4 py-2 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition";
+        dialerBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition";
       } else if (tabName === 'search') {
         searchTab.classList.remove('hidden');
-        searchBtn.className = "px-4 py-2 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition flex items-center gap-1.5";
+        searchBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition flex items-center gap-1";
         renderAgentSearchTable();
       } else {
         historyTab.classList.remove('hidden');
-        historyBtn.className = "px-4 py-2 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition";
+        historyBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition";
         renderAgentHistoryTable();
       }
     }
@@ -3114,33 +3121,33 @@ https://github.com/<!DOCTYPE html>
     function selectVoterGender(gender) {
       selectedGender = gender;
       document.querySelectorAll('.gender-btn').forEach(b => {
-        b.className = "gender-btn flex-1 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition";
+        b.className = "gender-btn flex-1 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition";
       });
       const unknownBtn = document.getElementById('btn-gender-미상');
-      if (unknownBtn) unknownBtn.className = "gender-btn px-5 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition";
+      if (unknownBtn) unknownBtn.className = "gender-btn px-4 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition";
 
       const activeBtn = document.getElementById(`btn-gender-${gender}`);
       if (activeBtn) {
         activeBtn.className = gender === '미상'
-          ? "gender-btn px-5 py-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 text-base font-black transition shadow-xs"
-          : "gender-btn flex-1 py-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 text-base font-black transition shadow-xs";
+          ? "gender-btn px-4 py-2 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 text-base font-black transition shadow-xs"
+          : "gender-btn flex-1 py-2 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 text-base font-black transition shadow-xs";
       }
     }
 
     function selectVoterAge(age) {
       selectedAge = age;
       document.querySelectorAll('.age-btn').forEach(b => {
-        b.className = "age-btn py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center";
+        b.className = "age-btn py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 text-base font-extrabold transition text-center";
       });
       const activeBtn = document.getElementById(`btn-age-${age}`);
-      if (activeBtn) activeBtn.className = "age-btn py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-base font-black transition text-center shadow-xs";
+      if (activeBtn) activeBtn.className = "age-btn py-2 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-base font-black transition text-center shadow-xs";
     }
 
     function selectSupportStatus(status) {
       selectedStatus = status;
-      document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-3.5 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg text-slate-800");
+      document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg text-slate-800");
       const btn = document.getElementById(`btn-status-${status}`);
-      if (btn) btn.className = "status-btn p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-800 text-left transition shadow-sm font-black text-lg";
+      if (btn) btn.className = "status-btn p-3 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-800 text-left transition shadow-sm font-black text-lg";
     }
 
     function toggleAgentBreak() {
@@ -3150,12 +3157,12 @@ https://github.com/<!DOCTYPE html>
       const agentObj = agentsList.find(a => a.agentId.toLowerCase() === currentAgentId.toLowerCase());
 
       if (isAgentOnBreak) {
-        btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-sm font-extrabold transition flex items-center gap-1.5";
-        txt.innerText = "업무복귀";
+        btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-sm font-extrabold transition flex items-center gap-1";
+        txt.innerText = "복귀";
         if (agentObj) agentObj.status = "휴식 중 ☕";
       } else {
-        btn.className = "bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-xl text-sm font-extrabold transition flex items-center gap-1.5";
-        txt.innerText = "휴식중지";
+        btn.className = "bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-xl text-sm font-extrabold transition flex items-center gap-1";
+        txt.innerText = "휴식";
         if (agentObj) agentObj.status = "근무 중 🟢";
       }
       savePersistentData();
