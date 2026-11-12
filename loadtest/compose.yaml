@@ -1,0 +1,30 @@
+name: easycall-capacity-test
+services:
+  db:
+    build: .
+    environment:
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:?Run prepare.mjs first}
+      POSTGRES_DB: easycall_test
+    command: ["postgres", "-c", "shared_preload_libraries=pg_cron", "-c", "cron.database_name=easycall_test", "-c", "max_connections=120", "-c", "shared_buffers=256MB"]
+    ports: ["127.0.0.1:54329:5432"]
+    volumes:
+      - ./bootstrap.sql:/docker-entrypoint-initdb.d/01-bootstrap.sql:ro
+      - ./generated/init.sql:/docker-entrypoint-initdb.d/02-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d easycall_test"]
+      interval: 3s
+      retries: 30
+  api:
+    image: postgrest/postgrest:v13.0.0
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${TEST_DB_PASSWORD}@db:5432/easycall_test
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${TEST_JWT_SECRET:?Run prepare.mjs first}
+      PGRST_DB_POOL: 40
+      PGRST_DB_POOL_ACQUISITION_TIMEOUT: 5
+      PGRST_DB_MAX_ROWS: 1000
+    ports: ["127.0.0.1:54330:3000"]
+    depends_on:
+      db:
+        condition: service_healthy

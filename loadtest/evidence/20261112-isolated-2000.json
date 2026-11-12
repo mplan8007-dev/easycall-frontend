@@ -1,0 +1,136 @@
+{
+  "runUrl": "https://github.com/mplan8007-dev/easycall-frontend/actions/runs/43230764310",
+  "testedCommit": "53f91b780d01defb62bf3e3862a7237e0718fd4c",
+  "machine": {
+    "logicalCpus": 4,
+    "memoryGB": 16
+  },
+  "regressionTests": 34,
+  "productionCapacityCertified": false,
+  "reports": [
+    {
+      "environment": "isolated-local-loadtest",
+      "capacityCertified": false,
+      "note": "Local stack result only; production hardware, network, Auth login and SIP calling are not certified.",
+      "devices": 2000,
+      "camps": 1,
+      "durationSeconds": 900,
+      "rampSeconds": 120,
+      "callIntervalSeconds": 60,
+      "passed": true,
+      "storedCalls": 31941,
+      "metrics": {
+        "requests": 176800,
+        "errors": 0,
+        "duplicateAssignments": 0,
+        "uncertainWrites": 0,
+        "acknowledgedCalls": 31941,
+        "replayChecks": 1603,
+        "peakDevices": 2000,
+        "latencies": {
+          "easycall_loadtest_environment": {
+            "samples": 1,
+            "p95ms": 32.164632000000005,
+            "p99ms": 32.164632000000005
+          },
+          "easycall_agent_control": {
+            "samples": 79372,
+            "p95ms": 119.36128999997163,
+            "p99ms": 653.5638119999785
+          },
+          "easycall_claim_voter": {
+            "samples": 31941,
+            "p95ms": 63.892775999964215,
+            "p99ms": 192.03446399990935
+          },
+          "easycall_authorize_call": {
+            "samples": 31941,
+            "p95ms": 8.279311999998754,
+            "p99ms": 58.63659099990036
+          },
+          "easycall_complete_call": {
+            "samples": 33544,
+            "p95ms": 6.163998999982141,
+            "p99ms": 43.63798500003759
+          },
+          "easycall_admin_overview_fast": {
+            "samples": 1,
+            "p95ms": 30.405126000056043,
+            "p99ms": 30.405126000056043
+          }
+        },
+        "timeouts": 0,
+        "failureReasons": {}
+      },
+      "thresholds": {
+        "easycall_agent_control": 300,
+        "easycall_claim_voter": 500,
+        "easycall_authorize_call": 500,
+        "easycall_complete_call": 800
+      },
+      "createdAt": "2026-11-12T14:05:34.803Z"
+    },
+    {
+      "environment": "isolated-local-loadtest",
+      "capacityCertified": false,
+      "note": "Local stack result only; production hardware, network, Auth login and SIP calling are not certified.",
+      "devices": 2000,
+      "camps": 20,
+      "durationSeconds": 900,
+      "rampSeconds": 120,
+      "callIntervalSeconds": 60,
+      "passed": true,
+      "storedCalls": 31949,
+      "metrics": {
+        "requests": 176897,
+        "errors": 0,
+        "duplicateAssignments": 0,
+        "uncertainWrites": 0,
+        "acknowledgedCalls": 31949,
+        "replayChecks": 1596,
+        "peakDevices": 2000,
+        "latencies": {
+          "easycall_loadtest_environment": {
+            "samples": 1,
+            "p95ms": 32.459317,
+            "p99ms": 32.459317
+          },
+          "easycall_agent_control": {
+            "samples": 79452,
+            "p95ms": 22.025461000041105,
+            "p99ms": 706.7352509999182
+          },
+          "easycall_claim_voter": {
+            "samples": 31949,
+            "p95ms": 6.206876000040211,
+            "p99ms": 58.31488399999216
+          },
+          "easycall_authorize_call": {
+            "samples": 31949,
+            "p95ms": 3.0804950000019744,
+            "p99ms": 9.27862500003539
+          },
+          "easycall_complete_call": {
+            "samples": 33545,
+            "p95ms": 2.767009999952279,
+            "p99ms": 8.547818999970332
+          },
+          "easycall_admin_overview_fast": {
+            "samples": 1,
+            "p95ms": 46.30463899997994,
+            "p99ms": 46.30463899997994
+          }
+        },
+        "timeouts": 0,
+        "failureReasons": {}
+      },
+      "thresholds": {
+        "easycall_agent_control": 300,
+        "easycall_claim_voter": 500,
+        "easycall_authorize_call": 500,
+        "easycall_complete_call": 800
+      },
+      "createdAt": "2026-11-12T14:05:38.611Z"
+    }
+  ]
+}
