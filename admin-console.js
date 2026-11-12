@@ -119,9 +119,10 @@
     campsList=(meta.campsList || []).filter(c=>c.campId===cid).map(ensureCampStructure);
     agentsList=(meta.agentsList || []).filter(a=>a.campId===cid).map(ensureAgentStructure);
     for(const row of rows || []) if(row.store_key==='STATE_'+cid && !state.configDirty) campSettingsMap[cid]=row.payload.config || {};
-    const [v,l]=await Promise.all([
-      sbClient.from('easycall_voters').select('voter_id,camp_id,name,phone,dong,last_result,last_memo,locked_by').eq('camp_id',cid).order('voter_id').limit(500),
-      sbClient.from('easycall_call_logs').select('*').eq('camp_id',cid).order('created_at',{ascending:false,nullsFirst:false}).limit(1000)
+    const paged=window.easycallLoadLists?await window.easycallLoadLists(cid):null;
+    const [v,l]=paged?[{data:paged.voters},{data:paged.logs}]:await Promise.all([
+      sbClient.from('easycall_voters').select('*').eq('camp_id',cid).order('uid').limit(50),
+      sbClient.from('easycall_call_logs').select('*').eq('camp_id',cid).order('created_at',{ascending:false,nullsFirst:false}).limit(50)
     ]);
     if(v.error) throw v.error; if(l.error) throw l.error; if(ticket!==state.fetched) return;
     votersList=(v.data || []).map(r=>({id:String(r.voter_id),campId:r.camp_id,name:r.name,phone:r.phone,dong:r.dong,lastResult:r.last_result,lastMemo:r.last_memo,lockedBy:r.locked_by}));
