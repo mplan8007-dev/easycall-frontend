@@ -1908,7 +1908,7 @@
       }
       const cid = getActiveCampId();
       let votersQuery = sbClient.from('easycall_voters').select('voter_id,camp_id,name,phone,dong,last_result,last_memo,locked_by').order('voter_id').limit(500);
-      let logsQuery = sbClient.from('easycall_call_logs').select('*').order('created_at', { ascending: false }).limit(1000);
+      let logsQuery = sbClient.from('easycall_call_logs').select('*').order('created_at', { ascending: false, nullsFirst: false }).limit(1000);
       if (verifiedIdentity.role !== 'super') {
         votersQuery = votersQuery.eq('camp_id', cid);
         logsQuery = logsQuery.eq('camp_id', cid);
