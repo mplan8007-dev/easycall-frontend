@@ -102,8 +102,9 @@
     if(!sbClient || !verifiedIdentity) return;
     if(state.busy && !force) return;
     const ticket=++state.fetched;
+    if(verifiedIdentity.role==='agent' && window.easycallPullAgentState){await window.easycallPullAgentState();return;}
     if(superView()) {
-      const data=await rpc('easycall_admin_overview');
+      const data=await rpc('easycall_admin_overview_fast',{p_force:force});
       if(ticket!==state.fetched) return;
       state.overview=data; campsList=(data.camps || []).map(ensureCampStructure);
       agentsList=[]; votersList=[]; globalCampCallLogs=[];
@@ -157,6 +158,7 @@
     const {data}=await sbClient.auth.getUser();
     if(verifiedIdentity) { verifiedIdentity.email=data?.user?.email || ''; verifiedIdentity.uid=data?.user?.id; }
     clearInterval(controlPollTimer); clearInterval(state.presenceTimer);
+    if(window.easycallStartRuntime){await window.easycallStartRuntime();return;}
     controlPollTimer=setInterval(async()=>{
       if(document.hidden || state.busy || isSavingResult || isUploading) return;
       try { await pullStateFromSupabase(); refreshActiveRoleUI(); }

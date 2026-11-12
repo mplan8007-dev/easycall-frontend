@@ -71,7 +71,8 @@ import './admin-console.js';
   text('agent-goal-txt',n.toLocaleString()+' / '+goal.toLocaleString()+'건 ('+Math.min(100,pct(n,goal))+'%) · 오늘');if($('agent-goal-bar'))$('agent-goal-bar').style.width=Math.min(100,pct(n,goal))+'%';
  }
  async function changeDataPage(kind,delta){if(!pages[kind]||pages[kind].loading)return;pages[kind].failed=false;pages[kind].offset=Math.max(0,pages[kind].offset+delta*50);try{await loadPage(kind);}catch(e){}}
- async function refreshDataPage(kind){if(!pages[kind]||pages[kind].loading)return;pages[kind].offset=0;pages[kind].asOf=null;pages[kind].failed=false;try{await loadPage(kind);}catch(e){}}
+ async function easycallLoadCounts(){const cid=pages.camp;if(!cid)return;const data=await rpc('easycall_camp_counts',{p_camp_id:cid});if(cid!==pages.camp)return;count[cid]=data;renderAggregateStats();}
+ async function refreshDataPage(kind){if(!pages[kind]||pages[kind].loading)return;pages[kind].offset=0;pages[kind].asOf=null;pages[kind].failed=false;try{await loadPage(kind);if(kind==='history')await easycallLoadCounts();}catch(e){}}
  let searchTimer;
  function renderAgentSearchTable(){
   if(!pages.camp){legacy.search();return;}
@@ -153,7 +154,7 @@ import './admin-console.js';
   const reason=prompt('정책 변경 사유를 입력하세요.');if(!reason?.trim())return;mfa.busy=true;
   try{await rpc('easycall_admin_mfa_policy',{p_required:!mfa.required,p_reason:reason.trim()});await openMfaSettings();}catch(e){mfaMessage(e.message);}finally{mfa.busy=false;}
  }
- Object.assign(window,{easycallLoadLists,easycallAgentCallCount,openBriefingReportModal,changeDataPage,refreshDataPage,renderAdminLogsTable,renderAgentSearchTable,renderAgentHistoryTable,renderStatsAndCharts:renderAggregateStats,updateAgentGoalGauge:renderAggregateStats,updateVoterQueueStatusText,activateVerifiedUser,openMfaSettings,startMfaEnrollment,verifyMfaCode,closeMfa,toggleMfaPolicy});
+ Object.assign(window,{easycallPrepareLists:resetCamp,easycallLoadLists,easycallAgentCallCount,openBriefingReportModal,changeDataPage,refreshDataPage,renderAdminLogsTable,renderAgentSearchTable,renderAgentHistoryTable,renderStatsAndCharts:renderAggregateStats,updateAgentGoalGauge:renderAggregateStats,updateVoterQueueStatusText,activateVerifiedUser,openMfaSettings,startMfaEnrollment,verifyMfaCode,closeMfa,toggleMfaPolicy});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearMfaSecret();});
  window.addEventListener('pagehide',clearMfaSecret);
 })();
