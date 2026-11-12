@@ -1,0 +1,19 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto');
+function harness(){
+ const nodes=new Map(),storage=new Map(),session=new Map();
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',innerHTML:'',disabled:false,style:{},classList:{add(){},remove(){},toggle(){}},querySelector(){return null;}});return nodes.get(id);};
+ const ctx=vm.createContext({document:{getElementById:node,querySelectorAll(){return [];},addEventListener(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},sessionStorage:{getItem:k=>session.get(k)||null,setItem:(k,v)=>session.set(k,v),removeItem:k=>session.delete(k)},navigator:{onLine:true},location:{hash:''},addEventListener(){},setInterval(){return 1;},clearInterval(){},setTimeout(){return 1;},clearTimeout(){},crypto:crypto.webcrypto,console,Date,Intl,URL,Blob,alert(){},confirm(){return true;},prompt(){return 'test';}});
+ vm.runInContext('window=globalThis',ctx);
+ vm.runInContext(fs.readFileSync(__dirname+'/../index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1],ctx);
+ vm.runInContext(fs.readFileSync(__dirname+'/../admin-console.js','utf8'),ctx);
+ return {run:s=>vm.runInContext(s,ctx),nodes,session,node};
+}
+test('disconnected writes fail instead of pretending to save',async()=>{const h=harness();assert.equal(await h.run('savePersistentData()'),false);});
+test('delegated password changes never call authentication update',async()=>{const h=harness();h.session.set('easycall_master_impersonator','super');h.run("verifiedIdentity={role:'super'}; calls=0;sbClient={auth:{updateUser(){calls++;}}}");await h.run('changeAdminPassword()');await h.run('saveMyPassword()');assert.equal(h.run('calls'),0);});
+test('quota failure preserves shared camp state',async()=>{const h=harness();h.run("verifiedIdentity={role:'super'};campsList=[{campId:'c1',name:'A',region:'서울특별시 중구',tablets:2,registeredCount:0}]; sbClient={rpc:async()=>({error:{message:'failed'}})}");await h.run("adjustCampTabletLimit('c1',1)");assert.equal(h.run('campsList[0].tablets'),2);});
+test('invalid registration does not reach server',async()=>{const h=harness();h.run("verifiedIdentity={role:'super'};calls=0;sbClient={rpc:async()=>{calls++;return {}}}");await h.run('registerNewCampByMaster()');assert.equal(h.run('calls'),0);});
+test('editing draft survives overview object replacement and keeps its revision',async()=>{
+ const h=harness();h.run("verifiedIdentity={role:'super'}; campsList=[{campId:'c1',name:'A',candidate:'B',region:'서울특별시 중구',district:'중구',electionStage:'본선',electionType:'국회의원',party:'무소속',staff:'담당',manager:'관리자',tablets:2,unitPrice:700000,contractAmount:1400000,startsOn:'2026-01-01',endsOn:'2027-01-01',revision:'r1'}];openCampDetailModalById('c1'); campsList=[{campId:'c1',name:'server-new',tablets:99}];sent=null;sbClient={rpc:async(name,args)=>{if(name==='easycall_admin_save_camp'){sent=args;return {error:{message:'conflict',code:'40001'}}}return {data:{camps:[]}}}};");
+ h.node('edit-camp-name').value='draft';await h.run('saveCampEdit()');assert.equal(h.run('sent.p_camp.name'),'draft');assert.equal(h.run('sent.p_camp.tablets'),2);assert.equal(h.run('sent.p_expected_revision'),'r1');assert.equal(h.node('edit-camp-name').value,'draft');
+});
+test('server aggregates render beyond the old client data cap and escape camp names',()=>{const h=harness();h.run("campsList=[{campId:'c1',name:'<img onerror=alert(1)>',candidate:'A',region:'서울특별시 중구',tablets:2,voterCount:20001,callCount:10001,paidAmount:0,contractAmount:1400000,effectiveStatus:'ready'}];renderSuperCampsTable()");const html=h.node('super-camps-body').innerHTML;assert.ok(!html.includes('<img'));assert.match(html,/20,001/);assert.match(html,/10,001/);assert.ok(!html.includes('onclick='));});

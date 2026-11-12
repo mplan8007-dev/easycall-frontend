@@ -135,7 +135,7 @@
           <div class="flex items-center gap-2">
             <select id="modal-camp-billing-select" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white">
               <option value="완납(가동중)">완납(가동중)</option>
-              <option value="계약확정(선금)">계약확정(선금)</option>
+              <option value="일부입금">일부입금</option><option value="미입금">미입금</option>
               <option value="시범운영(무료)">시범운영(무료)</option>
               <option value="기간만료(중지)">기간만료(중지)</option>
             </select>
@@ -197,8 +197,8 @@
     <div class="bg-slate-900 border border-indigo-500/60 p-7 rounded-2xl w-[560px] shadow-2xl text-slate-100 space-y-4">
       <div class="flex justify-between items-center pb-3 border-b border-slate-800">
         <div>
-          <h3 class="text-lg font-extrabold text-indigo-400"><i class="fa-solid fa-cloud-bolt mr-1.5"></i>Supabase 2,000대 분산 클라우드 DB 연동 센터</h3>
-          <p class="text-xs text-slate-400 mt-0.5">캠프별 독립 샤딩(`STATE_캠프ID`) 및 `SKIP LOCKED` 원자적 배정 엔진이 가동됩니다.</p>
+          <h3 class="text-lg font-extrabold text-indigo-400"><i class="fa-solid fa-cloud-bolt mr-1.5"></i>클라우드 연결 상태</h3>
+          <p class="text-xs text-slate-400 mt-0.5">연결 설정은 배포 환경에서 관리합니다. 오류가 있으면 저장이 제한됩니다.</p>
         </div>
         <button type="button" onclick="closeSupabaseModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -206,24 +206,24 @@
       <div class="space-y-3 text-xs">
         <div>
           <label class="block font-bold text-slate-300 mb-1">Supabase Project URL</label>
-          <input type="text" id="sb-url-input" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none">
+          <input type="text" id="sb-url-input" readonly class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none">
         </div>
         <div>
           <label class="block font-bold text-slate-300 mb-1">Supabase Publishable / Anon API Key</label>
-          <input type="text" id="sb-key-input" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none">
+          <input type="text" id="sb-key-input" readonly class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none">
         </div>
         <div id="sb-test-result-box" class="hidden p-3 rounded-xl border text-xs font-bold"></div>
       </div>
 
       <div class="flex gap-2 pt-2">
-        <button type="button" onclick="saveAndConnectSupabase()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
-          ☁️ 클라우드 DB 연결 및 샤딩 동기화 시작
+        <button type="button" onclick="testSupabaseConnection()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
+          연결 상태 확인
         </button>
         <button type="button" onclick="testSupabaseConnection()" class="px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold rounded-xl text-xs border border-slate-700 transition">
           🔍 연결/RPC 점검
         </button>
-        <button type="button" onclick="disconnectSupabase()" class="px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold rounded-xl text-xs border border-slate-700 transition">
-          로컬 전환
+        <button type="button" onclick="alert('온라인 연결이 필요한 서비스입니다. 오프라인에서는 저장할 수 없습니다.')" class="px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold rounded-xl text-xs border border-slate-700 transition">
+          온라인 전용
         </button>
       </div>
     </div>
@@ -231,9 +231,9 @@
 
   <!-- ==================== 1. 최고관리자(super) 관제 대시보드 (전국 17개 시·도 & 세분화 폼) ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100 relative">
-    <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+    <header class="min-h-16 py-3 bg-slate-900 border-b border-slate-800 px-6 flex flex-wrap gap-3 items-center justify-between shrink-0">
       <div class="flex items-center gap-4">
-        <h1 class="text-lg font-extrabold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터 (2,000대 분산 마스터)</h1>
+        <h1 class="text-lg font-extrabold text-indigo-400">🌐 이지콜 SaaS 본사 관제센터</h1>
         <div class="flex items-center gap-2 bg-slate-950 px-3 py-1 rounded-full border border-slate-800 text-xs">
           <span id="super-cloud-dot" class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
           <span id="super-cloud-status-txt" class="text-slate-300 font-mono">☁️ 캠프별 분산 샤딩 & RPC 엔진 정상</span>
@@ -243,12 +243,13 @@
         <button type="button" onclick="openSupabaseModal()" class="bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition">
           <i class="fa-solid fa-cloud mr-1"></i> 클라우드 DB 설정
         </button>
-        <button type="button" onclick="forcePushToCloud()" id="btn-cloud-push" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 px-3 py-2 rounded-xl text-xs font-bold transition">
-          <i class="fa-solid fa-cloud-arrow-up mr-1"></i>전캠프 샤딩동기화
+        <button type="button" onclick="refreshAdminData()" id="btn-cloud-push" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 px-3 py-2 rounded-xl text-xs font-bold transition">
+          <i class="fa-solid fa-cloud-arrow-up mr-1"></i>최신 자료 새로고침
         </button>
-        <button type="button" onclick="resetAllSystemData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition">
-          <i class="fa-solid fa-rotate-left mr-1"></i>데이터 초기화
+        <button type="button" onclick="openBackupManager()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition">
+          <i class="fa-solid fa-rotate-left mr-1"></i>백업·복원
         </button>
+        <button type="button" onclick="openMyAccount()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold">내 계정</button>
         <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">로그아웃</button>
       </div>
     </header>
@@ -256,31 +257,31 @@
     <main class="flex-1 p-5 space-y-5 overflow-y-auto custom-scrollbar-dark">
       <div class="grid grid-cols-3 gap-5">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span class="text-xs font-bold text-slate-400 block mb-1">총 등록 캠프 (독립 샤드)</span>
+          <span class="text-xs font-bold text-slate-400 block mb-1">총 등록 캠프 · 본사 전체</span>
           <div class="flex items-baseline justify-between">
             <span class="text-3xl font-black text-white font-mono" id="stat-total-camps">1개</span>
             <span class="text-xs text-emerald-400 font-bold" id="stat-active-camps-txt">가동 중</span>
           </div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span class="text-xs font-bold text-slate-400 block mb-1">할당 태블릿 라이선스 및 수금 현황</span>
+          <span class="text-xs font-bold text-slate-400 block mb-1">태블릿 한도 · 계약·입금 현황</span>
           <div class="flex items-baseline justify-between">
             <span class="text-3xl font-black text-indigo-400 font-mono" id="stat-total-tablets">15대</span>
             <span class="text-xs text-amber-300 font-bold" id="stat-est-revenue">총 1,050만원 (완납 1,050만원)</span>
           </div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span class="text-xs font-bold text-slate-400 block mb-1">최근 조회 통화 기록 (최대 1,000건)</span>
+          <span class="text-xs font-bold text-slate-400 block mb-1">전체 통화 기록 · 서버 집계</span>
           <div class="flex items-baseline justify-between">
             <span class="text-3xl font-black text-emerald-400 font-mono" id="stat-super-total-calls">0건</span>
-            <span class="text-xs text-emerald-400 font-bold">무충돌 분산 집계</span>
+            <span class="text-xs text-emerald-400 font-bold">전체 기록 기준</span>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-12 gap-5">
+      <div id="super-layout" class="grid grid-cols-1 xl:grid-cols-12 gap-5">
         <!-- 좌측 8칸: 세분화된 캠프 목록 및 다중 필터 -->
-        <div class="col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <div id="super-camp-list-panel" class="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-5">
           <div class="flex flex-wrap justify-between items-center gap-2.5 mb-4">
             <div>
               <h3 class="text-base font-bold text-indigo-300">📋 선거단계·구분·정당·정산별 캠프 통합 관제</h3>
@@ -328,16 +329,22 @@
                 <option value="완납(가동중)">완납(가동중)</option>
                 <option value="계약확정(선금)">계약확정(선금)</option>
                 <option value="시범운영(무료)">시범운영(무료)</option>
-                <option value="기간만료(중지)">기간만료(중지)</option>
+                
               </select>
+              <select id="camp-filter-party" aria-label="정당" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold"><option value="ALL">정당 전체</option></select>
+              <select id="camp-filter-status" aria-label="운영상태" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold"><option value="ALL">운영상태 전체</option><option value="ready">사용 가능</option><option value="future">시작 전</option><option value="expired">기간 만료</option><option value="stopped">수동 중지</option><option value="unconfigured">계약 확인 필요</option></select>
+              <select id="camp-filter-staff" aria-label="담당자" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold"><option value="ALL">담당자 전체</option></select>
+              <select id="camp-sort" aria-label="캠프 정렬" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-300"><option value="id">캠프 ID순</option><option value="name">캠프명순</option><option value="end">계약 종료일순</option><option value="outstanding">미수금순</option></select>
+              <button type="button" onclick="resetCampFilters()" class="px-3 py-2 rounded-xl bg-slate-800 text-xs text-slate-300">조건 초기화</button>
               <div class="relative w-44">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
-                <input type="text" id="camp-search-input" onkeyup="renderSuperCampsTable()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="지역, 후보자, 캠프...">
+                <input type="text" id="camp-search-input" oninput="renderSuperCampsTable()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="지역, 후보자, 캠프...">
               </div>
             </div>
           </div>
+          <div id="camp-list-summary" class="text-xs text-slate-400 mb-3" aria-live="polite"></div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <table class="w-full min-w-[980px] text-left text-sm">
               <thead class="text-slate-400 border-b border-slate-800 text-xs">
                 <tr>
                   <th class="pb-3">단계 / 선거구분 / 지역</th>
@@ -351,10 +358,14 @@
               <tbody id="super-camps-body" class="divide-y divide-slate-800 text-xs"></tbody>
             </table>
           </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs text-slate-400">
+            <span id="camp-page-info"></span><div class="flex gap-2"><button type="button" id="camp-page-prev" onclick="changeCampPage(-1)" class="px-3 py-1.5 rounded-lg bg-slate-800 disabled:opacity-40">이전</button><button type="button" id="camp-page-next" onclick="changeCampPage(1)" class="px-3 py-1.5 rounded-lg bg-slate-800 disabled:opacity-40">다음</button><button type="button" onclick="toggleNewCampForm()" class="px-3 py-1.5 rounded-lg bg-indigo-950 text-indigo-300">등록폼 접기/펼치기</button></div>
+          </div>
+          <div id="super-save-status" class="hidden mt-3 text-xs rounded-xl p-3 border" role="status" aria-live="polite"></div>
         </div>
 
         <!-- 우측 4칸: 고도화된 신규 캠프 개설 등록 폼 -->
-        <div class="col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5">
+        <div id="super-new-camp-panel" class="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5">
           <div class="flex items-center justify-between">
             <h3 class="text-base font-bold text-indigo-300">➕ 신규 선거 캠프 세분화 개설</h3>
             <span class="text-[10px] font-bold text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">전국 17개 시·도 지원</span>
@@ -463,7 +474,7 @@
                 <input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-emerald-500/40 rounded-xl p-2 text-xs text-emerald-300 font-mono font-bold" placeholder="camp02">
               </div>
               <div>
-                <label class="block text-[11px] text-slate-400 mb-0.5">초기 비밀번호</label>
+                <label class="block text-[11px] text-slate-400 mb-0.5">계정 발급 안내</label>
                 <input type="text" id="new-camp-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" disabled placeholder="인증 서버에서 별도 발급">
               </div>
               <div>
@@ -500,15 +511,20 @@
               </div>
             </div>
 
+            <div class="grid grid-cols-2 gap-2">
+              <div><label for="new-camp-unit-price" class="block text-[11px] text-slate-400 mb-0.5">계약 단가(원)</label><input id="new-camp-unit-price" type="number" min="0" step="1" value="700000" oninput="updateNewCampRevenuePreview()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white"></div>
+              <div><label for="new-camp-contract-amount" class="block text-[11px] text-slate-400 mb-0.5">계약 금액(원)</label><input id="new-camp-contract-amount" type="number" min="0" step="1" value="10500000" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white"></div>
+            </div>
+            <div><label for="new-camp-login-email" class="block text-[11px] text-slate-400 mb-0.5">관리자 이메일(선택 · 계정 연결은 등록 후 진행)</label><input id="new-camp-login-email" type="email" autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="실제 관리자 이메일"></div>
             <!-- 실시간 용역매출 자동 계산 박스 -->
             <div class="bg-slate-950 border border-indigo-500/40 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
-              <span class="text-slate-400 font-bold">💰 예상 용역매출 (대당 70만원)</span>
+              <span class="text-slate-400 font-bold">💰 단가 × 한도 예상액 · 입금액과 별도</span>
               <span id="new-camp-revenue-preview" class="font-mono font-black text-emerald-400 text-sm">1,050만원 (10,500,000원)</span>
             </div>
           </div>
 
           <button type="button" onclick="registerNewCampByMaster()" class="w-full mt-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
-            신규 캠프 승인 및 독립 샤드(Shard) 생성
+            신규 캠프 등록 · 로그인 계정은 별도 연결
           </button>
         </div>
       </div>
@@ -1256,6 +1272,7 @@
     </main>
   </div>
 
+<div id="camp-edit-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="캠프 기본정보 · 계약 수정"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">캠프 기본정보 · 계약 수정</h3><button type="button" data-close-dialog="camp-edit-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p class="text-xs text-slate-400 mb-4" id="camp-edit-context"></p><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label for="edit-camp-name" class="block text-xs text-slate-400 mb-1">캠프명</label><input id="edit-camp-name" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-candidate" class="block text-xs text-slate-400 mb-1">후보자</label><input id="edit-camp-candidate" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label class="block text-xs text-slate-400 mb-1" for="edit-camp-stage">선거 단계</label><select id="edit-camp-stage" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="본선">본선</option><option value="당내 경선">당내 경선</option><option value="예비후보">예비후보</option></select></div><div><label class="block text-xs text-slate-400 mb-1" for="edit-camp-election">선거 구분</label><select id="edit-camp-election" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="기초단체장(시장·군수)">기초단체장(시장·군수)</option><option value="광역단체장(도지사·시장)">광역단체장(도지사·시장)</option><option value="광역의원(도의원)">광역의원(도의원)</option><option value="기초의원(시의원)">기초의원(시의원)</option><option value="교육감">교육감</option><option value="국회의원">국회의원</option><option value="조합장(농·수·축협)">조합장(농·수·축협)</option></select></div><div><label for="edit-camp-sido" class="block text-xs text-slate-400 mb-1">시·도</label><select id="edit-camp-sido" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="충청남도">충청남도</option><option value="서울특별시">서울특별시</option><option value="부산광역시">부산광역시</option><option value="대구광역시">대구광역시</option><option value="인천광역시">인천광역시</option><option value="광주광역시">광주광역시</option><option value="대전광역시">대전광역시</option><option value="울산광역시">울산광역시</option><option value="세종특별자치시">세종특별자치시</option><option value="경기도">경기도</option><option value="강원특별자치도">강원특별자치도</option><option value="충청북도">충청북도</option><option value="전북특별자치도">전북특별자치도</option><option value="전라남도">전라남도</option><option value="경상북도">경상북도</option><option value="경상남도">경상남도</option><option value="제주특별자치도">제주특별자치도</option></select></div><div><label for="edit-camp-city" class="block text-xs text-slate-400 mb-1">시·군·구 / 선거 범위</label><input id="edit-camp-city" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-district" class="block text-xs text-slate-400 mb-1">세부 선거구</label><input id="edit-camp-district" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-party" class="block text-xs text-slate-400 mb-1">정당 / 소속</label><input id="edit-camp-party" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-staff" class="block text-xs text-slate-400 mb-1">본사 담당자</label><input id="edit-camp-staff" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-manager" class="block text-xs text-slate-400 mb-1">담당 사무장</label><input id="edit-camp-manager" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-phone" class="block text-xs text-slate-400 mb-1">연락처(선택)</label><input id="edit-camp-phone" type="tel"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-email" class="block text-xs text-slate-400 mb-1">연결할 관리자 이메일(선택)</label><input id="edit-camp-email" type="email"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-start" class="block text-xs text-slate-400 mb-1">계약 시작일</label><input id="edit-camp-start" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-end" class="block text-xs text-slate-400 mb-1">계약 종료일</label><input id="edit-camp-end" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-tablets" class="block text-xs text-slate-400 mb-1">태블릿 한도</label><input id="edit-camp-tablets" type="number" min="1" max="2000" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-price" class="block text-xs text-slate-400 mb-1">단가(원)</label><input id="edit-camp-price" type="number" min="0" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-amount" class="block text-xs text-slate-400 mb-1">계약 금액(원)</label><input id="edit-camp-amount" type="number" min="0" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div></div><p class="text-xs text-slate-400 mt-3">입금액은 입금 기록으로 관리합니다. 한도 변경만으로 입금액이 바뀌지 않습니다.</p><button type="button" onclick="saveCampEdit()" class="mt-4 w-full py-3 rounded-xl bg-indigo-600 text-sm font-bold disabled:opacity-50">검증 후 저장</button><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="camp-account-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="캠프 관리자 계정 관리"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">캠프 관리자 계정 관리</h3><button type="button" data-close-dialog="camp-account-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p id="camp-account-context" class="text-sm mb-3"></p><div id="camp-account-state" class="p-3 bg-slate-950 rounded-xl text-xs text-slate-300 mb-3"></div><div><label for="camp-account-email" class="block text-xs text-slate-400 mb-1">실제 관리자 이메일</label><input id="camp-account-email" type="email"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div class="flex flex-wrap gap-2 mt-4"><button type="button" onclick="linkCampAccount()" class="px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">기존 계정 연결</button><button type="button" onclick="inviteCampAccount()" class="px-4 py-2 rounded-xl bg-blue-600 text-sm font-bold">새 계정 초대</button><button type="button" onclick="resetCampAccountPassword()" class="px-4 py-2 rounded-xl bg-slate-700 text-sm font-bold">재설정 메일 보내기</button><button type="button" onclick="unlinkCampAccount()" class="bg-rose-950 border border-rose-800 text-rose-300 rounded-xl px-4 py-3 font-bold">연결 해제</button></div><p class="text-xs text-slate-400 mt-3">연결·초대는 해당 이메일에 이 캠프 관리자 권한을 부여합니다. 다른 캠프 계정 또는 최고관리자 계정은 전환하지 않습니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="camp-payment-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="계약 · 입금 기록"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">계약 · 입금 기록</h3><button type="button" data-close-dialog="camp-payment-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p id="camp-payment-context" class="text-sm mb-3"></p><div id="camp-payment-summary" class="p-3 bg-slate-950 rounded-xl text-xs mb-3"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label for="payment-amount" class="block text-xs text-slate-400 mb-1">실제 입금액(원)</label><input id="payment-amount" type="number" min="1" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="payment-date" class="block text-xs text-slate-400 mb-1">입금일</label><input id="payment-date" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="payment-memo" class="block text-xs text-slate-400 mb-1">입금 메모(선택)</label><input id="payment-memo" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div></div><button type="button" onclick="saveCampPayment()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">입금 기록 추가</button><p class="text-xs text-slate-400 mt-2">입금 내역을 기록하는 기능이며 실제 송금은 실행하지 않습니다.</p><div id="camp-payment-list" class="mt-4 text-xs space-y-2"></div><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="admin-audit-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="관리 변경 이력"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">관리 변경 이력</h3><button type="button" data-close-dialog="admin-audit-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><div id="admin-audit-list" class="text-xs space-y-2"></div><div class="flex justify-between mt-4"><button type="button" onclick="changeAuditPage(-1)" class="px-3 py-2 bg-slate-800 rounded-xl text-xs">이전</button><button type="button" onclick="changeAuditPage(1)" class="px-3 py-2 bg-slate-800 rounded-xl text-xs">다음</button></div><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="admin-backup-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="백업 · 복원 관리"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">백업 · 복원 관리</h3><button type="button" data-close-dialog="admin-backup-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p class="text-xs text-slate-400 mb-3">백업에는 업무 데이터와 계약·입금 기록이 포함됩니다. 인증 비밀번호와 로그인 세션은 복원하지 않습니다.</p><div class="flex flex-wrap gap-2"><button type="button" onclick="createAdminBackup()" class="px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">지금 백업</button><button type="button" onclick="toggleBackupSchedule()" id="backup-schedule-button" class="px-4 py-2 rounded-xl bg-slate-700 text-sm font-bold">자동 백업 설정</button></div><p id="backup-schedule-state" class="text-xs text-slate-400 mt-2"></p><div id="admin-backup-list" class="mt-4 space-y-2 text-xs"></div><p class="mt-4 text-xs text-slate-400">복원 시 현재 데이터를 자동으로 다시 백업합니다. 캠프별 복원만 제공하며, 처리 중인 배정이 있으면 복원하지 않습니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="my-account-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="내 계정"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">내 계정</h3><button type="button" data-close-dialog="my-account-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><div id="my-account-summary" class="text-sm p-3 bg-slate-950 rounded-xl mb-4"></div><p id="my-account-mfa" class="text-xs text-slate-400 mb-3"></p><div><label for="my-account-password" class="block text-xs text-slate-400 mb-1">본인 계정 새 비밀번호</label><input id="my-account-password" type="password" autocomplete="new-password" minlength="12" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><button type="button" onclick="saveMyPassword()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">내 비밀번호 변경</button><p class="mt-3 text-xs text-slate-400">캠프 계정의 비밀번호는 계정 관리에서 재설정 메일로 처리합니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div>
   <!-- Toast 알림 -->
   <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl font-bold text-base flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none z-50">
     <i class="fa-solid fa-shield-halved text-emerald-400 text-lg"></i>
@@ -3056,7 +3073,7 @@
           <td class="p-3 font-bold">${formatSupportStatus(l.status, l.callResult)}</td>
           <td class="p-3 font-mono text-slate-600">${escapeHTML(l.duration || '00:00')}</td>
           <td class="p-3 text-slate-600">${escapeHTML(l.memo || '-')}</td>
-          <td class="p-3"><button type="button" onclick="alert('🔊 [${escapeHTML(l.voterName)} - ${escapeHTML(l.duration || '00:15')}] 통화 녹음 파일 재생 중...')" class="text-indigo-600 font-bold hover:underline">청취</button></td>
+          <td class="p-3"><button type="button" disabled class="text-slate-400 font-bold" title="연결된 녹음 파일이 없습니다">녹음 없음</button></td>
           <td class="p-3 font-mono text-slate-400">${escapeHTML(l.time)}</td>
         </tr>`;
       });
@@ -3554,7 +3571,9 @@
       setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 2800);
     }
   </script>
+  <script type="module" src="./admin-console.js"></script>
 </body>
 </html>
+
 
 

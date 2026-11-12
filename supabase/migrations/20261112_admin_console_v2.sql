@@ -246,6 +246,20 @@ end $$;
 create or replace function public.easycall_admin_note_reset(p_camp_id text)
 returns void language plpgsql security definer set search_path='' as $$
 begin perform easycall_private_v2.require_super();perform easycall_private_v2.audit('account.reset_requested',p_camp_id,null,jsonb_build_object('method','email'));end $$;
+create or replace function public.easycall_admin_unlink_account(p_camp_id text,p_email text,p_reason text,p_request_id uuid)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare u auth.users;r jsonb;body jsonb:=jsonb_build_object('email',lower(trim(p_email)),'reason',p_reason);
+begin
+  perform easycall_private_v2.require_super();
+  r:=easycall_private_v2.request_replay(p_request_id,'account.unlink',p_camp_id,body);if r is not null then return r;end if;
+  perform pg_advisory_xact_lock(hashtextextended('easycall-account:'||p_camp_id,0));
+  if length(trim(coalesce(p_reason,''))) not between 1 and 500 then raise exception '연결 해제 사유를 입력하세요.';end if;
+  select * into u from auth.users where lower(email)=lower(trim(p_email)) for update;
+  if not found or u.id=auth.uid() or u.raw_app_meta_data->>'easycall_role' is distinct from 'admin' or u.raw_app_meta_data->>'camp_id' is distinct from p_camp_id then raise exception '이 캠프에 연결된 관리자 계정만 해제할 수 있습니다.';end if;
+  update auth.users set raw_app_meta_data=raw_app_meta_data-'easycall_role'-'camp_id'-'agent_id' where id=u.id;
+  r:=jsonb_build_object('campId',p_camp_id,'email',u.email,'unlinked',true);
+  perform easycall_private_v2.audit('account.unlink',p_camp_id,jsonb_build_object('email',u.email),r,p_request_id,body,r);return r;
+end $$;
 create or replace function public.easycall_admin_audit(p_camp_id text default null,p_offset integer default 0)
 returns jsonb language plpgsql stable security definer set search_path='' as $$
 begin
@@ -334,6 +348,7 @@ returns uuid language plpgsql security definer set search_path='' as $$
 declare backup_key uuid;
 begin
   perform pg_advisory_xact_lock(hashtextextended('easycall-backup',0));
+  lock table public.easycall_sync_store,public.easycall_voters,public.easycall_call_logs,public.easycall_camp_contracts,public.easycall_payments in share mode;
   insert into public.easycall_backup_catalog(kind,created_by,voter_count,log_count)
     values(p_kind,auth.uid(),(select count(*) from public.easycall_voters),(select count(*) from public.easycall_call_logs)) returning easycall_backup_catalog.id into backup_key;
   insert into easycall_private_v2.backup_rows select backup_key,'sync',to_jsonb(t) from public.easycall_sync_store t;
