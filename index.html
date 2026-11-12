@@ -324,13 +324,7 @@
                 <option value="경상남도">경상남도</option>
                 <option value="제주특별자치도">제주특별자치도</option>
               </select>
-              <select id="camp-filter-billing" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-amber-300 font-bold focus:outline-none focus:border-indigo-500">
-                <option value="ALL">정산상태 전체</option>
-                <option value="완납(가동중)">완납(가동중)</option>
-                <option value="계약확정(선금)">계약확정(선금)</option>
-                <option value="시범운영(무료)">시범운영(무료)</option>
-                
-              </select>
+              <select id="camp-filter-billing" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-amber-300 font-bold focus:outline-none focus:border-indigo-500"><option value="ALL">입금상태 전체</option><option value="완납(가동중)">완납</option><option value="일부입금">일부입금</option><option value="미입금">미입금</option><option value="시범운영(무료)">무료</option></select>
               <select id="camp-filter-party" aria-label="정당" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold"><option value="ALL">정당 전체</option></select>
               <select id="camp-filter-status" aria-label="운영상태" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold"><option value="ALL">운영상태 전체</option><option value="ready">사용 가능</option><option value="future">시작 전</option><option value="expired">기간 만료</option><option value="stopped">수동 중지</option><option value="unconfigured">계약 확인 필요</option></select>
               <select id="camp-filter-staff" aria-label="담당자" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold"><option value="ALL">담당자 전체</option></select>
