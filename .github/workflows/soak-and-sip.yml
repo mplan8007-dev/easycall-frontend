@@ -1,0 +1,90 @@
+name: Isolated long soak and virtual SIP
+on:
+  push:
+    branches: ["test/soak-and-sip"]
+    paths:
+      - ".github/workflows/soak-and-sip.yml"
+      - "loadtest/run.mjs"
+      - "loadtest/sip/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: soak-sip-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  soak:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        camps: [1, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Regression checks
+        run: node --test tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs
+      - name: Prepare fictional isolated data
+        env:
+          DEVICES: "2000"
+          CAMPS: ${{ matrix.camps }}
+          CONTACTS: "1000000"
+        run: node loadtest/prepare.mjs
+      - name: Start isolated DB and API
+        run: |
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml up --build -d
+          for n in $(seq 1 90); do
+            if curl --silent --fail http://127.0.0.1:54330/ > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Five-hour continuous 2000-device soak
+        env:
+          DEVICES: "2000"
+          DURATION_SECONDS: "18000"
+          RAMP_SECONDS: "180"
+          CALL_INTERVAL_SECONDS: "60"
+        run: |
+          mkdir -p loadtest/results
+          (while true; do date -Is; docker stats --no-stream; sleep 60; done) > loadtest/results/resources.log 2>&1 &
+          monitor_pid=$!
+          trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
+          node loadtest/run.mjs
+      - name: Collect evidence
+        if: always()
+        run: |
+          mkdir -p loadtest/results
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 100 > loadtest/results/stack.log || true
+          cat loadtest/results/capacity-*.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: five-hour-soak-${{ matrix.camps }}-camps
+          path: loadtest/results/
+          retention-days: 30
+      - name: Stop isolated services
+        if: always()
+        run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml down
+  virtual-sip:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install official Ubuntu SIPp package
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y sip-tester tcpdump
+          sipp -v || true
+      - name: Check SIP harness and packet parser
+        run: python3 tests/sip-harness.test.py
+      - name: Run loopback-only SIP and RTP stages
+        run: sudo unshare --net sh -c 'ip link set lo up; python3 loadtest/sip/run.py'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: virtual-sip-and-rtp
+          path: loadtest/sip/results/
+          retention-days: 30
