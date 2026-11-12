@@ -6,6 +6,8 @@ create table if not exists easycall_private_v2.agent_registry(camp_id text not n
 create table if not exists easycall_private_v2.blocked_phone(camp_id text not null,phone text not null,created_at timestamptz not null default now(),primary key(camp_id,phone));
 create table if not exists easycall_private_v2.runtime_cache(cache_key text primary key,payload jsonb not null,expires_at timestamptz not null,computed_at timestamptz not null default clock_timestamp());
 create table if not exists easycall_private_v2.agent_counter(camp_id text not null,agent_id text not null,total bigint not null default 0,today bigint not null default 0,day date not null default (now() at time zone 'Asia/Seoul')::date,primary key(camp_id,agent_id));
+alter table public.easycall_agent_presence set(fillfactor=75,autovacuum_vacuum_scale_factor=0.05,autovacuum_analyze_scale_factor=0.05);
+alter table easycall_private_v2.agent_counter set(fillfactor=80);
 revoke all on all tables in schema easycall_private_v2 from public,anon,authenticated;
 
 create or replace function easycall_private_v2.sync_registry(p_meta jsonb)
@@ -152,7 +154,7 @@ begin
  end if;
  return jsonb_build_object('revision',rev,'serverTime',now(),'camp',case when p_known_revision is distinct from rev then c.payload else null end,
   'agent',case when p_known_revision is distinct from rev then a.payload else null end,
-  'config',case when p_known_revision is distinct from rev then coalesce(s.payload->'config','{}')-'dncPhones' else null end,
+  'config',case when p_known_revision is distinct from rev then coalesce(s.payload->'config','{}')-'dncPhones'-'sosAlert' else null end,
   'ownCounts',coalesce((select jsonb_build_object('total',total,'today',case when day=(now() at time zone 'Asia/Seoul')::date then today else 0 end) from easycall_private_v2.agent_counter where camp_id=cid and agent_id=aid),'{"total":0,"today":0}'::jsonb));
 end $$;
 

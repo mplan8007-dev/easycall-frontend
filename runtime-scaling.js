@@ -50,7 +50,11 @@ import {AdaptivePoller} from './runtime-scheduler.mjs';
  }
  function updateCallbackBadgeCount(){if(verifiedIdentity?.role!=='agent'){legacyBadge();return;}const el=document.getElementById('callback-count-badge');if(el)el.textContent='조회';}
  function easycallRuntimeHealth(){return {backgroundMode:'compact-polling',lastSuccess:lastGood||null,requestPending:Boolean(flight),failures:poller?.failures||0,targetDevices:2000,capacityCertified:false};}
- Object.assign(window,{easycallPullAgentState,easycallStartRuntime,easycallRuntimeHealth,handleLogout,switchAgentTab,updateAgentGoalGauge,updateCallbackBadgeCount});
+ async function openRuntimeStatus(){
+  const box=document.getElementById('runtime-status-dialog'),message=document.getElementById('runtime-status-message');box?.classList.remove('hidden');if(message)message.textContent='운영 상태 확인 중…';
+  try{const {data,error}=await sbClient.rpc('easycall_runtime_status');if(error)throw error;if(message)message.textContent='현재 접속 단말기 '+data.connectedDevices+'대 · 동시 사용 목표 '+data.targetConcurrentDevices.toLocaleString()+'대 · 운영 서버 성능 승인 대기';}catch(e){if(message)message.textContent='상태 조회 실패: '+(e.message||'서버 연결을 확인하세요.');}
+ }
+ Object.assign(window,{easycallPullAgentState,easycallStartRuntime,easycallRuntimeHealth,openRuntimeStatus,handleLogout,switchAgentTab,updateAgentGoalGauge,updateCallbackBadgeCount});
  window.addEventListener('online',()=>poller?.poke());
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)poller?.poke();});
  window.addEventListener('pagehide',()=>poller?.stop());

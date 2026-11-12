@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 const dir=path.dirname(fileURLToPath(import.meta.url));
 export function validateTarget(target){const u=new URL(target);if(u.protocol!=='http:'||!['localhost','127.0.0.1','[::1]'].includes(u.hostname)||u.username||u.password||u.search||u.hash)throw Error('Load tests are restricted to an isolated loopback server. Production is prohibited.');return u.origin;}
 export function percentile(values,p){if(!values.length)return null;const a=[...values].sort((a,b)=>a-b);return a[Math.min(a.length-1,Math.ceil(a.length*p)-1)];}
+export async function decodeResponse(response){if(response.status===204)return null;const body=await response.text();return body?JSON.parse(body):null;}
 export function signToken(index,secret){const uuid=crypto.createHash('md5').update('easycall-loadtest-'+index).digest('hex').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');const encode=x=>Buffer.from(JSON.stringify(x)).toString('base64url');const msg=encode({alg:'HS256',typ:'JWT'})+'.'+encode({sub:uuid,role:'authenticated',aal:'aal1',aud:'authenticated',exp:Math.floor(Date.now()/1000)+7200});return msg+'.'+crypto.createHmac('sha256',secret).update(msg).digest('base64url');}
 export async function main(){
  const origin=validateTarget(process.env.TEST_URL||'http://127.0.0.1:54330');
@@ -13,7 +14,7 @@ export async function main(){
  const dimensions=JSON.parse(fs.readFileSync(path.join(dir,'generated/dimensions.json'),'utf8'));
  const devices=Number(process.env.DEVICES||dimensions.devices),duration=Number(process.env.DURATION_SECONDS||900),ramp=Number(process.env.RAMP_SECONDS||300),callInterval=Number(process.env.CALL_INTERVAL_SECONDS||60);
  if(!Number.isInteger(devices)||devices<1||devices>dimensions.devices||devices>2500||duration<10||duration>3600||ramp<0||callInterval<5)throw Error('Invalid load profile');
- const metrics={requests:0,errors:0,duplicateAssignments:0,uncertainWrites:0,acknowledgedCalls:0,replayChecks:0,peakDevices:0,latencies:{},timeouts:0};
+ const metrics={requests:0,errors:0,duplicateAssignments:0,uncertainWrites:0,acknowledgedCalls:0,replayChecks:0,peakDevices:0,latencies:{},timeouts:0,failureReasons:{}};
  const assignment=new Map(),acked=new Set();let active=0,halt=false;
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  async function rpc(token,name,args={}){
@@ -21,7 +22,7 @@ export async function main(){
   try{
    const response=await fetch(origin+'/rpc/'+name,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(args),signal:AbortSignal.timeout(12000)});
    if(!response.ok){metrics.errors++;throw Error('RPC '+name+' HTTP '+response.status);}
-   return await response.json();
+   return await decodeResponse(response);
   }catch(e){if(e.name==='TimeoutError'||e.name==='AbortError')metrics.timeouts++;throw e;}
   finally{(metrics.latencies[name]||=[]).push(performance.now()-start);}
  }
@@ -51,7 +52,7 @@ export async function main(){
     }
     await sleep(250);
    }
-  }catch(e){metrics.errors++;}finally{try{await rpc(token,'easycall_agent_control',{p_known_revision:revision,p_state:'offline'});}catch(e){}active--;}
+  }catch(e){metrics.errors++;const reason=String(e.message).slice(0,200);metrics.failureReasons[reason]=(metrics.failureReasons[reason]||0)+1;}finally{try{await rpc(token,'easycall_agent_control',{p_known_revision:revision,p_state:'offline'});}catch(e){}active--;}
  })()));}finally{clearInterval(timers);}
  const totals=await rpc(admin,'easycall_admin_overview_fast',{p_force:true});
  const storedCalls=(totals.camps||[]).reduce((n,c)=>n+Number(c.callCount||0),0);

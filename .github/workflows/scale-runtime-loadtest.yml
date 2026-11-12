@@ -55,6 +55,8 @@ jobs:
           node -e "const o=require('os');require('fs').writeFileSync('loadtest/results/machine.json',JSON.stringify({cpus:o.cpus().length,memoryBytes:o.totalmem(),platform:o.platform()},null,2))"
           docker stats --no-stream > loadtest/results/container-stats.txt || true
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80 > loadtest/results/stack.log || true
+          cat loadtest/results/capacity-*.json || true
+          cat loadtest/results/machine.json || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
