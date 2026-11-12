@@ -29,9 +29,10 @@ function harness() {
   return { run:code=>vm.runInContext(code,context), nodes, context };
 }
 
-test('original CSS, class attributes and element IDs are preserved', () => {
+test('original CSS, classes and IDs are preserved outside the added province filter', () => {
   const contract = require('./layout-contract.json');
-  const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '');
+  const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
+    .replace(/<select id="camp-filter-sido"[^]*?<\/select>/, '');
   const digest = text=>crypto.createHash('sha256').update(text).digest('hex');
   assert.equal(digest(html.match(/<style>([\s\S]*?)<\/style>/)[1]), contract.style);
   for (const field of ['class','id']) {
