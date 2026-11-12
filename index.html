@@ -87,44 +87,63 @@
     </div>
   </div>
 
-  <!-- ==================== 캠프 상세정보 모달 ==================== -->
+  <!-- ==================== 캠프 상세정보 모달 (세분화 항목 & 정산상태 변경 반영) ==================== -->
   <div id="camp-detail-modal" style="display: none;" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[9999] items-center justify-center">
-    <div class="bg-slate-900 border border-slate-700 p-7 rounded-2xl w-[520px] shadow-2xl text-slate-100">
-      <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
-        <h3 id="modal-camp-title" class="text-lg font-extrabold text-indigo-400">캠프 상세 정보</h3>
+    <div class="bg-slate-900 border border-slate-700 p-7 rounded-2xl w-[560px] shadow-2xl text-slate-100">
+      <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+        <div>
+          <span id="modal-camp-election-badge" class="px-2 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-700 rounded text-[11px] font-extrabold">기초단체장(시장·군수)</span>
+          <h3 id="modal-camp-title" class="text-lg font-extrabold text-white mt-1">캠프 상세 정보</h3>
+        </div>
         <button type="button" onclick="closeCampDetailModal()" class="text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="space-y-3 text-sm">
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">관할 지역</span>
-          <span id="modal-camp-region" class="font-bold text-indigo-300"></span>
+      <div class="space-y-2.5 text-sm">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400 text-xs block">관할 지역 / 세부 선거구</span>
+            <span id="modal-camp-region" class="font-bold text-indigo-300 text-xs mt-0.5 block"></span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400 text-xs block">후보자 기호 및 성명</span>
+            <span id="modal-camp-candidate" class="font-extrabold text-amber-300 text-xs mt-0.5 block"></span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400 text-xs block">관리자 ID / 독립 샤드</span>
+            <span class="font-mono font-bold text-white text-xs mt-0.5 block"><span id="modal-camp-id"></span> (<span id="modal-camp-shard" class="text-emerald-400"></span>)</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/60">
+            <span class="text-slate-400 text-xs block">본사 담당 직원 (CS)</span>
+            <span id="modal-camp-staff" class="font-bold text-white text-xs mt-0.5 block"></span>
+          </div>
         </div>
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">본사 담당 직원 (CS)</span>
-          <span id="modal-camp-staff" class="font-bold text-amber-300"></span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">관리자 아이디</span>
-          <span id="modal-camp-id" class="font-mono font-bold text-white"></span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">클라우드 샤딩 키</span>
-          <span id="modal-camp-shard" class="font-mono font-bold text-emerald-400"></span>
-        </div>
-        <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">캠프 담당자 (연락처 / 이메일)</span>
+          <span class="text-slate-400 text-xs">캠프 담당 사무장 (연락처)</span>
           <span id="modal-camp-manager" class="font-bold text-white text-xs"></span>
         </div>
         <div class="flex justify-between bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-          <span class="text-slate-400">계약 서비스 기간</span>
-          <span id="modal-camp-period" class="font-mono font-bold text-emerald-400"></span>
+          <span class="text-slate-400 text-xs">계약 서비스 기간</span>
+          <span id="modal-camp-period" class="font-mono font-bold text-emerald-400 text-xs"></span>
+        </div>
+        <div class="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-amber-500/40">
+          <span class="text-amber-300 font-bold text-xs">💳 계약·정산 상태 변경</span>
+          <div class="flex items-center gap-2">
+            <select id="modal-camp-billing-select" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white">
+              <option value="완납(가동중)">완납(가동중)</option>
+              <option value="계약확정(선금)">계약확정(선금)</option>
+              <option value="시범운영(무료)">시범운영(무료)</option>
+              <option value="기간만료(중지)">기간만료(중지)</option>
+            </select>
+            <button type="button" id="modal-btn-save-billing" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-bold transition">상태저장</button>
+          </div>
         </div>
         <div class="flex justify-between bg-slate-950 p-3.5 rounded-xl border border-indigo-500/40 bg-indigo-950/20">
-          <span class="text-indigo-300 font-bold">할당 태블릿 라이선스 (등록/한도)</span>
-          <span id="modal-camp-tablet" class="font-mono font-black text-indigo-400 text-sm"></span>
+          <span class="text-indigo-300 font-bold text-xs">할당 태블릿 라이선스 (등록/한도)</span>
+          <span id="modal-camp-tablet" class="font-mono font-black text-indigo-400 text-xs"></span>
         </div>
       </div>
-      <div class="flex gap-2 mt-6">
+      <div class="flex gap-2 mt-5">
         <button type="button" id="modal-btn-impersonate" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md">
           <i class="fa-solid fa-desktop mr-1"></i> 이 캠프 상황실 원격 접속
         </button>
@@ -206,7 +225,7 @@
     </div>
   </div>
 
-  <!-- ==================== 1. 최고관리자(super) 관제 대시보드 ==================== -->
+  <!-- ==================== 1. 최고관리자(super) 관제 대시보드 (세분화 분류 및 정산 관제) ==================== -->
   <div id="super-view" class="hidden h-full flex flex-col bg-slate-950 text-slate-100 relative">
     <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-4">
@@ -230,7 +249,7 @@
       </div>
     </header>
 
-    <main class="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar-dark">
+    <main class="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar-dark">
       <div class="grid grid-cols-3 gap-5">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
           <span class="text-xs font-bold text-slate-400 block mb-1">총 등록 캠프 (독립 샤드)</span>
@@ -240,10 +259,10 @@
           </div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-          <span class="text-xs font-bold text-slate-400 block mb-1">할당 태블릿 총 라이선스</span>
+          <span class="text-xs font-bold text-slate-400 block mb-1">할당 태블릿 라이선스 및 수금 현황</span>
           <div class="flex items-baseline justify-between">
             <span class="text-3xl font-black text-indigo-400 font-mono" id="stat-total-tablets">15대</span>
-            <span class="text-xs text-slate-400 font-bold" id="stat-est-revenue">예상 용역매출 1,050만원</span>
+            <span class="text-xs text-amber-300 font-bold" id="stat-est-revenue">총 1,050만원 (완납 1,050만원)</span>
           </div>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
@@ -256,27 +275,46 @@
       </div>
 
       <div class="grid grid-cols-12 gap-6">
+        <!-- 좌측 8칸: 세분화된 캠프 목록 및 다중 필터 -->
         <div class="col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <div class="flex justify-between items-center mb-4">
+          <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
             <div>
-              <h3 class="text-base font-bold text-indigo-300">📋 전체 선거 캠프 라이선스(Quota) 및 원격 대리 접속 관제</h3>
-              <p class="text-xs text-slate-400 mt-0.5">각 캠프 우측의 <strong>[🖥️ 상황실]</strong> 버튼을 누르면 비밀번호 없이 해당 캠프 상황실로 즉시 진입하여 설정을 지원할 수 있습니다.</p>
+              <h3 class="text-base font-bold text-indigo-300">📋 선거구분·후보자·정산별 캠프 통합 관제</h3>
+              <p class="text-xs text-slate-400 mt-0.5">선거 종류와 정산 상태로 캠프를 세분화하여 조회하고 <strong>[🖥️ 상황실]</strong> 버튼으로 즉시 원격 지원합니다.</p>
             </div>
-            <div class="relative w-64">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
-              <input type="text" id="camp-search-input" onkeyup="renderSuperCampsTable()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="캠프명 검색...">
+            <div class="flex items-center gap-2">
+              <select id="camp-filter-election" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-bold focus:outline-none focus:border-indigo-500">
+                <option value="ALL">선거구분 전체</option>
+                <option value="기초단체장(시장·군수)">기초단체장(시장·군수)</option>
+                <option value="광역단체장(도지사·시장)">광역단체장(도지사·시장)</option>
+                <option value="광역의원(도의원)">광역의원(도의원)</option>
+                <option value="기초의원(시의원)">기초의원(시의원)</option>
+                <option value="교육감">교육감</option>
+                <option value="국회의원">국회의원</option>
+                <option value="조합장(농·수·축협)">조합장(농·수·축협)</option>
+              </select>
+              <select id="camp-filter-billing" onchange="renderSuperCampsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-amber-300 font-bold focus:outline-none focus:border-indigo-500">
+                <option value="ALL">정산상태 전체</option>
+                <option value="완납(가동중)">완납(가동중)</option>
+                <option value="계약확정(선금)">계약확정(선금)</option>
+                <option value="시범운영(무료)">시범운영(무료)</option>
+                <option value="기간만료(중지)">기간만료(중지)</option>
+              </select>
+              <div class="relative w-52">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search text-xs"></i></span>
+                <input type="text" id="camp-search-input" onkeyup="renderSuperCampsTable()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" placeholder="지역, 후보자, 캠프명...">
+              </div>
             </div>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
               <thead class="text-slate-400 border-b border-slate-800 text-xs">
                 <tr>
-                  <th class="pb-3">관할 지역</th>
-                  <th class="pb-3">캠프명</th>
+                  <th class="pb-3">선거구분 / 관할선거구</th>
+                  <th class="pb-3">후보자 / 캠프명</th>
                   <th class="pb-3">관리자 ID</th>
-                  <th class="pb-3 text-emerald-400">태블릿 라이선스 (등록/한도)</th>
-                  <th class="pb-3 text-indigo-400">독립 명부/콜수</th>
-                  <th class="pb-3">상태</th>
+                  <th class="pb-3 text-emerald-400">태블릿 (등록/한도)</th>
+                  <th class="pb-3 text-amber-400">정산 / 운영상태</th>
                   <th class="pb-3 text-right">원격 접속 및 제어</th>
                 </tr>
               </thead>
@@ -285,12 +323,25 @@
           </div>
         </div>
 
-        <div class="col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-          <h3 class="text-base font-bold text-indigo-300 mb-2">➕ 신규 선거 캠프 개설 등록</h3>
-          <div class="space-y-2.5">
+        <!-- 우측 4칸: 신규 캠프 세분화 개설 등록 폼 -->
+        <div class="col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-2.5">
+          <h3 class="text-base font-bold text-indigo-300 mb-1">➕ 신규 선거 캠프 세분화 개설</h3>
+          <div class="space-y-2">
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[11px] text-slate-400 mb-0.5">시·도</label>
+                <label class="block text-[11px] text-indigo-300 font-bold mb-0.5">선거 구분 *</label>
+                <select id="new-camp-election-type" class="w-full bg-slate-950 border border-indigo-500/60 rounded-xl p-2 text-xs text-white font-bold">
+                  <option value="기초단체장(시장·군수)">기초단체장(시장·군수)</option>
+                  <option value="광역단체장(도지사·시장)">광역단체장(도지사·시장)</option>
+                  <option value="광역의원(도의원)">광역의원(도의원)</option>
+                  <option value="기초의원(시의원)">기초의원(시의원)</option>
+                  <option value="교육감">교육감</option>
+                  <option value="국회의원">국회의원</option>
+                  <option value="조합장(농·수·축협)">조합장(농·수·축협)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-0.5">시·도 *</label>
                 <select id="new-camp-sido" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-bold">
                   <option value="충청남도">충청남도</option>
                   <option value="서울특별시">서울특별시</option>
@@ -302,22 +353,48 @@
                   <option value="전북특별자치도">전북특별자치도</option>
                 </select>
               </div>
-              <div>
-                <label class="block text-[11px] text-slate-400 mb-0.5">시·군·구</label>
-                <input type="text" id="new-camp-sigungu" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 서천군">
-              </div>
             </div>
-            <div>
-              <label class="block text-[11px] text-slate-400 mb-0.5">캠프명</label>
-              <input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 기호 1번 서천선거캠프">
-            </div>
-            <div>
-              <label class="block text-[11px] text-indigo-300 mb-0.5 font-bold">⭐ 본사 담당 직원 (CS 매니저)</label>
-              <input type="text" id="new-camp-staff" class="w-full bg-slate-950 border border-indigo-500/60 rounded-xl p-2 text-xs text-white font-bold" placeholder="본사 담당자 성명">
-            </div>
+
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[11px] text-slate-400 mb-0.5">관리자 ID (camp 포함)</label>
+                <label class="block text-[11px] text-slate-400 mb-0.5">시·군·구 *</label>
+                <input type="text" id="new-camp-sigungu" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 보령시">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-0.5">세부 선거구</label>
+                <input type="text" id="new-camp-district" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 가선거구 / 전역">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-amber-300 font-bold mb-0.5">후보자 기호/성명 *</label>
+                <input type="text" id="new-camp-candidate" class="w-full bg-slate-950 border border-amber-500/50 rounded-xl p-2 text-xs text-white font-bold" placeholder="예: 기호 1번 홍길동">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-0.5">캠프명 *</label>
+                <input type="text" id="new-camp-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="예: 홍길동 필승캠프">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-indigo-300 mb-0.5 font-bold">본사 담당 직원 *</label>
+                <input type="text" id="new-camp-staff" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-bold" placeholder="본사 CS 담당자">
+              </div>
+              <div>
+                <label class="block text-[11px] text-amber-300 mb-0.5 font-bold">정산 / 계약 상태</label>
+                <select id="new-camp-billing" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-amber-300 font-bold">
+                  <option value="완납(가동중)">완납(가동중)</option>
+                  <option value="계약확정(선금)">계약확정(선금)</option>
+                  <option value="시범운영(무료)">시범운영(무료)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-0.5">관리자 ID (camp 포함) *</label>
                 <input type="text" id="new-camp-admin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" placeholder="camp02">
               </div>
               <div>
@@ -325,17 +402,19 @@
                 <input type="text" id="new-camp-pw" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" value="1234">
               </div>
             </div>
+
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[11px] text-slate-400 mb-0.5">담당 사무장</label>
-                <input type="text" id="new-camp-manager" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="홍길동 사무장">
+                <label class="block text-[11px] text-slate-400 mb-0.5">담당 사무장 *</label>
+                <input type="text" id="new-camp-manager" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="김사무장">
               </div>
               <div>
                 <label class="block text-[11px] text-slate-400 mb-0.5">사무실 대표전화</label>
                 <input type="text" id="new-camp-phone" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white font-mono" placeholder="041-000-0000">
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
+
+            <div class="grid grid-cols-3 gap-2">
               <div>
                 <label class="block text-[11px] text-slate-400 mb-0.5">계약 시작일</label>
                 <input type="date" id="new-camp-start" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="2026-05-01">
@@ -344,13 +423,13 @@
                 <label class="block text-[11px] text-slate-400 mb-0.5">계약 종료일</label>
                 <input type="date" id="new-camp-end" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" value="2026-06-03">
               </div>
-            </div>
-            <div>
-              <label class="block text-[11px] text-emerald-400 font-bold mb-0.5">📱 계약 태블릿 한도 (대)</label>
-              <input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-emerald-500/60 rounded-xl p-2 text-xs text-white font-bold" value="15" min="1" max="2000">
+              <div>
+                <label class="block text-[11px] text-emerald-400 font-bold mb-0.5">📱 태블릿 한도</label>
+                <input type="number" id="new-camp-limit" class="w-full bg-slate-950 border border-emerald-500/60 rounded-xl p-2 text-xs text-white font-bold" value="15" min="1" max="2000">
+              </div>
             </div>
           </div>
-          <button type="button" onclick="registerNewCampByMaster()" class="w-full mt-3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
+          <button type="button" onclick="registerNewCampByMaster()" class="w-full mt-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-lg">
             신규 캠프 승인 및 독립 샤드(Shard) 생성
           </button>
         </div>
@@ -519,7 +598,7 @@
           </div>
         </div>
 
-        <!-- [개편] 깔끔한 2종 대본 배포 패널 (대본 1: 기본 인지도 각인 / 대본 2: 투표 독려 및 예비) -->
+        <!-- 깔끔한 2종 대본 배포 패널 (대본 1: 기본 인지도 각인 / 대본 2: 투표 독려 및 예비) -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
             <div>
@@ -530,7 +609,6 @@
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <!-- 대본 1: 기본 인지도 각인용 -->
             <div class="p-4 bg-blue-50/70 border border-blue-200 rounded-xl flex flex-col justify-between space-y-2.5">
               <div>
                 <div class="flex items-center justify-between mb-1.5">
@@ -545,7 +623,6 @@
               <button type="button" onclick="saveAndDeployStep(1)" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-lg transition shadow-2xs">📢 대본 1 태블릿 전체 배포</button>
             </div>
 
-            <!-- 대본 2: 투표 독려 및 예비용 -->
             <div class="p-4 bg-indigo-50/70 border border-indigo-200 rounded-xl flex flex-col justify-between space-y-2.5">
               <div>
                 <div class="flex items-center justify-between mb-1.5">
@@ -828,7 +905,7 @@
     </main>
   </div>
 
-  <!-- ==================== 3. 태블릿 요원(tab01 등) 워크스페이스 [하단 버튼 고정 보장 & 특대 글자] ==================== -->
+  <!-- ==================== 3. 태블릿 요원(tab01 등) 워크스페이스 ==================== -->
   <div id="agent-view" class="hidden h-full flex flex-col bg-slate-100 text-slate-900 relative overflow-hidden">
     <div id="agent-global-stop-banner" class="hidden bg-rose-600 text-white px-6 py-2.5 text-center text-base font-extrabold flex items-center justify-center gap-2 shadow-md z-40 shrink-0">
       <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
@@ -881,11 +958,9 @@
       </div>
     </header>
 
-    <!-- [요원 탭 1: 다이얼러 (왼쪽 하단 버튼 100% 고정 노출 구조)] -->
+    <!-- [요원 탭 1: 다이얼러] -->
     <main id="agent-tab-dialer" class="flex-1 min-h-0 flex gap-4 p-4 overflow-hidden">
-      <!-- 왼쪽 유권자 & 발신 섹션 -->
       <section class="w-[41%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
-        <!-- 상단 가변 스크롤 영역 -->
         <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="bg-blue-600 text-white font-extrabold text-base px-3.5 py-1 rounded-lg shadow-sm" id="voter-dong">대천1동</span>
@@ -896,7 +971,6 @@
             </div>
           </div>
 
-          <!-- 이전 유권자 / 다음 유권자 수동 이동 네비게이터 -->
           <div class="flex items-center justify-between bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200">
             <button type="button" onclick="navigateVoter(-1)" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
               <i class="fa-solid fa-chevron-left text-xs"></i> 이전 유권자
@@ -907,7 +981,6 @@
             </button>
           </div>
 
-          <!-- 유권자 이름/전화번호 특대 카드 -->
           <div class="bg-gradient-to-br from-blue-50/90 to-slate-50 border-2 border-blue-200 rounded-2xl p-4">
             <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight" id="voter-name">홍길동 유권자</h2>
             <p class="text-3xl font-black text-blue-600 tracking-wider font-mono mt-1.5" id="voter-phone">010-1234-5678</p>
@@ -917,7 +990,6 @@
             </div>
           </div>
 
-          <!-- 발신 / 전화앱 호출 / 문자 발송 버튼군 -->
           <div>
             <div id="call-idle-state" class="space-y-2">
               <button type="button" id="btn-dial-action" onclick="startCallSimulation(false)" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-xl shadow-md transition flex items-center justify-center gap-2">
@@ -943,7 +1015,6 @@
           </div>
         </div>
 
-        <!-- [하단 100% 고정] 통화 미연결 즉시 처리 4대 버튼 (절대 잘리지 않음) -->
         <div class="pt-3 border-t-2 border-slate-200 mt-2 shrink-0 bg-white">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-sm font-black text-slate-800"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>통화 미연결 즉시 처리 (터치 시 바로 다음 유권자)</span>
@@ -957,11 +1028,8 @@
         </div>
       </section>
 
-      <!-- 오른쪽 대본 & 성향 기록 섹션 -->
       <section class="w-[59%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
-        <!-- 상단 가변 스크롤 영역 -->
         <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-3">
-          <!-- 대본 가독성 확대 & 자동 치환 변수 반영 -->
           <div class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-extrabold text-indigo-700">📢 캠프 홍보 시나리오 대본 (유권자 정보 자동 반영)</span>
@@ -970,7 +1038,6 @@
             <p id="agent-script-display" class="text-xl text-indigo-950 font-extrabold leading-snug tracking-tight">"안녕하십니까! 대천1동에 계신 홍길동님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!"</p>
           </div>
 
-          <!-- 돌발 질문 모범 답변 -->
           <div class="bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-3">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-extrabold text-amber-900"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>유권자 돌발 질문 모범 답변 (터치 시 답변 크게 보기)</span>
@@ -983,7 +1050,6 @@
             <div id="agent-faq-answer-box" class="hidden mt-2 p-3 bg-white rounded-xl border-2 border-amber-400 text-base font-extrabold text-slate-900 leading-relaxed"></div>
           </div>
 
-          <!-- 성별 및 연령대 버튼 -->
           <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-3 space-y-2.5">
             <div class="flex items-center gap-2.5">
               <span class="text-base font-black text-slate-800 w-16 shrink-0">성별</span>
@@ -1007,7 +1073,6 @@
             </div>
           </div>
 
-          <!-- 유권자 지지 성향 분류 -->
           <div>
             <h3 class="text-sm font-black text-slate-900 mb-1.5">📊 유권자 지지 성향 분류 (통화 성공 시 선택)</h3>
             <div class="grid grid-cols-2 gap-2" id="status-grid">
@@ -1018,7 +1083,6 @@
             </div>
           </div>
 
-          <!-- 원터치 빠른 메모 칩 & 메모 입력창 -->
           <div class="space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-extrabold text-slate-700">✍️ 민원 메모 (태그 터치 시 자동 입력)</span>
@@ -1035,7 +1099,6 @@
           </div>
         </div>
 
-        <!-- [하단 100% 고정] 통화성공 저장 버튼 -->
         <div class="pt-3 border-t-2 border-slate-200 mt-2 shrink-0 bg-white">
           <button type="button" id="btn-save-next" onclick="saveResultToStorage('SUPPORT', 'CONNECTED')" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-md">💾 통화성공 저장 후 다음 유권자 ➔</button>
         </div>
@@ -1148,8 +1211,12 @@
     const DEFAULT_CAMPS = [
       {
         campId: 'camp01',
-        name: '보령시 선거캠프',
+        electionType: '기초단체장(시장·군수)',
         region: '충청남도 보령시',
+        district: '보령시 전역',
+        candidate: '기호 1번 홍길동',
+        name: '보령시 선거캠프',
+        billingStatus: '완납(가동중)',
         staff: '김본사 팀장',
         manager: '김철수 사무장',
         phone: '041-930-1000',
@@ -1190,6 +1257,15 @@
     let votersList = [];
     let globalCampCallLogs = [];
     let campSettingsMap = {};
+
+    // ==================== 캠프 데이터 하위호환 및 구조 보정 ====================
+    function ensureCampStructure(c) {
+      if (!c.electionType) c.electionType = '기초단체장(시장·군수)';
+      if (!c.district) c.district = '관할 전역';
+      if (!c.candidate) c.candidate = c.name || '후보자 미입력';
+      if (!c.billingStatus) c.billingStatus = c.approved === false ? '기간만료(중지)' : '완납(가동중)';
+      return c;
+    }
 
     // ==================== 멀티캠프 격리 헬퍼 함수 ====================
     function getActiveCampId() {
@@ -1596,7 +1672,7 @@
 
           if (legacyRow && legacyRow.payload && !metaRow) {
             const b = legacyRow.payload;
-            if (b.campsList) campsList = b.campsList;
+            if (b.campsList) campsList = b.campsList.map(c => ensureCampStructure(c));
             if (b.agentsList) agentsList = b.agentsList.map((a, i) => ensureAgentStructure(a, i));
             if (b.votersList) votersList = b.votersList.map(v => ({ ...v, campId: (v.campId || 'camp01').toLowerCase() }));
             if (b.globalCampCallLogs) globalCampCallLogs = b.globalCampCallLogs.map(l => ({ ...l, campId: (l.campId || 'camp01').toLowerCase() }));
@@ -1605,7 +1681,7 @@
           }
 
           if (metaRow && metaRow.payload) {
-            if (metaRow.payload.campsList) campsList = metaRow.payload.campsList;
+            if (metaRow.payload.campsList) campsList = metaRow.payload.campsList.map(c => ensureCampStructure(c));
             if (metaRow.payload.agentsList) agentsList = metaRow.payload.agentsList.map((a, i) => ensureAgentStructure(a, i));
           }
 
@@ -1671,6 +1747,7 @@
       try {
         const savedCamps = localStorage.getItem('easycall_camps');
         campsList = savedCamps ? JSON.parse(savedCamps) : [...DEFAULT_CAMPS];
+        campsList = campsList.map(c => ensureCampStructure(c));
 
         const savedAgents = localStorage.getItem('easycall_agents');
         agentsList = savedAgents ? JSON.parse(savedAgents) : [...DEFAULT_AGENTS];
@@ -1694,7 +1771,7 @@
         campSettingsMap = savedMap ? JSON.parse(savedMap) : {};
         campsList.forEach(c => getCampConfig(c.campId));
       } catch (e) {
-        campsList = [...DEFAULT_CAMPS];
+        campsList = [...DEFAULT_CAMPS].map(c => ensureCampStructure(c));
         agentsList = [...DEFAULT_AGENTS].map((a, i) => ensureAgentStructure(a, i));
         votersList = [...DEFAULT_VOTERS];
         globalCampCallLogs = [];
@@ -1853,38 +1930,60 @@
       window.location.href = window.location.pathname;
     }
 
-    // ==================== 최고관리자(super) ====================
+    // ==================== 최고관리자(super) 세분화 관제 ====================
     function initSuperView() {
       loadPersistentData();
       document.getElementById('super-view').classList.remove('hidden');
       renderSuperCampsTable();
     }
 
+    function getBillingBadgeHtml(billingStatus) {
+      const st = billingStatus || '완납(가동중)';
+      if (st === '완납(가동중)') {
+        return `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 text-[10px] font-extrabold">💳 완납</span>`;
+      }
+      if (st === '계약확정(선금)') {
+        return `<span class="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-700 text-[10px] font-extrabold">📝 선금확정</span>`;
+      }
+      if (st === '시범운영(무료)') {
+        return `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-extrabold">🧪 시범운영</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-extrabold">⏳ 만료/중지</span>`;
+    }
+
     function renderSuperCampsTable() {
       const query = (document.getElementById('camp-search-input')?.value || '').trim().toLowerCase();
+      const filterElection = document.getElementById('camp-filter-election')?.value || 'ALL';
+      const filterBilling = document.getElementById('camp-filter-billing')?.value || 'ALL';
       const tbody = document.getElementById('super-camps-body');
       if (!tbody) return;
 
-      let totalTablets = 0, totalRegistered = 0, activeCount = 0, html = '';
+      let totalTablets = 0, paidTablets = 0, totalRegistered = 0, activeCount = 0, html = '';
 
       campsList.forEach(c => {
+        ensureCampStructure(c);
         const cid = c.campId.toLowerCase();
         const regCount = agentsList.filter(a => a.campId.toLowerCase() === cid).length;
         const campVotersCnt = getCampVoters(cid).length;
         const campCallsCnt = getCampCallLogs(cid).length;
 
-        totalTablets += Number(c.tablets) || 0;
+        const qty = Number(c.tablets) || 0;
+        totalTablets += qty;
+        if (c.billingStatus === '완납(가동중)') paidTablets += qty;
         totalRegistered += regCount;
         if (c.approved !== false) activeCount++;
 
-        const keyword = `${c.name} ${c.campId} ${c.region}`.toLowerCase();
+        if (filterElection !== 'ALL' && c.electionType !== filterElection) return;
+        if (filterBilling !== 'ALL' && c.billingStatus !== filterBilling) return;
+
+        const keyword = `${c.name} ${c.campId} ${c.region} ${c.district} ${c.candidate} ${c.electionType}`.toLowerCase();
         if (query && !keyword.includes(query)) return;
 
         const isApproved = c.approved !== false;
         const badgeClass = isApproved
-          ? "px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800"
-          : "px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-950 text-rose-400 border border-rose-800";
-        const badgeText = isApproved ? "승인됨" : "중지됨";
+          ? "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800"
+          : "px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800";
+        const badgeText = isApproved ? "가동중" : "중지됨";
 
         const toggleBtnClass = isApproved
           ? "bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-[11px] font-bold transition"
@@ -1893,15 +1992,22 @@
 
         html += `
           <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-3 text-slate-300 font-bold">${c.region}</td>
-            <td class="py-3 font-bold text-indigo-400">
-              <button type="button" class="hover:underline text-left" onclick="openCampDetailModalById('${c.campId}')">
+            <td class="py-3 align-middle">
+              <span class="px-2 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded text-[10px] font-extrabold inline-block mb-1">${c.electionType}</span>
+              <div class="text-slate-200 font-bold text-xs">${c.region} <span class="text-slate-400">(${c.district})</span></div>
+            </td>
+            <td class="py-3 align-middle">
+              <div class="font-extrabold text-amber-300 text-xs">${c.candidate}</div>
+              <button type="button" class="font-bold text-indigo-400 hover:underline text-left text-xs mt-0.5" onclick="openCampDetailModalById('${c.campId}')">
                 ${c.name} 🔍
               </button>
             </td>
-            <td class="py-3 font-mono text-slate-300">${c.campId}</td>
-            <td class="py-3">
-              <div class="flex items-center gap-1.5">
+            <td class="py-3 align-middle">
+              <div class="font-mono text-slate-200 font-bold">${c.campId}</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">명부 ${campVotersCnt} / 콜 ${campCallsCnt}</div>
+            </td>
+            <td class="py-3 align-middle">
+              <div class="flex items-center gap-1">
                 <span class="font-mono font-extrabold text-emerald-400 bg-slate-950 border border-slate-700 px-2 py-1 rounded">
                   ${regCount} / ${c.tablets}대
                 </span>
@@ -1910,30 +2016,40 @@
                 <button type="button" onclick="adjustCampTabletLimit('${c.campId}', 5)" class="px-1.5 py-0.5 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 rounded text-[10px] font-bold border border-indigo-700">+5</button>
               </div>
             </td>
-            <td class="py-3 font-mono text-slate-300">명부 ${campVotersCnt}명 / 통화 ${campCallsCnt}건</td>
-            <td class="py-3"><span class="${badgeClass}">${badgeText}</span></td>
-            <td class="py-3 flex gap-1 justify-end">
-              <button type="button" onclick="impersonateCampAdmin('${c.campId}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-[11px] font-extrabold transition shadow-xs">🖥️ 상황실</button>
-              <button type="button" onclick="masterResetCampPw('${c.campId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold transition">비번초기화</button>
-              <button type="button" onclick="masterToggleCampApproval('${c.campId}')" class="${toggleBtnClass}">${toggleBtnText}</button>
+            <td class="py-3 align-middle">
+              <div class="flex flex-col gap-1 items-start">
+                ${getBillingBadgeHtml(c.billingStatus)}
+                <span class="${badgeClass}">${badgeText}</span>
+              </div>
+            </td>
+            <td class="py-3 align-middle">
+              <div class="flex gap-1 justify-end">
+                <button type="button" onclick="impersonateCampAdmin('${c.campId}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-[11px] font-extrabold transition shadow-xs">🖥️ 상황실</button>
+                <button type="button" onclick="masterResetCampPw('${c.campId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold transition">비번초기화</button>
+                <button type="button" onclick="masterToggleCampApproval('${c.campId}')" class="${toggleBtnClass}">${toggleBtnText}</button>
+              </div>
             </td>
           </tr>
         `;
       });
 
-      tbody.innerHTML = html || `<tr><td colspan="7" class="py-6 text-center text-slate-500">검색된 캠프가 없습니다.</td></tr>`;
+      tbody.innerHTML = html || `<tr><td colspan="6" class="py-8 text-center text-slate-500">조건에 맞는 캠프가 없습니다.</td></tr>`;
       document.getElementById('stat-total-camps').innerText = `${campsList.length}개`;
       document.getElementById('stat-active-camps-txt').innerText = `${activeCount}개 가동 중`;
       document.getElementById('stat-total-tablets').innerText = `${totalTablets}대 (등록 ${totalRegistered}대)`;
-      document.getElementById('stat-est-revenue').innerText = `예상 용역매출 ${(totalTablets * 70).toLocaleString()}만원`;
+      document.getElementById('stat-est-revenue').innerText = `총 ${(totalTablets * 70).toLocaleString()}만원 (완납 ${(paidTablets * 70).toLocaleString()}만원)`;
       document.getElementById('stat-super-total-calls').innerText = `${globalCampCallLogs.length.toLocaleString()}건`;
     }
 
     function registerNewCampByMaster() {
+      const electionType = document.getElementById('new-camp-election-type').value;
       const sido = document.getElementById('new-camp-sido').value;
       const sigungu = document.getElementById('new-camp-sigungu').value.trim();
+      const district = document.getElementById('new-camp-district').value.trim() || `${sigungu} 전역`;
+      const candidate = document.getElementById('new-camp-candidate').value.trim();
       const name = document.getElementById('new-camp-name').value.trim();
       const staff = document.getElementById('new-camp-staff').value.trim();
+      const billingStatus = document.getElementById('new-camp-billing').value;
       let admin = document.getElementById('new-camp-admin').value.trim().toLowerCase();
       const pw = document.getElementById('new-camp-pw').value.trim() || '1234';
       const manager = document.getElementById('new-camp-manager').value.trim();
@@ -1942,8 +2058,8 @@
       const end = document.getElementById('new-camp-end').value;
       const tablets = parseInt(document.getElementById('new-camp-limit').value || '15', 10);
 
-      if (!sigungu || !name || !staff || !admin || !manager) {
-        alert("시·군·구, 캠프명, 본사 담당 직원, 관리자 ID, 담당 사무장 성명은 필수입니다.");
+      if (!sigungu || !candidate || !name || !staff || !admin || !manager) {
+        alert("시·군·구, 후보자 기호/성명, 캠프명, 본사 담당 직원, 관리자 ID, 담당 사무장은 필수입니다.");
         return;
       }
       if (!admin.includes('camp')) admin = 'camp_' + admin;
@@ -1954,8 +2070,12 @@
 
       campsList.push({
         campId: admin,
-        name,
+        electionType,
         region: `${sido} ${sigungu}`,
+        district,
+        candidate,
+        name,
+        billingStatus,
         staff,
         manager,
         phone,
@@ -1972,8 +2092,10 @@
       savePersistentData(admin);
       renderSuperCampsTable();
 
-      showToast(`🎉 신규 캠프 [${name}] 개설 및 독립 샤드(STATE_${admin}) 생성 완료!`);
+      showToast(`🎉 [${electionType} / ${candidate}] 캠프 개설 및 독립 샤드(STATE_${admin}) 생성 완료!`);
       document.getElementById('new-camp-sigungu').value = '';
+      document.getElementById('new-camp-district').value = '';
+      document.getElementById('new-camp-candidate').value = '';
       document.getElementById('new-camp-name').value = '';
       document.getElementById('new-camp-staff').value = '';
       document.getElementById('new-camp-admin').value = '';
@@ -1983,15 +2105,33 @@
     function openCampDetailModalById(campId) {
       const c = campsList.find(item => item.campId.toLowerCase() === campId.toLowerCase());
       if (!c) return;
+      ensureCampStructure(c);
       const regCount = agentsList.filter(a => a.campId.toLowerCase() === c.campId.toLowerCase()).length;
+
+      document.getElementById('modal-camp-election-badge').innerText = c.electionType;
       document.getElementById('modal-camp-title').innerText = c.name;
       document.getElementById('modal-camp-id').innerText = c.campId;
       document.getElementById('modal-camp-shard').innerText = `STATE_${c.campId.toLowerCase()}`;
-      document.getElementById('modal-camp-region').innerText = c.region;
+      document.getElementById('modal-camp-region').innerText = `${c.region} (${c.district})`;
+      document.getElementById('modal-camp-candidate').innerText = c.candidate;
       document.getElementById('modal-camp-staff').innerText = c.staff || '본사 담당자';
-      document.getElementById('modal-camp-manager').innerText = `${c.manager} (${c.phone || '-'} / ${c.email || '-'})`;
+      document.getElementById('modal-camp-manager').innerText = `${c.manager} (${c.phone || '-'})`;
       document.getElementById('modal-camp-period').innerText = c.period || '-';
-      document.getElementById('modal-camp-tablet').innerText = `등록 ${regCount}대 / 계약한도 ${c.tablets}대 (예상매출: ${(Number(c.tablets) * 700000).toLocaleString()}원)`;
+      document.getElementById('modal-camp-tablet').innerText = `등록 ${regCount}대 / 계약한도 ${c.tablets}대 (용역액: ${(Number(c.tablets) * 700000).toLocaleString()}원)`;
+
+      const billingSel = document.getElementById('modal-camp-billing-select');
+      if (billingSel) billingSel.value = c.billingStatus || '완납(가동중)';
+
+      const saveBillBtn = document.getElementById('modal-btn-save-billing');
+      if (saveBillBtn) {
+        saveBillBtn.onclick = function() {
+          c.billingStatus = billingSel.value;
+          if (c.billingStatus === '기간만료(중지)') c.approved = false;
+          savePersistentData(c.campId);
+          renderSuperCampsTable();
+          showToast(`💳 [${c.name}] 정산 상태가 [${c.billingStatus}]로 변경되었습니다.`);
+        };
+      }
 
       const impBtn = document.getElementById('modal-btn-impersonate');
       if (impBtn) {
