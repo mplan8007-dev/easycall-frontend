@@ -7,7 +7,19 @@ let busy=false,pendingUser=null,issued=[];
 const inputClass='w-full rounded-lg border border-slate-600 bg-slate-800 p-2 text-white';
 function message(id,text){$(id).textContent=text;}
 function modal(id,title,content){const box=document.createElement('section');box.id=id;box.className='hidden fixed inset-0 z-[10040] bg-slate-950/90 flex items-center justify-center p-4';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label',title);box.innerHTML=`<div class="max-w-2xl w-full max-h-[90vh] overflow-auto bg-slate-900 text-white rounded-2xl p-6 space-y-3"><h3 class="text-xl font-bold">${title}</h3>${content}</div>`;document.body.append(box);}
-async function request(body){if(!sbClient)throw Error('서버 연결을 확인하세요.');const {data,error}=await sbClient.functions.invoke('easycall-work-accounts',{body});if(error)throw Error('계정 서버에 연결하지 못했습니다. 발급 결과가 불확실하면 같은 ID를 확인하고 초기화를 사용하세요.');if(data?.error)throw Error(data.error);return data;}
+async function request(body){
+ if(!sbClient)throw Error('서버 연결을 확인하세요.');
+ const {data,error}=await sbClient.functions.invoke('easycall-work-accounts',{body});
+ if(error){
+  let detail=null;try{detail=await error.context?.clone?.().json();}catch{}
+  const reason=detail?.error||detail?.message;
+  if(error.context?.status===401)throw Error('로그인 인증이 만료됐습니다. 로그아웃 후 다시 로그인하세요. 이미 변경을 눌렀다면 새 비밀번호로 로그인하세요.');
+  if(typeof reason==='string'&&reason.length<600)throw Error(reason);
+  throw Error(body.action==='change-password'?'비밀번호 변경 결과를 확인하지 못했습니다. 반복해서 변경하지 말고 새 비밀번호로 로그인되는지 확인하세요.':'계정 서버에 연결하지 못했습니다. 잠시 후 계정 상태를 확인하세요.');
+ }
+ if(data?.error)throw Error(data.error);
+ return data;
+}
 function canManage(){return verifiedIdentity&&['super','admin'].includes(verifiedIdentity.role)&&!sessionStorage.getItem('easycall_master_impersonator');}
 function show(id){$(id).classList.remove('hidden');}
 function hide(id){$(id).classList.add('hidden');}
@@ -44,7 +56,11 @@ $('work-password-save').onclick=async()=>{
    const verified=await sbClient.auth.mfa.challengeAndVerify({factorId:factor.id,code});if(verified.error)throw verified.error;
   }
   const changed=await request({action:'change-password',currentPassword:current,newPassword:password});
-  if(!changed.session)throw Error('새 비밀번호로 다시 로그인하세요.');
+  if(changed.success&&changed.reloginRequired){
+   for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';
+   pendingUser=null;hide('work-password-dialog');alert(changed.message||'비밀번호가 변경됐습니다. 새 비밀번호로 다시 로그인하세요.');await window.handleLogout();return;
+  }
+  if(!changed.session)throw Error('비밀번호 변경 결과를 확인하지 못했습니다. 다시 로그인하세요.');
   const refreshed=await sbClient.auth.setSession(changed.session);if(refreshed.error)throw refreshed.error;
   const {data,error}=await sbClient.auth.getUser();if(error||data.user?.id!==pendingUser.id)throw Error('다시 로그인하세요.');
   for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';

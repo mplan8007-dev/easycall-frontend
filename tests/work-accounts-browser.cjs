@@ -23,6 +23,11 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   assert.equal(await page.evaluate(()=>window.__changed),null);assert.match(await page.locator('#work-password-message').innerText(),/6~128/);
   await page.locator('#work-new-password').fill('654321');await page.locator('#work-confirm-password').fill('654321');await page.locator('#work-password-save').click();await page.waitForFunction(()=>window.__activated===2);
   assert.equal(await page.evaluate(()=>window.__changed.newPassword),'654321');assert.equal(await page.locator('#work-current-password').inputValue(),'');
+  await page.evaluate(async()=>{sbClient.functions.invoke=async()=>({error:{context:new Response(JSON.stringify({error:'현재 비밀번호를 확인하세요.'}),{status:403})}});await openWorkPasswordChange();});
+  await page.locator('#work-current-password').fill('fictional-old');await page.locator('#work-new-password').fill('fictional-new');await page.locator('#work-confirm-password').fill('fictional-new');await page.locator('#work-password-save').click();
+  await page.waitForFunction(()=>document.getElementById('work-password-message').textContent==='현재 비밀번호를 확인하세요.');
+  await page.evaluate(()=>{sbClient.functions.invoke=async()=>({error:{context:new Response('{}',{status:401})}});});
+  await page.locator('#work-password-save').click();await page.waitForFunction(()=>document.getElementById('work-password-message').textContent.includes('인증이 만료'));
   await page.evaluate(()=>{document.getElementById('work-password-dialog').classList.add('hidden');verifiedIdentity={role:'admin',campId:'camp01',uid:'manager'};sbClient={functions:{invoke:async(name,{body})=>{window.__bulk=body;return {data:{results:body.rows.map((row,i)=>({...row,success:i===0,password:i===0?'a'.repeat(48):undefined,error:i?'試験: capacity exceeded':undefined}))}}}}};openWorkAccounts();});
   assert.equal(await page.locator('#work-account-camp').isDisabled(),true);assert.equal(await page.locator('#work-account-role').isDisabled(),true);
   await page.locator('#work-account-rows').fill('a,<img src=x onerror=alert(1)>,0419301001\nb,Worker B,0419301002');
