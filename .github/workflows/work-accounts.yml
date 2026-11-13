@@ -1,7 +1,7 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash", "feat/contact-management"]
     paths: ["voter-import-ui.js", "runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
@@ -34,6 +34,7 @@ jobs:
           node tests/new-camp-call-browser.cjs
           node tests/import-lifecycle-browser.cjs
           node tests/session-refresh-browser.cjs
+          node tests/contact-management-browser.cjs
           npx tailwindcss -i ./tests/responsive-input.css -o ./tests/responsive-generated.css --content './index.html,./*.js' --minify
           node tests/responsive-browser.cjs
       - name: Upload responsive screenshots
@@ -63,6 +64,7 @@ jobs:
           cat supabase/migrations/20261113_call_transport_policy.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_new_camp_call_transport.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_voter_import_lifecycle.sql >> loadtest/generated/init.sql
+          cat supabase/migrations/20261113_contact_management.sql >> loadtest/generated/init.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml up --build -d
           for n in $(seq 1 90); do
             if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select position('callPolicy' in pg_get_functiondef('public.easycall_admin_save_camp(jsonb,timestamptz,uuid)'::regprocedure))>0" | grep -q t; then exit 0; fi
@@ -78,6 +80,7 @@ jobs:
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/new-camp-call-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/voter-import-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/import-lifecycle-rollback.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/contact-management-rollback.sql
       - name: Collect stack diagnostics
         if: failure()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80
