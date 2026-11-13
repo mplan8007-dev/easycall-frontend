@@ -213,8 +213,22 @@
     for(const k of ['unitPrice','contractAmount'])if(!Number.isSafeInteger(data[k])||data[k]<0||data[k]>1e12)throw new Error('계약 금액과 단가는 0 이상의 정수로 입력하세요.');
     if(data.phone&&!/^0\d{8,10}$/.test(normalizePhone(data.phone)))throw new Error('연락처 형식을 확인하세요.');
     if(data.requestedAdminEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.requestedAdminEmail))throw new Error('관리자 이메일 형식을 확인하세요.');
+    if(isNew)data.callPolicy=readNewCampCallPolicy();
     data.region=data.sido+' '+data.city;return data;
   }
+  function readNewCampCallPolicy(){
+    const callTransport=val('new-camp-call-transport')||'smartphone';
+    if(!['smartphone','sip'].includes(callTransport))throw Error('통화 방식을 선택하세요.');
+    const p={callTransport,sipWss:'',sipDomain:'',sipStun:''};
+    if(callTransport==='smartphone')return p;
+    p.sipWss=val('new-camp-sip-wss');p.sipDomain=val('new-camp-sip-domain');p.sipStun=val('new-camp-sip-stun');
+    if(Boolean(p.sipWss)!==Boolean(p.sipDomain))throw Error('SIP 서버 주소와 도메인을 함께 입력하거나, 나중에 설정하려면 둘 다 비워 두세요.');
+    if(p.sipWss&&(!/^wss:\/\/[A-Za-z0-9.-]+(:[0-9]{1,5})?(\/[A-Za-z0-9/_~.%-]*)?$/.test(p.sipWss)||p.sipWss.length>512))throw Error('SIP 서버는 계정 정보나 쿼리가 없는 wss:// 주소를 입력하세요.');
+    if(p.sipDomain&&(!/^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?$/.test(p.sipDomain)||p.sipDomain.length>255))throw Error('SIP 도메인을 확인하세요.');
+    if(p.sipStun&&(!/^stuns?:[A-Za-z0-9.-]+(:[0-9]{1,5})?$/.test(p.sipStun)||p.sipStun.length>255))throw Error('STUN 주소를 확인하세요.');
+    return p;
+  }
+  function updateNewCampCallPolicy(){const sip=val('new-camp-call-transport')==='sip';if($('new-camp-sip-options'))$('new-camp-sip-options').hidden=!sip;text('new-camp-call-hint',sip?'SIP 회선 정보가 없으면 설정 대기로 등록합니다. 등록 후 캠프 수정 → 통화 방식 설정에서 완료하세요.':'스마트폰의 유심과 기본 전화 앱으로 발신합니다.');}
   async function registerNewCampByMaster() {
     try {
       const data=readCampForm('new-camp-',true);
@@ -223,7 +237,7 @@
       if(saved){state.newRequest=null;for(const field of ['name','candidate','sigungu','district','staff','manager','phone','login-email'])if($('new-camp-'+field))$('new-camp-'+field).value='';initNewCampFormDefaults();notify('캠프 등록 완료. 계정 메뉴에서 관리자 아이디를 발급하세요.');}
     }catch(e){notify(failMessage(e),true);}
   }
-  function initNewCampFormDefaults(){legacyDefaults();if($('new-camp-unit-price'))$('new-camp-unit-price').value='700000';updateNewCampRevenuePreview();}
+  function initNewCampFormDefaults(){legacyDefaults();if($('new-camp-call-transport'))$('new-camp-call-transport').value='smartphone';for(const id of ['wss','domain','stun'])if($('new-camp-sip-'+id))$('new-camp-sip-'+id).value='';updateNewCampCallPolicy();if($('new-camp-unit-price'))$('new-camp-unit-price').value='700000';updateNewCampRevenuePreview();}
   function updateNewCampRevenuePreview(){const n=Number(val('new-camp-limit')),p=Number(val('new-camp-unit-price')||700000);const amount=val('new-camp-billing')==='시범운영(무료)'?0:Number.isSafeInteger(n*p)&&n>=1&&n<=2000&&p>=0?n*p:0;text('new-camp-revenue-preview',money(amount));if($('new-camp-contract-amount'))$('new-camp-contract-amount').value=String(amount);}
   function openCampDetailModalById(id){const c=camp(id);if(!c)return;state.edit={campId:id,revision:c.revision,requestId:crypto.randomUUID()};text('camp-edit-context',c.campId+' · 변경 이력에 작업자가 기록됩니다.');const fields={name:c.name,candidate:c.candidate,stage:c.electionStage,election:c.electionType,sido:getCampSido(c),city:String(c.region||'').trim().split(/\s+/).slice(1).join(' '),district:c.district,party:c.party,staff:c.staff,manager:c.manager,phone:c.phone,email:c.adminEmail||c.requestedAdminEmail,start:c.startsOn,end:c.endsOn,tablets:c.tablets,price:c.unitPrice,amount:c.contractAmount};for(const [key,value] of Object.entries(fields))if($('edit-camp-'+key))$('edit-camp-'+key).value=String(value??'');openDialog('camp-edit-dialog');}
   async function saveCampEdit(){if(!state.edit)return;try{const draft=copy(state.edit),data=readCampForm('edit-camp-',false);await mutate('camp-edit-dialog',()=>rpc('easycall_admin_save_camp',{p_camp:data,p_expected_revision:draft.revision,p_request_id:draft.requestId}),()=>{$('camp-edit-dialog').classList.add('hidden');state.edit=null;});}catch(e){dialogError('camp-edit-dialog',failMessage(e));}}
@@ -269,7 +283,7 @@
   async function testSupabaseConnection(){try{const data=await rpc('easycall_connection_status');text('sb-test-result-box','연결 정상 · 서버 API '+data.version+' · '+stamp(data.serverTime));$('sb-test-result-box')?.classList.remove('hidden');updateCloudStatusBadges(true);}catch(e){text('sb-test-result-box',failMessage(e));$('sb-test-result-box')?.classList.remove('hidden');updateCloudStatusBadges(false);}}
   async function forcePushToCloud(){return refreshAdminData();}
   async function resetAllSystemData(){return openBackupManager();}
-  Object.assign(window,{openEmailCampAccount:openLegacyCampAccount,initSupabaseEngine,activateVerifiedUser,pullStateFromSupabase,savePersistentData,refreshActiveRoleUI,updateCloudStatusBadges,renderSuperCampsTable,registerNewCampByMaster,initNewCampFormDefaults,updateNewCampRevenuePreview,openCampDetailModalById,adjustCampTabletLimit,masterToggleCampApproval,masterResetCampPw,changeAdminPassword,disconnectSupabase,saveAndConnectSupabase,openSupabaseModal,testSupabaseConnection,forcePushToCloud,resetAllSystemData,refreshAdminData,resetCampFilters,changeCampPage,toggleNewCampForm,saveCampEdit,unlinkCampAccount,linkCampAccount,inviteCampAccount,resetCampAccountPassword,saveCampPayment,changeAuditPage,openBackupManager,createAdminBackup,toggleBackupSchedule,openMyAccount,saveMyPassword,handleLogout});
+  Object.assign(window,{updateNewCampCallPolicy,openEmailCampAccount:openLegacyCampAccount,initSupabaseEngine,activateVerifiedUser,pullStateFromSupabase,savePersistentData,refreshActiveRoleUI,updateCloudStatusBadges,renderSuperCampsTable,registerNewCampByMaster,initNewCampFormDefaults,updateNewCampRevenuePreview,openCampDetailModalById,adjustCampTabletLimit,masterToggleCampApproval,masterResetCampPw,changeAdminPassword,disconnectSupabase,saveAndConnectSupabase,openSupabaseModal,testSupabaseConnection,forcePushToCloud,resetAllSystemData,refreshAdminData,resetCampFilters,changeCampPage,toggleNewCampForm,saveCampEdit,unlinkCampAccount,linkCampAccount,inviteCampAccount,resetCampAccountPassword,saveCampPayment,changeAuditPage,openBackupManager,createAdminBackup,toggleBackupSchedule,openMyAccount,saveMyPassword,handleLogout});
   localStorage.removeItem('easycall_cloud_force_disabled');
   document.addEventListener?.('click',async event=>{
     const button=event.target.closest?.('button');if(!button)return;

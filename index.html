@@ -474,6 +474,22 @@
               </div>
             </div>
 
+            <section id="new-camp-call-settings" class="bg-slate-950 border border-indigo-500/40 rounded-xl p-3 space-y-2">
+              <label for="new-camp-call-transport" class="block text-xs text-indigo-300 font-bold">통화 방식 *</label>
+              <select id="new-camp-call-transport" onchange="updateNewCampCallPolicy()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                <option value="smartphone">일반 스마트폰 · 유심 / 전화 앱</option>
+                <option value="sip">SIP 인터넷전화 · 브라우저 통화</option>
+              </select>
+              <p id="new-camp-call-hint" class="text-xs text-slate-400">스마트폰의 유심과 기본 전화 앱으로 발신합니다.</p>
+              <details id="new-camp-sip-options" hidden><summary class="text-xs text-indigo-300 cursor-pointer">SIP 회선 정보 (선택 · 나중에 설정 가능)</summary>
+                <div class="grid grid-cols-1 gap-2 mt-2">
+                  <div><label for="new-camp-sip-wss" class="block text-xs text-slate-400">SIP 서버 주소 (WSS)</label><input id="new-camp-sip-wss" type="text" autocomplete="off" maxlength="512" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="wss://pbx.example.com/ws"></div>
+                  <div><label for="new-camp-sip-domain" class="block text-xs text-slate-400">SIP 도메인</label><input id="new-camp-sip-domain" type="text" autocomplete="off" maxlength="255" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="pbx.example.com"></div>
+                  <div><label for="new-camp-sip-stun" class="block text-xs text-slate-400">STUN 서버 (필요한 경우)</label><input id="new-camp-sip-stun" type="text" autocomplete="off" maxlength="255" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="stun:stun.example.com:3478"></div>
+                </div><p class="text-xs text-slate-400 mt-2">SIP 비밀번호는 등록하지 않습니다. 요원이 별도 회선 계정으로 연결할 때 입력합니다.</p>
+              </details>
+            </section>
+
             <!-- 6행: 담당 사무장 성명 & 휴대폰 연락처 -->
             <div class="grid grid-cols-2 gap-2">
               <div>
