@@ -42,9 +42,23 @@
       .no-print { display: none !important; }
     }
   </style>
+  <style id="auth-startup-style">
+    body.auth-restoring #login-view,
+    body.auth-restoring #super-view,
+    body.auth-restoring #admin-view,
+    body.auth-restoring #agent-view { display: none !important; }
+    #auth-startup { display: none; }
+    body.auth-restoring #auth-startup {
+      position: fixed; inset: 0; z-index: 10030; display: flex;
+      align-items: center; justify-content: center; background: #0f172a;
+      color: #cbd5e1; font: 600 16px/1.6 sans-serif;
+    }
+  </style>
   <link rel="stylesheet" href="./responsive.css">
 </head>
-<body class="w-screen overflow-hidden flex flex-col text-slate-800">
+<body class="auth-restoring w-screen overflow-hidden flex flex-col text-slate-800">
+
+  <div id="auth-startup" role="status" aria-live="polite">로그인 상태를 확인하고 있습니다…</div>
 
   <!-- ==================== A. 통합 로그인 화면 ==================== -->
   <div id="login-view" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-50">
@@ -2004,13 +2018,25 @@
     async function resetAllSystemData() { alert('운영 데이터의 일괄 초기화는 서버 백업 후 관리자 절차로 진행하세요.'); }
 
     window.onload = async function() {
-      localStorage.removeItem('easycall_role');
-      localStorage.removeItem('easycall_id');
-      await initSupabaseEngine(false);
-      if (!sbClient) return;
-      const { data, error } = await sbClient.auth.getUser();
-      if (!error && data.user) {
-        try { await activateVerifiedUser(data.user); } catch (e) { console.error(e); }
+      try {
+        localStorage.removeItem('easycall_role');
+        localStorage.removeItem('easycall_id');
+        await initSupabaseEngine(false);
+        if (!sbClient) throw new Error('서버 연결을 확인한 뒤 다시 시도하세요.');
+        const { data, error } = await sbClient.auth.getUser();
+        if (error) throw error;
+        if (data.user) {
+          document.getElementById('login-view').classList.add('hidden');
+          await activateVerifiedUser(data.user);
+        }
+      } catch (e) {
+        verifiedIdentity = null;
+        for (const id of ['super-view','admin-view','agent-view']) document.getElementById(id).classList.add('hidden');
+        document.getElementById('login-view').classList.remove('hidden');
+        document.getElementById('login-error').innerText = '로그인 상태를 확인하지 못했습니다. 연결을 확인하고 다시 로그인하세요.';
+        console.error('Session restoration failed', e);
+      } finally {
+        document.body.classList.remove('auth-restoring');
       }
     };
 
