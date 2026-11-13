@@ -1,7 +1,7 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport"]
     paths: ["call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
@@ -31,6 +31,7 @@ jobs:
           node tests/common-password-browser.cjs
           node tests/agent-onboarding-browser.cjs
           node tests/call-integration-browser.cjs
+          node tests/new-camp-call-browser.cjs
       - name: Production build and SIP asset smoke
         run: |
           npm run build
@@ -49,9 +50,10 @@ jobs:
           cat supabase/migrations/20261113_agent_account_list.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_agent_common_password.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_call_transport_policy.sql >> loadtest/generated/init.sql
+          cat supabase/migrations/20261113_new_camp_call_transport.sql >> loadtest/generated/init.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml up --build -d
           for n in $(seq 1 90); do
-            if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select to_regprocedure('public.easycall_call_transport_set(text,jsonb,timestamptz)') is not null" | grep -q t; then exit 0; fi
+            if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select position('callPolicy' in pg_get_functiondef('public.easycall_admin_save_camp(jsonb,timestamptz,uuid)'::regprocedure))>0" | grep -q t; then exit 0; fi
             sleep 2
           done
           exit 1
@@ -61,6 +63,7 @@ jobs:
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/agent-accounts-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/common-password-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/call-transport-policy-rollback.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/new-camp-call-rollback.sql
       - name: Collect stack diagnostics
         if: failure()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80
