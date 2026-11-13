@@ -1,6 +1,8 @@
 begin;
 create table if not exists easycall_private_v2.agent_common_policy(camp_id text primary key,ciphertext text not null,version uuid not null,updated_at timestamptz not null default now(),issue_lease uuid,issue_until timestamptz);
 create table if not exists easycall_private_v2.agent_common_targets(camp_id text not null,version uuid not null,user_id uuid not null,state text not null default 'pending' check(state in ('pending','processing','done','failed')),lease uuid,lease_until timestamptz,primary key(camp_id,version,user_id));
+alter table easycall_private_v2.agent_common_policy enable row level security;
+alter table easycall_private_v2.agent_common_targets enable row level security;
 revoke all on easycall_private_v2.agent_common_policy,easycall_private_v2.agent_common_targets from public,anon,authenticated;
 
 create or replace function public.easycall_agent_common_state(p_camp text)
