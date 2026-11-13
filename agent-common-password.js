@@ -1,8 +1,8 @@
 import './agent-accounts.js';
 import {temporaryPassword} from './supabase/functions/_shared/work-account.mjs';
 const $=id=>document.getElementById(id),host=$('agent-accounts');let state=null,camp='',busy=false,token=0;
-const card=document.createElement('section');card.id='gc-card';card.className='ga-note';card.innerHTML=`<div class="ga-flex"><div><h3>홍보요원 공통 비밀번호</h3><p id="gc-status" role="status">설정을 확인하는 중입니다.</p></div><div><button id="gc-open">공통 비밀번호 설정 · 전체 적용</button><button id="gc-reveal">공통 비밀번호 확인</button><button id="gc-refresh">상태 새로고침</button></div></div>
-<div id="gc-settings" class="ga-hidden"><p>기존 홍보요원과 앞으로 발급할 요원에게 같은 비밀번호를 사용합니다. 캠프 관리자·최고관리자의 비밀번호는 바뀌지 않습니다. 사용 중지된 요원은 중지 상태를 유지합니다.</p><label for="gc-password">설정할 공통 비밀번호 (숫자 6자리)</label><input id="gc-password" type="password" maxlength="6" inputmode="numeric" autocomplete="new-password"><button id="gc-generate">숫자 6자리 자동 생성</button><label><input id="gc-show" type="checkbox" style="width:auto"> 입력한 비밀번호 표시</label><button id="gc-apply" class="ga-primary">이 비밀번호로 기존·신규 요원 모두 통일</button><button id="gc-cancel">취소</button></div>
+const card=document.createElement('section');card.id='gc-card';card.className='ga-note';card.innerHTML=`<div class="ga-flex"><div><h3>전화담당자 공통 비밀번호</h3><p id="gc-status" role="status">설정을 확인하는 중입니다.</p></div><div><button id="gc-open">공통 비밀번호 설정 · 전체 적용</button><button id="gc-reveal">공통 비밀번호 확인</button><button id="gc-refresh">상태 새로고침</button></div></div>
+<div id="gc-settings" class="ga-hidden"><p>기존 전화담당자와 앞으로 발급할 요원에게 같은 비밀번호를 사용합니다. 캠프 관리자·최고관리자의 비밀번호는 바뀌지 않습니다. 사용 중지된 요원은 중지 상태를 유지합니다.</p><label for="gc-password">설정할 공통 비밀번호 (숫자 6자리)</label><input id="gc-password" type="password" maxlength="6" inputmode="numeric" autocomplete="new-password"><button id="gc-generate">숫자 6자리 자동 생성</button><label><input id="gc-show" type="checkbox" style="width:auto"> 입력한 비밀번호 표시</label><button id="gc-apply" class="ga-primary">이 비밀번호로 기존·신규 요원 모두 통일</button><button id="gc-cancel">취소</button></div>
 <div id="gc-secret-panel" class="ga-hidden"><label for="gc-secret">현재 캠프 공통 비밀번호</label><input id="gc-secret" readonly type="text" autocomplete="off"><button id="gc-copy">공통 비밀번호 복사</button><button id="gc-hide">숨기기</button></div>
 <button id="gc-resume" class="ga-hidden ga-primary">남은 계정 적용 계속하기</button><button id="gc-retry" class="ga-hidden">실패 계정 다시 적용</button><p id="gc-message" class="ga-warning" role="status" aria-live="polite"></p>`;
 $('ga-capacity').after(card);
@@ -16,7 +16,7 @@ const msg=s=>{$('gc-message').textContent=s;};
 async function api(action,extra={}){const {data,error}=await sbClient.functions.invoke('easycall-work-accounts',{body:{action,campId:camp,...extra}});if(error)throw Error('서버 응답을 확인하지 못했습니다. 상태 새로고침으로 적용 결과를 확인하세요.');if(data?.error)throw Error(data.error);return data;}
 window.easycallAgentCommonReady=()=>state?.ready===true;
 function render(){
- $('gc-status').textContent=!state?'설정을 불러오지 못했습니다. 상태 새로고침을 누르세요.':!state.configured?'아직 미설정 · 계정 발급 전 공통 비밀번호를 설정해 주세요.':state.ready?'공통 비밀번호 사용 중 · 기존·신규 홍보요원 모두 같은 비밀번호를 사용합니다.':'전체 '+state.total+'명 중 '+state.done+'명 완료 · 남음 '+state.pending+'명 · 처리 중 '+state.processing+'명 · 실패 '+state.failed+'명';
+ $('gc-status').textContent=!state?'설정을 불러오지 못했습니다. 상태 새로고침을 누르세요.':!state.configured?'아직 미설정 · 계정 발급 전 공통 비밀번호를 설정해 주세요.':state.ready?'공통 비밀번호 사용 중 · 기존·신규 전화담당자 모두 같은 비밀번호를 사용합니다.':'전체 '+state.total+'명 중 '+state.done+'명 완료 · 남음 '+state.pending+'명 · 처리 중 '+state.processing+'명 · 실패 '+state.failed+'명';
  $('gc-open').disabled=busy||!!(state?.configured&&!state.ready);$('gc-reveal').disabled=busy||!state?.ready;
  $('gc-resume').classList.toggle('ga-hidden',!state?.configured||state.ready);$('gc-retry').classList.toggle('ga-hidden',!state?.failed);$('gc-resume').disabled=busy;$('gc-retry').disabled=busy;
 }
@@ -36,7 +36,7 @@ $('gc-generate').onclick=()=>{if(busy)return;$('gc-password').value=temporaryPas
 $('gc-show').onchange=()=>{$('gc-password').type=$('gc-show').checked?'text':'password';};
 $('gc-cancel').onclick=()=>{$('gc-password').value='';$('gc-settings').classList.add('ga-hidden');msg('');};
 $('gc-apply').onclick=async()=>{if(busy)return;const password=$('gc-password').value;if(!/^\d{6}$/.test(password)){msg('공통 비밀번호는 숫자 6자리로 입력하세요.');return;}
- if(!confirm('이 캠프의 기존 홍보요원 전체와 신규 계정을 공통 비밀번호로 통일합니다. 기존 요원은 다시 로그인해야 하며, 관리자 비밀번호와 사용 중지 상태는 유지됩니다. 적용할까요?'))return;
+ if(!confirm('이 캠프의 기존 전화담당자 전체와 신규 계정을 공통 비밀번호로 통일합니다. 기존 요원은 다시 로그인해야 하며, 관리자 비밀번호와 사용 중지 상태는 유지됩니다. 적용할까요?'))return;
  const ticket=token;busy=true;window.easycallAgentCommonBusy(true);msg('공통 비밀번호 설정을 저장하는 중입니다.');
  try{const result=await api('agent-common-set',{password,expectedVersion:state?.version||null});if(ticket!==token)return;state=result.state;$('gc-password').value='';$('gc-settings').classList.add('ga-hidden');busy=false;window.easycallAgentCommonBusy(false);await run();}
  catch(e){if(ticket===token)msg(e.message);}finally{if(ticket===token){busy=false;window.easycallAgentCommonBusy(false);render();}}
