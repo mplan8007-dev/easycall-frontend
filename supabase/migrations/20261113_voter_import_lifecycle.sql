@@ -7,6 +7,7 @@ create table if not exists easycall_private_v2.voter_import_runs(
  id uuid primary key,camp_id text not null,actor_id uuid not null,filename text not null,mode text not null,
  request_hash text not null,result jsonb not null,created_at timestamptz not null default now()
 );
+alter table easycall_private_v2.voter_import_runs enable row level security;
 revoke all on easycall_private_v2.voter_import_runs from public,anon,authenticated;
 create index if not exists easycall_import_camp_time on easycall_private_v2.voter_import_runs(camp_id,created_at desc);
 
