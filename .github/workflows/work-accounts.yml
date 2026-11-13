@@ -1,7 +1,7 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash", "feat/contact-management", "fix/message-authorization-release"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash", "feat/contact-management", "fix/message-authorization-release", "fix/camp-call-mode-badge"]
     paths: ["voter-import-ui.js", "runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
