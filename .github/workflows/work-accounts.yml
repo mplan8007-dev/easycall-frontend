@@ -2,7 +2,7 @@ name: Work account registration checks
 on:
   push:
     branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk"]
-    paths: ["agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
+    paths: ["loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
 jobs:
