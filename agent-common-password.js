@@ -6,6 +6,10 @@ const card=document.createElement('section');card.id='gc-card';card.className='g
 <div id="gc-secret-panel" class="ga-hidden"><label for="gc-secret">현재 캠프 공통 비밀번호</label><input id="gc-secret" readonly type="text" autocomplete="off"><button id="gc-copy">공통 비밀번호 복사</button><button id="gc-hide">숨기기</button></div>
 <button id="gc-resume" class="ga-hidden ga-primary">남은 계정 적용 계속하기</button><button id="gc-retry" class="ga-hidden">실패 계정 다시 적용</button><p id="gc-message" class="ga-warning" role="status" aria-live="polite"></p>`;
 $('ga-capacity').after(card);
+const securityGuide=document.createElement('p');
+securityGuide.className='ga-warning';
+securityGuide.textContent='공통 비밀번호는 해당 캠프 요원에게만 각각 전달하세요. 요원이 업무를 그만두면 계정을 사용 중지하고 공통 비밀번호를 변경하세요.';
+card.append(securityGuide);
 function hideSecret(){$('gc-secret').value='';$('gc-secret-panel').classList.add('ga-hidden');}
 function clear(){token++;state=null;camp='';busy=false;hideSecret();$('gc-password').value='';$('gc-password').type='password';$('gc-show').checked=false;$('gc-settings').classList.add('ga-hidden');$('gc-message').textContent='';}
 const msg=s=>{$('gc-message').textContent=s;};

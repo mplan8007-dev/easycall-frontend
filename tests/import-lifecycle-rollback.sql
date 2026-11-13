@@ -19,12 +19,15 @@ select set_config('request.jwt.claims',jsonb_build_object('sub',auth.uid(),'aal'
 set local role authenticated;
 do $$ declare v public.easycall_voters;n integer;begin
  select * into v from public.easycall_claim_voter('load1');
+ perform public.easycall_authorize_message('load1',v.voter_id);
+ if exists(select 1 from public.easycall_voters where camp_id='load1' and voter_id=v.voter_id and call_started_at is not null) then raise exception 'Message marked as a call';end if;
  n:=public.easycall_release_unstarted_claim('load1',v.voter_id);if n<>1 then raise exception 'Unstarted claim not released';end if;
  select * into v from public.easycall_claim_voter('load1');
  perform public.easycall_authorize_call('load1',v.voter_id);
  n:=public.easycall_release_unstarted_claim('load1',v.voter_id);if n<>0 then raise exception 'Started call was released';end if;
  begin perform public.easycall_import_history('load1');raise exception 'Agent read admin import history' using errcode='ZI002';exception when insufficient_privilege then null;end;
  begin perform public.easycall_release_unstarted_claim('load2',v.voter_id);raise exception 'Cross-camp release allowed' using errcode='ZI002';exception when insufficient_privilege then null;end;
+ begin perform public.easycall_authorize_message('load2',v.voter_id);raise exception 'Cross-camp message allowed' using errcode='ZI002';exception when insufficient_privilege then null;end;
 end $$;
 reset role;
 select set_config('request.jwt.claim.sub',md5('easycall-loadtest-admin')::uuid::text,true);
@@ -44,3 +47,4 @@ end $$;
 reset role;
 select 'PASS: safe release, started-call protection, append, duplicates, retry, durable failure history and authorization' as validation;
 rollback;
+
