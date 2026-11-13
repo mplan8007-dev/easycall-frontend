@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { accountKey, cleanBatch, temporaryPassword, validatePassword } from '../_shared/work-account.mjs';
 import { validateCommonPassword, sealCommonPassword, openCommonPassword } from '../_shared/common-password.mjs';
+import { finishPasswordChange } from '../_shared/password-change.mjs';
 const origins=new Set(['https://easycall-frontend.vercel.app','https://mplan8007-dev.github.io']);
 Deno.serve(async(request:Request)=>{
  const origin=request.headers.get('origin')||'';
@@ -89,16 +90,7 @@ Deno.serve(async(request:Request)=>{
    // Re-read live state after password verification; never reactivate a disabled user.
    const latest=await admin.auth.admin.getUserById(user.id);
    if(latest.error||latest.data.user?.app_metadata.easycall_work_status!=='active')return reply({error:'사용 중지된 계정입니다.'},403);
-   const changed=await admin.auth.admin.updateUserById(user.id,{password:body.newPassword});
-   if(changed.error)throw Error('비밀번호 변경에 실패했습니다.');
-   if(!verified.data.session)throw Error('재인증 세션을 확인할 수 없습니다.');
-   const revoked=await admin.auth.admin.signOut(verified.data.session.access_token,'others');
-   if(revoked.error)throw Error('다른 로그인 세션을 종료하지 못했습니다. 다시 시도하세요.');
-   const complete=await admin.rpc('easycall_work_password_complete',{p_user:user.id});
-   if(complete.error)throw Error('비밀번호는 변경됐지만 계정 상태 확인이 필요합니다. 관리자에게 문의하세요.');
-   const session=await verifier.auth.refreshSession();
-   if(session.error||!session.data.session)throw Error('비밀번호가 변경됐습니다. 새 비밀번호로 다시 로그인하세요.');
-   return reply({success:true,session:{access_token:session.data.session.access_token,refresh_token:session.data.session.refresh_token}});
+   return reply(await finishPasswordChange({admin,verifier,user,password:body.newPassword}));
   }
   if(body.action==='create'){
    const rows=cleanBatch(body.rows),results=[];

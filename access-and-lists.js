@@ -12,7 +12,9 @@ import './admin-console.js';
  const rpc=async(name,args={})=>{if(!sbClient||navigator.onLine===false)throw Error('온라인 연결이 필요합니다.');const r=await sbClient.rpc(name,args);if(r.error)throw r.error;return r.data;};
  const error=e=>showToast(e?.message||'요청을 완료하지 못했습니다.');
  function resetCamp(cid){if(pages.camp===cid)return;pages.camp=cid;for(const p of [pages.voters,pages.logs,pages.history]){p.offset=0;p.total=0;p.items=[];p.seq++;p.asOf=null;p.key='';}}
- function params(kind){return {p_camp_id:pages.camp,p_kind:kind,p_offset:pages[kind].offset,p_limit:50,p_query:kind==='voters'?($('agent-voter-search')?.value||'').trim():'',p_callback:kind==='voters'&&searchFilterMode==='CALLBACK_ONLY',p_as_of:pages[kind].asOf||null};}
+ const adminVoters=()=>verifiedIdentity?.role==='admin'||delegated();
+ const voterQuery=()=>($(adminVoters()?'admin-voter-search':'agent-voter-search')?.value||'').trim();
+ function params(kind){return {p_camp_id:pages.camp,p_kind:kind,p_offset:pages[kind].offset,p_limit:50,p_query:kind==='voters'?voterQuery():'',p_callback:kind==='voters'&&!adminVoters()&&searchFilterMode==='CALLBACK_ONLY',p_as_of:pages[kind].asOf||null};}
  async function loadPage(kind){
   const p=pages[kind],cid=pages.camp,ticket=++p.seq;
   p.loading=true;drawPager(kind);
@@ -36,6 +38,8 @@ import './admin-console.js';
  function drawPager(kind){const p=pages[kind],id='pager-'+kind,el=$(id);if(!el)return;const total=p.total,pn=Math.floor(p.offset/50)+1,last=Math.max(1,Math.ceil(total/50));
   text(id+'-status',p.loading?'조회 중…':p.failed?'조회 실패 · 새로고침으로 다시 시도':`${total.toLocaleString()}건 · ${pn}/${last}페이지 · 50개씩`);
   $(id+'-prev').disabled=Boolean(p.loading)||p.offset===0;$(id+'-next').disabled=Boolean(p.loading)||p.offset+50>=total;
+  if(kind==='voters'){text('admin-voters-page',p.loading?'조회 중…':p.failed?'조회 실패 · 다시 조회하세요.':`${total.toLocaleString()}건 · ${pn}/${last}페이지 · 50개씩`);if($('admin-voters-prev'))$('admin-voters-prev').disabled=Boolean(p.loading)||p.offset===0;if($('admin-voters-next'))$('admin-voters-next').disabled=Boolean(p.loading)||p.offset+50>=total;}
+
  }
  function mapVoter(r){return {id:String(r.voter_id),campId:r.camp_id,name:r.name,phone:r.phone,dong:r.dong,lastResult:r.last_result,lastMemo:r.last_memo,lockedBy:r.locked_by};}
  function renderPage(kind){
@@ -47,12 +51,17 @@ import './admin-console.js';
    const previous=globalCampCallLogs;globalCampCallLogs=p.items.map(logFromRow);try{legacy.history();}finally{globalCampCallLogs=previous;}
    $('agent-history-tbody')?.querySelectorAll?.('tr').forEach((row,i)=>{if(row.cells?.length>1)row.cells[0].textContent=String(p.total-p.offset-i);});
    renderAggregateStats();
+  }else if(adminVoters()){
+   const labels={READY:'미통화',CONNECTED:'통화 완료',ABSENT:'부재중',CALLBACK:'재통화',REJECT:'수신거부',INVALID:'결번'};
+   text('admin-voters-camp','캠프 '+pages.camp+' · 서버에 저장된 명부');
+   if($('admin-voters-tbody'))$('admin-voters-tbody').innerHTML=p.items.map((r,i)=>'<tr><td class="p-3">'+(p.offset+i+1)+'</td><td class="p-3 font-bold">'+esc(r.name)+'</td><td class="p-3 font-mono">'+esc(r.phone)+'</td><td class="p-3">'+esc(r.dong||'-')+'</td><td class="p-3">'+esc(labels[r.last_result]||r.last_result||'미통화')+'</td><td class="p-3">'+esc(r.locked_by||'미배정')+'</td><td class="p-3">'+esc(r.last_memo||'-')+'</td></tr>').join('')||'<tr><td colspan="7" class="p-5 text-center">조건에 맞는 연락처가 없습니다.</td></tr>';
   }else{
    const previous=votersList,search=$('agent-voter-search'),q=search?.value;
    votersList=p.items.map(mapVoter);if(search)search.value='';
    try{legacy.search();}finally{votersList=previous;if(search)search.value=q;}
   }
   if(p.failed){const id=kind==='voters'?'agent-search-voters-tbody':kind==='logs'?'admin-all-logs-tbody':'agent-history-tbody';if($(id))$(id).innerHTML='<tr><td colspan="11" class="p-6 text-center text-rose-600">목록을 불러오지 못했습니다. 새로고침 후 다시 시도하세요.</td></tr>';}
+  if(kind==='voters'&&p.failed&&adminVoters()&&$('admin-voters-tbody'))$('admin-voters-tbody').innerHTML='<tr><td colspan="7" class="p-5 text-center text-rose-600">명부 조회 실패 · 새로고침으로 다시 시도하세요.</td></tr>';
   drawPager(kind);
  }
  function renderAggregateStats(){
@@ -72,11 +81,11 @@ import './admin-console.js';
  }
  async function changeDataPage(kind,delta){if(!pages[kind]||pages[kind].loading)return;pages[kind].failed=false;pages[kind].offset=Math.max(0,pages[kind].offset+delta*50);try{await loadPage(kind);}catch(e){}}
  async function easycallLoadCounts(){const cid=pages.camp;if(!cid)return;const data=await rpc('easycall_camp_counts',{p_camp_id:cid});if(cid!==pages.camp)return;count[cid]=data;renderAggregateStats();}
- async function refreshDataPage(kind){if(!pages[kind])return;if(kind==='voters'){clearTimeout(searchTimer);resetCamp(getActiveCampId());pages.voters.key=JSON.stringify([$('agent-voter-search')?.value||'',searchFilterMode]);}if(pages[kind].loading)return;pages[kind].offset=0;pages[kind].asOf=null;pages[kind].failed=false;try{await loadPage(kind);if(kind==='history')await easycallLoadCounts();}catch(e){}}
+ async function refreshDataPage(kind){if(!pages[kind])return;if(kind==='voters'){clearTimeout(searchTimer);resetCamp(getActiveCampId());pages.voters.key=JSON.stringify([voterQuery(),adminVoters()?'ALL':searchFilterMode]);}if(pages[kind].loading)return;pages[kind].offset=0;pages[kind].asOf=null;pages[kind].failed=false;try{await loadPage(kind);if(kind==='history')await easycallLoadCounts();}catch(e){}}
  let searchTimer;
  function renderAgentSearchTable(){
   if(!pages.camp){legacy.search();return;}
-  const key=JSON.stringify([$('agent-voter-search')?.value||'',searchFilterMode]);
+  const key=JSON.stringify([voterQuery(),adminVoters()?'ALL':searchFilterMode]);
   if(key===pages.voters.key){renderPage('voters');return;}
   pages.voters.key=key;pages.voters.offset=0;pages.voters.seq++;clearTimeout(searchTimer);
   searchTimer=setTimeout(()=>{pages.voters.failed=false;loadPage('voters').catch(()=>{});},250);
@@ -154,6 +163,17 @@ import './admin-console.js';
   const reason=prompt('정책 변경 사유를 입력하세요.');if(!reason?.trim())return;mfa.busy=true;
   try{await rpc('easycall_admin_mfa_policy',{p_required:!mfa.required,p_reason:reason.trim()});await openMfaSettings();}catch(e){mfaMessage(e.message);}finally{mfa.busy=false;}
  }
+ function mountAdminVoters(){
+  if(!document.createElement||!$('upload-status')||$('admin-voter-list'))return;
+  const section=document.createElement('section');section.id='admin-voter-list';section.className='mt-4 space-y-3';
+  section.innerHTML='<h3 class="font-extrabold text-slate-900">등록된 연락처 명부</h3><p id="admin-voters-camp" class="text-xs text-slate-600">서버 명부 조회</p><div class="flex flex-wrap gap-2"><label class="flex-1 min-w-0"><span class="sr-only">관리자 명부 검색</span><input id="admin-voter-search" placeholder="이름, 전화번호, 행정동 검색" class="w-full border border-slate-300 rounded-lg p-3" type="search"></label><button type="button" id="admin-voters-refresh" class="bg-blue-600 text-white rounded-lg px-4 py-3 font-bold">명부 새로고침</button></div><div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead><tr><th class="p-3">순번</th><th class="p-3">이름</th><th class="p-3">전화번호</th><th class="p-3">행정동</th><th class="p-3">통화 상태</th><th class="p-3">배정 요원</th><th class="p-3">최근 메모</th></tr></thead><tbody id="admin-voters-tbody"></tbody></table></div><div class="flex flex-wrap justify-between items-center gap-2"><span id="admin-voters-page" role="status">조회 전</span><div class="flex gap-2"><button type="button" id="admin-voters-prev" class="px-4 py-3 border rounded-lg disabled:opacity-40">이전</button><button type="button" id="admin-voters-next" class="px-4 py-3 border rounded-lg disabled:opacity-40">다음</button></div></div>';
+  $('upload-status').after(section);
+  $('admin-voter-search').oninput=()=>renderAgentSearchTable();
+  $('admin-voters-refresh').onclick=()=>refreshDataPage('voters');
+  $('admin-voters-prev').onclick=()=>changeDataPage('voters',-1);
+  $('admin-voters-next').onclick=()=>changeDataPage('voters',1);
+ }
+ mountAdminVoters();
  Object.assign(window,{easycallPrepareLists:resetCamp,easycallLoadLists,easycallAgentCallCount,openBriefingReportModal,changeDataPage,refreshDataPage,renderAdminLogsTable,renderAgentSearchTable,renderAgentHistoryTable,renderStatsAndCharts:renderAggregateStats,updateAgentGoalGauge:renderAggregateStats,updateVoterQueueStatusText,activateVerifiedUser,openMfaSettings,startMfaEnrollment,verifyMfaCode,closeMfa,toggleMfaPolicy});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearMfaSecret();});
  window.addEventListener('pagehide',clearMfaSecret);

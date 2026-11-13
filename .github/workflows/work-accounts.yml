@@ -1,7 +1,7 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters"]
     paths: ["runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
@@ -18,7 +18,7 @@ jobs:
         with:
           deno-version: v2.4.5
       - name: Frontend and policy regression
-        run: node --test tests/voter-import.test.cjs tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs tests/agent-account-tools.test.cjs tests/common-password.test.cjs tests/call-transport.test.cjs
+        run: node --test tests/password-change.test.cjs tests/voter-import.test.cjs tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs tests/agent-account-tools.test.cjs tests/common-password.test.cjs tests/call-transport.test.cjs
       - name: Edge function type check
         run: deno check supabase/functions/easycall-work-accounts/index.ts
       - name: Browser account flow checks
