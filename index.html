@@ -614,10 +614,10 @@
           </table>
         </div>
         <div>
-          <h3 class="text-sm font-extrabold text-slate-900 mb-2">3. 관할 행정동별 통화 현황</h3>
+          <h3 class="text-sm font-extrabold text-slate-900 mb-2">3. 그룹별 통화 현황</h3>
           <table class="w-full text-xs border border-slate-300">
             <thead class="bg-slate-100 border-b border-slate-300 font-bold">
-              <tr><th class="p-2 text-left">행정동</th><th class="p-2 text-right">시도/연결</th><th class="p-2 text-right">긍정 지지율</th></tr>
+              <tr><th class="p-2 text-left">그룹명</th><th class="p-2 text-right">시도/연결</th><th class="p-2 text-right">긍정 지지율</th></tr>
             </thead>
             <tbody id="rep-dong-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
           </table>
@@ -729,7 +729,7 @@
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 후보 인지도 홍보 대본 배포 (2종 전환형)</h3>
-              <p class="text-xs text-slate-500 mt-0.5">대본에 <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{그룹명}</code>, <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{유권자명}</code>을 넣으면 태블릿 화면에 실제 정보로 자동 변환됩니다. 그룹명은 등록된 연락처의 행정동 항목을 사용합니다.</p>
+              <p class="text-xs text-slate-500 mt-0.5">대본에 <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{그룹명}</code>, <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{유권자명}</code>을 넣으면 태블릿 화면에 실제 정보로 자동 변환됩니다. 그룹명은 등록된 연락처의 그룹명 항목을 사용합니다.</p>
             </div>
             <span id="current-active-step-badge" class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-bold shrink-0">현재 적용중: 대본 1</span>
           </div>
@@ -966,7 +966,7 @@
 
       <div class="grid grid-cols-2 gap-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-          <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-map-location-dot mr-1.5 text-emerald-600"></i> 관할 행정동별 통화 현황</h3>
+          <h3 class="text-base font-extrabold text-slate-900"><i class="fa-solid fa-map-location-dot mr-1.5 text-emerald-600"></i> 그룹별 통화 현황</h3>
           <div id="dong-performance-list" class="space-y-2.5 pt-1 max-h-64 overflow-y-auto custom-scrollbar"></div>
         </div>
 
@@ -1002,7 +1002,7 @@
             <th class="p-3">담당 단말기 (발신회선)</th>
             <th class="p-3">유권자명</th>
             <th class="p-3">연락처</th>
-            <th class="p-3">행정동</th>
+            <th class="p-3">그룹명</th>
             <th class="p-3">성별/연령</th>
             <th class="p-3">연결상태</th>
             <th class="p-3">성향 태그</th>
@@ -1231,7 +1231,7 @@
           <button type="button" id="filter-btn-callback" onclick="setSearchFilterMode('CALLBACK_ONLY')" class="px-4 py-2.5 rounded-xl text-sm font-extrabold bg-white text-slate-700 border border-slate-300 transition">⏰ 콜백/부재중 대상만</button>
           <div class="relative w-72">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"><i class="fa-solid fa-search text-sm"></i></span>
-            <input type="text" id="agent-voter-search" onkeyup="renderAgentSearchTable()" class="w-full bg-white border-2 border-slate-300 rounded-xl pl-10 pr-3 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500" placeholder="이름, 전화번호, 행정동 검색...">
+            <input type="text" id="agent-voter-search" onkeyup="renderAgentSearchTable()" class="w-full bg-white border-2 border-slate-300 rounded-xl pl-10 pr-3 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500" placeholder="이름, 전화번호, 그룹명 검색...">
           </div>
         </div>
       </div>
@@ -1243,7 +1243,7 @@
               <th class="p-3.5">ID</th>
               <th class="p-3.5">유권자명</th>
               <th class="p-3.5">연락처</th>
-              <th class="p-3.5">행정동</th>
+              <th class="p-3.5">그룹명</th>
               <th class="p-3.5">최근 상태</th>
               <th class="p-3.5">점유</th>
               <th class="p-3.5">최근 메모</th>
@@ -1284,7 +1284,7 @@
         <h3 class="text-lg font-black text-slate-900 mb-3">📋 내 최근 통화 이력 목록 (조회 최대 1,000건)</h3>
         <table class="w-full text-left text-base">
           <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 font-extrabold">
-            <tr><th class="p-3.5">순번</th><th class="p-3.5">유권자명</th><th class="p-3.5">연락처</th><th class="p-3.5">행정동</th><th class="p-3.5">성별/연령</th><th class="p-3.5">상태</th><th class="p-3.5">성향</th><th class="p-3.5">발신회선/시간</th><th class="p-3.5">메모</th><th class="p-3.5 text-right">시각 / 재발신</th></tr>
+            <tr><th class="p-3.5">순번</th><th class="p-3.5">유권자명</th><th class="p-3.5">연락처</th><th class="p-3.5">그룹명</th><th class="p-3.5">성별/연령</th><th class="p-3.5">상태</th><th class="p-3.5">성향</th><th class="p-3.5">발신회선/시간</th><th class="p-3.5">메모</th><th class="p-3.5 text-right">시각 / 재발신</th></tr>
           </thead>
           <tbody id="agent-history-tbody" class="divide-y divide-slate-100"></tbody>
         </table><div id="pager-history" class="flex flex-wrap justify-between items-center gap-3 p-3 text-xs text-slate-600"><span id="pager-history-status" aria-live="polite">조회 전</span><div class="flex gap-2"><button type="button" id="pager-history-prev" onclick="changeDataPage('history',-1)" class="px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg disabled:opacity-40">이전</button><button type="button" id="pager-history-next" onclick="changeDataPage('history',1)" class="px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg disabled:opacity-40">다음</button><button type="button" onclick="refreshDataPage('history')" class="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">최신 자료</button></div></div>
@@ -1425,7 +1425,7 @@
       const phoneColumn = header.findIndex(v => /^(phone|전화번호|전화|연락처|휴대폰|휴대전화)$/.test(v));
       const hasHeader = phoneColumn >= 0;
       const nameColumn = hasHeader ? header.findIndex(v => /^(name|이름|성명|유권자명)$/.test(v)) : 0;
-      const dongColumn = hasHeader ? header.findIndex(v => /^(dong|행정동|지역|주소)$/.test(v)) : 2;
+      const dongColumn = hasHeader ? header.findIndex(v => /^(dong|그룹명|행정동|지역|주소)$/.test(v)) : 2;
       const phoneIdx = hasHeader ? phoneColumn : (header.length === 1 ? 0 : 1);
       const result = [], seen = new Set();
       for (let i = hasHeader ? 1 : 0; i < clean.length; i++) {
@@ -2783,7 +2783,7 @@
         return;
       }
       const wsData = [
-        ["유권자명", "전화번호", "행정동"],
+        ["유권자명", "전화번호", "그룹명"],
         ["홍길동", "010-1234-5678", "대천1동"],
         ["김영희", "010-9876-5432", "대천2동"],
         ["박민수", "010-5555-4444", "오천면"],
@@ -2811,7 +2811,7 @@
     }
 
     function downloadCsvTemplate() {
-      const csvTemplate = "voter_name,phone,dong\n홍길동,010-1234-5678,대천1동\n김영희,010-9876-5432,대천2동\n박민수,010-5555-4444,오천면\n이순신,010-2222-3333,대천3동\n최유진,010-7777-8888,웅천읍";
+      const csvTemplate = "유권자명,전화번호,그룹명\n홍길동,010-1234-5678,대천1동\n김영희,010-9876-5432,대천2동\n박민수,010-5555-4444,오천면\n이순신,010-2222-3333,대천3동\n최유진,010-7777-8888,웅천읍";
       const blob = new Blob(["\uFEFF" + csvTemplate], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -2836,7 +2836,7 @@
         }
         if (filterType === 'POSITIVE_ONLY') logs = logs.filter(l => l.callResult === 'CONNECTED' && ['SUPPORT','FAVORABLE','VOLUNTEER'].includes(l.status));
         if (!logs.length) { showToast('다운로드할 기록이 없습니다.'); return; }
-        const rows = [['기록ID','캠프','단말기','발신회선','이름','연락처','행정동','성별','연령','통화결과','응답결과','경과시간','메모','기록시각']];
+        const rows = [['기록ID','캠프','단말기','발신회선','이름','연락처','그룹명','성별','연령','통화결과','응답결과','경과시간','메모','기록시각']];
         for (const l of logs) rows.push([l.callId,l.campId,l.agentId,l.usedPhone,l.voterName,l.voterPhone,l.dong,l.gender,l.age,l.callResult,l.status,l.duration,l.memo,l.createdAt]);
         const blob = new Blob(['\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob), link = document.createElement('a');
