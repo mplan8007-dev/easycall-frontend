@@ -42,7 +42,7 @@ import {AdaptivePoller} from './runtime-scheduler.mjs';
   poller.start();
  }
  async function handleLogout(){poller?.stop();identityKey=null;revision=null;await legacyLogout();}
- function switchAgentTab(name){legacyTabs(name);if(name==='history')refreshDataPage('history');}
+ function switchAgentTab(name){legacyTabs(name);if(name==='search')return refreshDataPage('voters');if(name==='history')return refreshDataPage('history');}
  function updateAgentGoalGauge(){
   if(verifiedIdentity?.role!=='agent'){legacyGauge();return;}
   const goal=Number(getCampConfig(getActiveCampId()).dailyGoal)||250,n=Number(ownCounts.today)||0,pct=Math.min(100,Math.round(n/goal*100));
