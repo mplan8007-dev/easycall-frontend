@@ -7,7 +7,11 @@ export async function accountAddress(campId,loginId) {
   const k=accountKey(campId,loginId), bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(k.campId+':'+k.loginId));
   return Array.from(new Uint8Array(bytes),n=>n.toString(16).padStart(2,'0')).join('')+'@login.easycall.invalid';
 }
-export function temporaryPassword() { return Array.from(crypto.getRandomValues(new Uint8Array(24)),n=>n.toString(16).padStart(2,'0')).join(''); }
+export function temporaryPassword() {
+  const sample=new Uint32Array(1),limit=Math.floor(0x100000000/1000000)*1000000;
+  do { crypto.getRandomValues(sample); } while(sample[0]>=limit);
+  return String(sample[0]%1000000).padStart(6,'0');
+}
 export function cleanLargeBatch(rows){
  if(!Array.isArray(rows)||rows.length<1||rows.length>2000)throw Error('1~2,000개 계정을 입력하세요.');
  const all=[];for(let i=0;i<rows.length;i+=25)all.push(...cleanBatch(rows.slice(i,i+25)));
