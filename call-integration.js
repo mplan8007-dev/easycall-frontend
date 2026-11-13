@@ -1,5 +1,6 @@
 import './agent-common-password.js';
 import './responsive-layout.js';
+import './voter-import-ui.js';
 import {transport,sipSettings,destination,waitMilliseconds,measuredSeconds,SipPhone} from './call-transport.mjs';
 const $=id=>document.getElementById(id),cfg=()=>getCampConfig(getActiveCampId()),actor=()=>verifiedIdentity?[verifiedIdentity.uid,verifiedIdentity.role,verifiedIdentity.campId,verifiedIdentity.agentId].join(':'):'';
 const agent=()=>verifiedIdentity?.role==='agent';
@@ -52,7 +53,7 @@ function sync(){
  $('phone-help').textContent=sip?'회선을 연결한 뒤 발신하세요. 통화 종료를 감지하며, 결과를 저장해야 다음 대상으로 진행합니다.':'발신 버튼을 누르면 스마트폰 전화 앱이 열립니다. 통화 후 이지콜로 돌아와 결과를 입력하세요. 자동 발신·종료 감지는 지원하지 않습니다.';
  $('phone-sip-actions').classList.toggle('phone-hidden',!sip);$('phone-native-duration').classList.toggle('phone-hidden',sip);$('btn-native-tel').classList.toggle('hidden',sip);
  if(!sip)$('phone-state').textContent='스마트폰 유심 / 기본 전화 앱 사용';
- $('btn-dial-action').textContent=sip?'SIP 회선으로 발신':'스마트폰 전화 앱으로 발신';
+ $('btn-dial-action').textContent=!activeClaim?'통화 대상 준비':sip?'SIP 회선으로 발신':'스마트폰 전화 앱으로 발신';
  $('phone-auto').classList.toggle('phone-hidden',!sip||c.dialMode!=='auto');
  $('btn-save-next').textContent=sip&&c.dialMode==='auto'?'결과 저장 · 다음 번호 자동 발신':'결과 저장 · 다음 대상 준비';
 }
@@ -72,7 +73,7 @@ function permitted(){return agent()&&!isAgentOnBreak&&!isSavingResult&&!checkAge
 window.easycallPlaceCall=async function(launch=true){
  if(!launch||dialing||phone.active)return;if(!permitted()){stopAuto('현재 발신할 수 없습니다. 업무 상태와 네트워크를 확인하세요.');return;}
  const c=cfg(),sip=transport(c)==='sip',who=actor(),claim=activeClaim,signature=fingerprint();
- if(!claim){await loadCurrentVoterToDialer(true);message('대상을 확인하고 발신 버튼을 눌러 주세요.');return;}
+ if(!claim){await loadCurrentVoterToDialer(true);sync();message(activeClaim?'대상을 확인하고 발신 버튼을 눌러 주세요.':'배정 가능한 대상이 없습니다. 명부와 업무 상태를 확인하세요.');return;}
  if(sip&&!phone.ready){stopAuto('먼저 SIP 회선을 연결하세요.');return;}
  let uri;try{uri=destination(claim.voter.phone,sip?sipSettings(c).domain:undefined);}catch(e){stopAuto(e.message);return;}
  dialing=true;callActor=who;callId=claim.callId;
@@ -96,7 +97,7 @@ const oldSave=window.saveResultToStorage;window.saveResultToStorage=async functi
 };
 $('phone-auto').onclick=()=>{if(armed){stopAuto('연속 발신을 중지했습니다.');return;}if(!permitted()||transport(cfg())!=='sip'||cfg().dialMode!=='auto'||!phone.ready){message('SIP 회선 연결과 업무 상태를 먼저 확인하세요.');return;}armed=true;$('phone-auto').textContent='연속 발신 중지';void window.easycallPlaceCall(true);};
 const oldRefresh=window.refreshActiveRoleUI;window.refreshActiveRoleUI=function(...args){const result=oldRefresh(...args);sync();return result;};
-const oldLogout=window.handleLogout;window.handleLogout=async function(...args){stopAuto();stopClock();clearCredentials();policyTicket++;policyDialog.classList.add('phone-hidden');dialog.classList.add('phone-hidden');await phone.disconnect();dialing=false;return oldLogout(...args);};
+const oldLogout=window.handleLogout;window.handleLogout=async function(...args){stopAuto();stopClock();clearCredentials();policyTicket++;policyDialog.classList.add('phone-hidden');dialog.classList.add('phone-hidden');await phone.disconnect();dialing=false;if(agent()&&activeClaim&&sbClient){try{await sbClient.rpc('easycall_release_unstarted_claim',{p_camp_id:getActiveCampId(),p_voter_id:activeClaim.voterId});}catch{}}return oldLogout(...args);};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAuto('다른 화면으로 이동해 연속 발신을 중지했습니다.');});
 window.addEventListener('offline',()=>stopAuto('네트워크 연결이 끊겨 연속 발신을 중지했습니다.'));
 window.addEventListener('pagehide',()=>{stopAuto();clearCredentials();stopClock();void phone.disconnect();});
