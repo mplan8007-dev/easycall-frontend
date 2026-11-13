@@ -39,8 +39,9 @@ $('work-password-save').onclick=async()=>{
    const factors=await sbClient.auth.mfa.listFactors();if(factors.error)throw factors.error;const factor=factors.data.totp.find(f=>f.status==='verified');if(!factor)throw Error('등록된 인증 앱을 확인하세요.');
    const verified=await sbClient.auth.mfa.challengeAndVerify({factorId:factor.id,code});if(verified.error)throw verified.error;
   }
-  await request({action:'change-password',currentPassword:current,newPassword:password});
-  const refreshed=await sbClient.auth.refreshSession();if(refreshed.error)throw refreshed.error;
+  const changed=await request({action:'change-password',currentPassword:current,newPassword:password});
+  if(!changed.session)throw Error('새 비밀번호로 다시 로그인하세요.');
+  const refreshed=await sbClient.auth.setSession(changed.session);if(refreshed.error)throw refreshed.error;
   const {data,error}=await sbClient.auth.getUser();if(error||data.user?.id!==pendingUser.id)throw Error('다시 로그인하세요.');
   for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';
   pendingUser=null;hide('work-password-dialog');await legacyActivate(data.user);

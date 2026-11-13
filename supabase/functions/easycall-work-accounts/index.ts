@@ -31,9 +31,14 @@ Deno.serve(async(request:Request)=>{
    if(latest.error||latest.data.user?.app_metadata.easycall_work_status!=='active')return reply({error:'사용 중지된 계정입니다.'},403);
    const changed=await admin.auth.admin.updateUserById(user.id,{password:body.newPassword});
    if(changed.error)throw Error('비밀번호 변경에 실패했습니다.');
+   if(!verified.data.session)throw Error('재인증 세션을 확인할 수 없습니다.');
+   const revoked=await admin.auth.admin.signOut(verified.data.session.access_token,'others');
+   if(revoked.error)throw Error('다른 로그인 세션을 종료하지 못했습니다. 다시 시도하세요.');
    const complete=await admin.rpc('easycall_work_password_complete',{p_user:user.id});
    if(complete.error)throw Error('비밀번호는 변경됐지만 계정 상태 확인이 필요합니다. 관리자에게 문의하세요.');
-   await verifier.auth.signOut();return reply({success:true});
+   const session=await verifier.auth.refreshSession();
+   if(session.error||!session.data.session)throw Error('비밀번호가 변경됐습니다. 새 비밀번호로 다시 로그인하세요.');
+   return reply({success:true,session:{access_token:session.data.session.access_token,refresh_token:session.data.session.refresh_token}});
   }
   if(body.action==='create'){
    const rows=cleanBatch(body.rows),results=[];
@@ -44,14 +49,14 @@ Deno.serve(async(request:Request)=>{
      const context=await rpc('easycall_work_account_context',args);
      if(context.userId)throw Error('이미 발급된 ID입니다. 비밀번호 초기화를 사용하세요.');
      const password=temporaryPassword();
-     const created=await admin.auth.admin.createUser({email:context.email,password,email_confirm:true,app_metadata:{easycall_role:row.role,camp_id:row.campId,agent_id:row.role==='agent'?row.loginId:null,easycall_login_id:row.loginId,easycall_work_status:'pending',easycall_must_change:true,easycall_created_by:identity.user.id}});
+     const created=await admin.auth.admin.createUser({email:context.email,password,email_confirm:true,app_metadata:{easycall_role:row.role,camp_id:row.campId,agent_id:row.role==='agent'?row.loginId:null,easycall_login_id:row.loginId,easycall_work_status:'pending',easycall_must_change:true,easycall_created_by:identity.user.id,easycall_work_profile:{alias:row.alias,phone:row.phone}}});
      if(created.error||!created.data.user)throw Error('계정을 생성하지 못했습니다. 중복 ID와 서버 설정을 확인하세요.');
      uid=created.data.user.id;
      await rpc('easycall_work_account_activate',{...args,p_user:uid,p_alias:row.alias,p_phone:row.phone});
      results.push({...row,success:true,password});
     }catch(error){
      // Do not delete a possibly activated account when its acknowledgement was lost.
-     // A pending account is denied all business access and may be recovered by an owner.
+     // A pending account is denied business access; an authorized reset can resume it.
      results.push({...row,success:false,error:error instanceof Error?error.message:'발급 실패',reviewPending:Boolean(uid)});
     }
    }
@@ -62,6 +67,12 @@ Deno.serve(async(request:Request)=>{
   if(!['admin','agent'].includes(role))throw Error('역할을 확인하세요.');
   if(['disable','enable'].includes(body.action)){await rpc('easycall_work_account_state',{...args,p_state:body.action==='disable'?'disabled':'active'});return reply({success:true});}
   if(body.action==='reset'){
+   const context=await rpc('easycall_work_account_context',args);
+   if(context.metadata?.easycall_work_status==='pending'){
+    const profile=context.metadata.easycall_work_profile;
+    if(!profile)throw Error('발급 정보가 부족합니다. 최고관리자에게 문의하세요.');
+    await rpc('easycall_work_account_activate',{...args,p_user:context.userId,p_alias:profile.alias,p_phone:profile.phone});
+   }
    // This also blocks existing sessions before changing the credential.
    const targetState=await rpc('easycall_work_account_state',{...args,p_state:'reset'});
    const password=temporaryPassword();

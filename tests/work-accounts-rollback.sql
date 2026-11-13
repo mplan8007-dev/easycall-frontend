@@ -10,10 +10,14 @@ begin
  begin perform public.easycall_work_account_state('load1','worker','agent','active');raise exception 'pending account enabled' using errcode='ZC002';exception when sqlstate 'P0001' then null;end;
  perform public.easycall_work_account_activate('load1','worker','agent',u,'Worker','0419301001');
  if not exists(select 1 from easycall_private_v2.agent_registry where camp_id='load1' and agent_id='worker') then raise exception 'Missing agent registration';end if;
+ update public.easycall_sync_store set payload=jsonb_set(payload,'{campsList}',(select jsonb_agg(case when c->>'campId'='load1' then c||'{"tablets":2}'::jsonb else c end) from jsonb_array_elements(payload->'campsList')c)),updated_at=clock_timestamp() where store_key='MASTER_META';
+ begin perform public.easycall_work_account_context('load1','overquota','agent');raise exception 'quota bypass before Auth creation' using errcode='ZC002';exception when sqlstate 'P0001' then null;end;
  perform set_config('request.jwt.claim.sub',u::text,true);
  begin perform public.easycall_identity();raise exception 'temporary password bypass' using errcode='ZC002';exception when insufficient_privilege then null;end;
  if has_function_privilege('authenticated','public.easycall_work_password_complete(uuid)','execute') then raise exception 'password completion exposed';end if;
  perform public.easycall_work_password_complete(u);
+ begin perform public.easycall_identity();raise exception 'stale token allowed' using errcode='ZC002';exception when insufficient_privilege then null;end;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',u,'aal','aal2','app_metadata',(select raw_app_meta_data from auth.users where id=u))::text,true);
  if public.easycall_identity()->>'agent_id'<>'worker' then raise exception 'identity mismatch';end if;
  begin perform public.easycall_work_account_context('load2','worker','agent');raise exception 'agent administered account' using errcode='ZC002';exception when insufficient_privilege then null;end;
  perform set_config('request.jwt.claim.sub',root::text,true);

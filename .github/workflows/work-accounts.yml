@@ -20,6 +20,11 @@ jobs:
         run: node --test tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs
       - name: Edge function type check
         run: deno check supabase/functions/easycall-work-accounts/index.ts
+      - name: Browser account flow checks
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node tests/work-accounts-browser.cjs
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"
