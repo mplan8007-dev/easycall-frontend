@@ -1,7 +1,7 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding"]
     paths: ["agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
@@ -29,6 +29,7 @@ jobs:
           node tests/camp-admin-accounts-browser.cjs
           node tests/agent-accounts-browser.cjs
           node tests/common-password-browser.cjs
+          node tests/agent-onboarding-browser.cjs
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"

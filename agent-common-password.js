@@ -10,6 +10,7 @@ function hideSecret(){$('gc-secret').value='';$('gc-secret-panel').classList.add
 function clear(){token++;state=null;camp='';busy=false;hideSecret();$('gc-password').value='';$('gc-password').type='password';$('gc-show').checked=false;$('gc-settings').classList.add('ga-hidden');$('gc-message').textContent='';}
 const msg=s=>{$('gc-message').textContent=s;};
 async function api(action,extra={}){const {data,error}=await sbClient.functions.invoke('easycall-work-accounts',{body:{action,campId:camp,...extra}});if(error)throw Error('서버 응답을 확인하지 못했습니다. 상태 새로고침으로 적용 결과를 확인하세요.');if(data?.error)throw Error(data.error);return data;}
+window.easycallAgentCommonReady=()=>state?.ready===true;
 function render(){
  $('gc-status').textContent=!state?'설정을 불러오지 못했습니다. 상태 새로고침을 누르세요.':!state.configured?'아직 미설정 · 계정 발급 전 공통 비밀번호를 설정해 주세요.':state.ready?'공통 비밀번호 사용 중 · 기존·신규 홍보요원 모두 같은 비밀번호를 사용합니다.':'전체 '+state.total+'명 중 '+state.done+'명 완료 · 남음 '+state.pending+'명 · 처리 중 '+state.processing+'명 · 실패 '+state.failed+'명';
  $('gc-open').disabled=busy||!!(state?.configured&&!state.ready);$('gc-reveal').disabled=busy||!state?.ready;
