@@ -1,0 +1,38 @@
+const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.resolve(process.execPath,'../../node_modules/playwright')));}
+(async()=>{
+ const root=path.resolve(__dirname,'..'),server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return;}try{const body=fs.readFileSync(file.endsWith(path.sep)?file+'index.html':file);res.setHeader('Content-Type',file.endsWith('.html')?'text/html; charset=utf-8':'text/javascript; charset=utf-8');res.end(body);}catch{res.writeHead(404).end();}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
+ const chrome='C:/Program Files/Google/Chrome/Application/chrome.exe';const browser=await chromium.launch(fs.existsSync(chrome)?{headless:true,executablePath:chrome}:{headless:true});
+ try{
+  const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+  await page.route('**/*',route=>{const url=route.request().url();if(url.startsWith(origin))return route.continue();if(url.includes('supabase-js'))return route.fulfill({contentType:'text/javascript',body:`window.__mockAuth={getUser:async()=>({data:{user:null}}),getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({})};window.supabase={createClient:()=>({auth:window.__mockAuth})};`});return route.fulfill({contentType:'text/javascript',body:''});});
+  await page.goto(origin+'/index.html');await page.waitForFunction(()=>typeof window.openWorkAccounts==='function');
+  await page.evaluate(()=>{verifiedIdentity={role:'admin',campId:'camp01',uid:'manager'};campsList=[{campId:'camp01',name:'Our Camp'}];window.__actions=[];window.__accounts=[{loginId:'old',name:'Existing',phone:'0419301001',hasAccount:true,status:'active'},{loginId:'registered',name:'Registered',phone:'0419301002',hasAccount:false,status:'unissued'}];sbClient={rpc:async(name,{p_camp})=>({data:{campId:p_camp,limit:100,registered:2,remaining:98,reservedIds:['old','registered','agent0001'],accounts:window.__accounts}}),functions:{invoke:async(name,{body})=>{window.__actions.push(body);if(body.action==='create')return {data:{results:body.rows.map((r,i)=>({...r,success:i!==1,password:i!==1?'000123':undefined,error:i===1?'test quota failure':undefined}))}};if(body.action==='reset')return {data:{password:'000007'}};window.__accounts[0].status=body.action==='disable'?'disabled':'active';return {data:{success:true}};}}};openAgentAccounts('other-camp');});
+  await page.waitForFunction(()=>document.getElementById('ga-list').textContent.includes('Existing'));
+  assert.match(await page.locator('#ga-context').innerText(),/camp01/);assert.equal(await page.locator('#ga-camp-picker').isVisible(),false);
+  await page.locator('#ga-bulk').click();await page.locator('#ga-paste').fill('이름\t배정 전화번호\nExisting\t0419301001\nRegistered\t0419301002\n<img src=x>\t0419301003\nNew B\t0419301004');await page.locator('#ga-preview').click();
+  await page.waitForFunction(()=>!document.getElementById('ga-preview-panel').classList.contains('ga-hidden'));
+  assert.match(await page.locator('#ga-preview-summary').innerText(),/발급 대상 3명/);assert.match(await page.locator('#ga-preview-summary').innerText(),/제외 1명/);assert.equal(await page.locator('#ga-preview-rows img').count(),0);
+  await page.locator('#ga-issue').click();await page.waitForFunction(()=>document.getElementById('ga-progress').textContent.includes('확인 필요 1명'));
+  assert.equal(await page.evaluate(()=>window.__actions[0].rows.length),3);assert.equal(await page.evaluate(()=>window.__actions[0].rows[0].loginId),'registered');assert.equal(await page.evaluate(()=>window.__actions[0].rows.every(r=>r.campId==='camp01'&&r.role==='agent')),true);
+  assert.equal(await page.locator('#ga-export').isDisabled(),false);assert.equal(await page.locator('#ga-results img').count(),0);
+  await page.locator('#ga-results').getByRole('button',{name:'개별 전달 안내',exact:true}).first().click();assert.match(await page.locator('#ga-guide').inputValue(),/000123/);assert.match(await page.locator('#ga-guide').inputValue(),/registered/);
+  await page.locator('#ga-results-back').click();assert.equal(await page.locator('#ga-guide').inputValue(),'');
+  await page.locator('#ga-search').fill('Existing');assert.match(await page.locator('#ga-list').innerText(),/Existing/);assert.ok(!(await page.locator('#ga-list').innerText()).includes('Registered'));
+  await page.locator('#ga-list').getByRole('button',{name:'사용 중지',exact:true}).click();await page.locator('#ga-action-confirm').click();await page.waitForFunction(()=>document.getElementById('ga-list').textContent.includes('사용 재개'));
+  await page.locator('#ga-list').getByRole('button',{name:'사용 재개',exact:true}).click();await page.locator('#ga-action-confirm').click();await page.waitForFunction(()=>document.getElementById('ga-list').textContent.includes('사용 중지'));
+  await page.locator('#ga-list').getByRole('button',{name:'비밀번호 재발급',exact:true}).click();await page.locator('#ga-action-confirm').click();await page.waitForFunction(()=>document.getElementById('ga-results').textContent.includes('000007'));await page.locator('#ga-close').click();
+  assert.equal(await page.locator('#agent-accounts').isVisible(),false);assert.equal(await page.locator('#ga-results').innerText(),'');
+  await page.evaluate(()=>{verifiedIdentity={role:'agent',campId:'camp01'};openAgentAccounts('camp02');});assert.equal(await page.locator('#agent-accounts').isVisible(),false);
+  await page.evaluate(()=>{verifiedIdentity={role:'admin',campId:'camp01',uid:'manager'};window.__actions=[];sbClient.functions.invoke=async(name,{body})=>{window.__actions.push(body);return {data:{results:body.rows.map(r=>({...r,success:true,password:'000123'}))}};};openAgentAccounts();});
+  await page.waitForFunction(()=>document.getElementById('ga-list').textContent.includes('Existing'));await page.locator('#ga-bulk').click();
+  await page.locator('#ga-paste').fill(Array.from({length:26},(_,i)=>'Batch'+i+',0419301003').join('\n'));await page.locator('#ga-preview').click();await page.waitForFunction(()=>document.getElementById('ga-issue').textContent.includes('26명'));
+  await page.evaluate(()=>{document.getElementById('ga-issue').click();document.getElementById('ga-issue').click();});await page.waitForFunction(()=>document.getElementById('ga-progress').textContent.includes('발급 완료 26명'));
+  assert.deepEqual(await page.evaluate(()=>window.__actions.map(a=>a.rows.length)),[25,1]);
+  const downloaded=page.waitForEvent('download');await page.locator('#ga-export').click();const file=await downloaded;const xml=fs.readFileSync(await file.path(),'utf8');assert.match(xml,/ss:Type="String"/);assert.match(xml,/000123/);assert.match(xml,/0419301003/);
+  await page.locator('#ga-close').click();
+  assert.deepEqual(errors,[]);
+  console.log('PASS: scoped agent list, paste preview, duplicate skipping, partial bulk results, individual delivery, reset, disable, resume and secret clearing. External services mocked.');
+ }finally{await browser.close();server.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});
