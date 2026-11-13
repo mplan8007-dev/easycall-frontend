@@ -5,7 +5,7 @@ export function parseAgentRows(text){
  for(let i=0;i<=source.length;i++){const ch=source[i];if(quoted){if(ch==='"'&&source[i+1]==='"'){cell+='"';i++;}else if(ch==='"')quoted=false;else if(ch===undefined)throw Error('따옴표가 닫히지 않은 행이 있습니다.');else cell+=ch;}
  else if(ch==='"'&&cell==='')quoted=true;else if(ch===delimiter){row.push(cell.trim());cell='';}
  else if(ch==='\n'||ch===undefined){row.push(cell.trim().replace(/\r$/,''));if(row.some(Boolean))rows.push(row);row=[];cell='';}else if(ch!=='\r')cell+=ch;}
- if(rows.length&&/^(이름|성명|요원명|홍보요원명)$/.test(rows[0][0])&&/전화|회선|번호/.test(rows[0][1]||''))rows.shift();
+ if(rows.length&&/^(이름|성명|요원명|홍보요원명|전화담당자명)$/.test(rows[0][0])&&/전화|회선|번호/.test(rows[0][1]||''))rows.shift();
  if(rows.length>2000)throw Error('한 번에 최대 2,000명까지 입력하세요.');
  return rows;
 }
@@ -24,7 +24,7 @@ export function previewAgentRows(text,snapshot){
  return {rows:result,eligible,newCount,errors,overQuota:newCount>Number(snapshot.remaining||0),skipped:result.length-eligible.length-errors};
 }
 export function deliveryText(campId,row,origin){
- return ['이지콜 홍보요원 계정 안내','접속 주소: '+origin,'캠프 ID: '+campId,'사용자 ID: '+row.loginId,...(row.password?['캠프 공통 비밀번호: '+row.password]:['비밀번호: 기존에 전달받은 비밀번호를 사용하세요.']),'홍보요원은 캠프 공통 비밀번호를 사용합니다. 비밀번호 문의는 캠프 관리자에게 하세요.'].join('\n');
+ return ['이지콜 전화담당자 계정 안내','접속 주소: '+origin,'캠프 ID: '+campId,'사용자 ID: '+row.loginId,...(row.password?['캠프 공통 비밀번호: '+row.password]:['비밀번호: 기존에 전달받은 비밀번호를 사용하세요.']),'전화담당자는 캠프 공통 비밀번호를 사용합니다. 비밀번호 문의는 캠프 관리자에게 하세요.'].join('\n');
 }
 export function spreadsheetXml(rows){
  const xml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
