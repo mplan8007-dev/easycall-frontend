@@ -10,7 +10,7 @@ begin
   policy:=case when mode='smartphone' then '{"callTransport":"smartphone"}'::jsonb when mode='pending' then '{"callTransport":"sip"}'::jsonb else '{"callTransport":"sip","sipWss":"wss://pbx.example.com/ws","sipDomain":"pbx.example.com"}'::jsonb end;
   r:=public.easycall_admin_save_camp(d||jsonb_build_object('campId',cid,'callPolicy',policy),null,req);
   if r->>'campId'<>cid or not exists(select 1 from public.easycall_camp_contracts where camp_id=cid) then raise exception 'Camp creation failed';end if;
-  if (select payload->'config'->>'callTransport' from public.easycall_sync_store where store_key='STATE_'||cid)<>case when mode='smartphone' then 'smartphone' else 'sip' end then raise exception 'Transport not created atomically';end if;
+  if (select payload->'config'->>'callTransport' from public.easycall_sync_store where store_key='STATE_'||cid)<>(case when mode='smartphone' then 'smartphone' else 'sip' end) then raise exception 'Transport not created atomically';end if;
   if mode='configured' and (select payload->'config'->>'sipWss' from public.easycall_sync_store where store_key='STATE_'||cid)<>'wss://pbx.example.com/ws' then raise exception 'Endpoint missing';end if;
   perform public.easycall_admin_save_camp(d||jsonb_build_object('campId',cid,'callPolicy',policy),null,req);
   if (select count(*) from public.easycall_admin_events where request_id=req)<>1 then raise exception 'Duplicate registration';end if;
