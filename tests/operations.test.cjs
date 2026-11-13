@@ -53,7 +53,11 @@ test('CSV supports BOM, escaped quotes, embedded commas and multiline cells', ()
 test('import validates header mapping, duplicates and malformed numbers', () => {
   const h=harness();
   const rows=JSON.parse(h.run(`JSON.stringify(validateImportRows([['전화번호','이름','행정동'],['01012345678','홍길동','지역']]))`));
-  assert.equal(rows[0].phone,'01012345678'); assert.equal(rows[0].name,'홍길동');
+  assert.equal(rows[0].phone,'01012345678'); assert.equal(rows[0].name,'홍길동'); assert.equal(rows[0].dong,'지역');
+  const group=JSON.parse(h.run(`JSON.stringify(validateImportRows([['그룹명','전화번호','이름'],['봉사팀','01012345678','홍길동']]))`));
+  assert.equal(group[0].dong,'봉사팀'); assert.equal(group[0].name,'홍길동');
+  const template=JSON.parse(h.run(`JSON.stringify(validateImportRows(parseCsv('유권자명,전화번호,그룹명\\n홍길동,01012345678,봉사팀')))`));
+  assert.equal(template[0].name,'홍길동');assert.equal(template[0].dong,'봉사팀');
   assert.match(rows[0].id,/^[a-f0-9-]{36}$/);
   assert.throws(()=>h.run(`validateImportRows([['이름','전화번호'],['A','01012345678'],['B','010-1234-5678']])`));
   assert.throws(()=>h.run(`validateImportRows([['A','123']])`));
