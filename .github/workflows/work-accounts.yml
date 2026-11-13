@@ -1,7 +1,7 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets"]
     paths: ["call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
@@ -31,6 +31,10 @@ jobs:
           node tests/common-password-browser.cjs
           node tests/agent-onboarding-browser.cjs
           node tests/call-integration-browser.cjs
+      - name: Production build and SIP asset smoke
+        run: |
+          npm run build
+          node tests/call-build.cjs
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"
