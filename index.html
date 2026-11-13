@@ -778,8 +778,8 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-3">
             <div>
-              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 대량 업로드 (1,000건 단위 청크 고속 적재)</h3>
-              <p class="text-xs text-slate-500 mt-0.5">수만 명의 대용량 엑셀도 끊김 없이 분할 업로드되며 우리 캠프 전용 샤드에 격리 저장됩니다.</p>
+              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 업로드</h3>
+              <p class="text-xs text-slate-500 mt-0.5">최대 10,000건을 한 번에 교체합니다. 서버 저장 후 파일 내용과 다시 대조하며, 배정 중인 대상이 있으면 교체할 수 없습니다.</p>
             </div>
             <div class="flex gap-1.5">
               <button type="button" onclick="resetVoterQueueToSample()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">샘플 복원</button>
@@ -2701,11 +2701,16 @@
       const file = event.target.files[0];
       if (!file || isUploading) return;
       if (!verifiedIdentity || !['super','admin'].includes(verifiedIdentity.role)) return;
-      if (file.size > 10 * 1024 * 1024) { alert('10MB 이하 파일만 업로드할 수 있습니다.'); return; }
+      const status = document.getElementById('upload-status');
+      const message = value => { if (status) status.innerText = value; };
+      message('');
+      if (file.size > 10 * 1024 * 1024) { message('업로드 실패: 10MB 이하 파일을 선택하세요.'); alert('10MB 이하 파일만 업로드할 수 있습니다.'); return; }
+      const cid = getActiveCampId(), actor = verifiedIdentity;
       isUploading = true;
       try {
         const ext = file.name.split('.').pop().toLowerCase();
         if (!['csv','xlsx','xls'].includes(ext)) throw new Error('CSV 또는 엑셀 파일을 선택하세요.');
+        message('파일 검증 중: ' + file.name + ' · 캠프 ' + cid);
         let rows;
         if (ext === 'csv') rows = parseCsv(await file.text());
         else {
@@ -2713,19 +2718,39 @@
           const book = XLSX.read(await file.arrayBuffer(), { type: 'array' });
           rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]], { header: 1, defval: '', raw: false });
         }
-        const cid = currentAdminId.toLowerCase();
         const validated = validateImportRows(rows);
         if (!validated.length) throw new Error('유효한 데이터가 없습니다.');
-        if (!confirm(validated.length + '건으로 명부를 교체합니다. 기존 기록은 유지되며, 점유 중인 대상이 있으면 교체되지 않습니다. 계속하시겠습니까?')) return;
-        const { error } = await sbClient.rpc('easycall_replace_voters', { p_camp_id: cid, p_rows: validated });
+        if (verifiedIdentity !== actor || getActiveCampId() !== cid) throw new Error('접속 캠프가 변경되었습니다. 파일을 다시 선택하세요.');
+        if (!confirm('캠프 ' + cid + '의 명부를 ' + validated.length + '건으로 교체합니다. 기존 기록은 유지되며, 점유 중인 대상이 있으면 교체되지 않습니다. 계속하시겠습니까?')) { message('업로드 취소: 서버 명부를 변경하지 않았습니다.'); return; }
+        message('서버 저장 중: ' + file.name + ' · ' + validated.length + '건');
+        const { data: saved, error } = await sbClient.rpc('easycall_replace_voters', { p_camp_id: cid, p_rows: validated });
         if (error) throw error;
-        await pullStateFromSupabase();
-        currentVoterIdx = 0;
-        updateVoterQueueStatusText();
-        document.getElementById('upload-status').innerText = '✅ 서버에 명부 ' + validated.length + '건 반영 완료';
-        showToast('명부 검증 및 서버 반영 완료');
-      } catch (error) { alert('업로드 실패: ' + error.message); }
-      finally { isUploading = false; event.target.value = ''; }
+        if (!Number.isInteger(saved) || saved < 0 || saved > validated.length) throw new Error('서버 저장 확인 응답이 올바르지 않습니다. 명부를 확인한 뒤 다시 시도하세요.');
+        message('서버에 저장된 명부 확인 중…');
+        // Read back the saved IDs and contact values, not the local file or cached list.
+        const expected = new Map(validated.map(row => [row.id, row]));
+        const seen = new Set();
+        for (let offset = 0; offset < Math.max(saved, 1); offset += 100) {
+          const { data: page, error: readError } = await sbClient.rpc('easycall_list_page', { p_camp_id: cid, p_kind: 'voters', p_offset: offset, p_limit: 100, p_query: '', p_callback: false, p_as_of: null });
+          if (readError) throw new Error('저장 요청 후 서버 명부 재확인 실패: ' + readError.message);
+          if (Number(page?.total) !== saved || !Array.isArray(page?.items)) throw new Error('서버 명부 건수가 저장 결과와 다릅니다. 완료로 확인할 수 없습니다.');
+          for (const row of page.items) {
+            const source = expected.get(String(row.voter_id));
+            if (!source || seen.has(String(row.voter_id)) || source.name !== row.name || source.phone !== row.phone || source.dong !== row.dong) throw new Error('서버 명부 내용이 업로드 파일과 다릅니다. 완료로 확인할 수 없습니다.');
+            seen.add(String(row.voter_id));
+          }
+        }
+        if (seen.size !== saved) throw new Error('서버 명부 확인 건수가 부족합니다. 완료로 확인할 수 없습니다.');
+        if (verifiedIdentity !== actor || getActiveCampId() !== cid) return;
+        message('✅ ' + file.name + ' · 캠프 ' + cid + ' · 서버 저장 및 재조회 ' + saved + '건 확인 완료' + (saved < validated.length ? ' · 수신거부 차단 제외 ' + (validated.length - saved) + '건' : ''));
+        try { await pullStateFromSupabase(); updateVoterQueueStatusText(); }
+        catch (refreshError) { message(status.innerText + ' · 관리 화면 새로고침 실패: 최신 자료를 다시 조회하세요.'); }
+        showToast('서버 명부 ' + saved + '건 저장·재조회 확인 완료');
+      } catch (error) {
+        const reason = /Active assignments exist/.test(error.message || '') ? '홍보요원에게 배정된 대상이 있어 교체하지 못했습니다. 진행 중인 대상 처리를 마친 뒤 다시 업로드하세요. 기존 명부는 유지됩니다.' : error.message;
+        if (verifiedIdentity === actor && getActiveCampId() === cid) message('❌ 업로드 확인 실패: ' + reason);
+        alert('업로드 확인 실패: ' + reason);
+      } finally { isUploading = false; event.target.value = ''; }
     }
 
     function downloadExcelTemplate() {
