@@ -160,7 +160,7 @@ def phase(name, devices, hold_seconds, ramp_seconds, media):
     server_cmd = ['sipp', '-sn', 'uas', '-p', '5060', '-min_rtp_port', '6000', '-m', str(devices), '-stf', 'server.csv'] + common
     if media:
         server_cmd += ['-rtp_echo']
-    client_cmd = ['sipp', '127.0.0.1:5060', '-sf', str(xml), '-p', '5062', '-min_rtp_port', '10000',
+    client_cmd = ['sipp', '127.0.0.1:5060', '-sf', str(xml), '-p', '5062', '-min_rtp_port', '10000', '-max_rtp_port', '30000',
                   '-r', str(devices / ramp_seconds), '-rp', '1000', '-l', str(devices), '-m', str(devices),
                   '-stf', 'client.csv', '-timeout', str(hold_seconds + ramp_seconds + 45), '-timeout_error'] + common
     result = {'name': name, 'devices': devices, 'holdSecondsPerCall': hold_seconds, 'media': media,
