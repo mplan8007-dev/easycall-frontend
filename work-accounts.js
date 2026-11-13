@@ -20,13 +20,13 @@ window.handleInstantLogin=async function(){
  try{const k=accountKey($('work-login-camp').value,id);$('login-id').value=await accountAddress(k.campId,k.loginId);await legacyLogin();}
  catch(e){showToast(e.message);}finally{$('login-id').value=id;busy=false;}
 };
-modal('work-password-dialog','최초 로그인 · 비밀번호 변경',`
-<p class="text-sm text-slate-300">임시 비밀번호를 변경해야 업무를 시작할 수 있습니다.</p>
-<label class="block">현재 임시 비밀번호<input id="work-current-password" type="password" autocomplete="current-password" class="${inputClass}"></label>
-<label class="block">새 비밀번호 (12자 이상)<input id="work-new-password" type="password" autocomplete="new-password" class="${inputClass}"></label>
+modal('work-password-dialog','비밀번호 변경 (선택)',`
+<p class="text-sm text-slate-300">지금 변경하거나 나중에 변경할 수 있습니다. 임시 비밀번호로도 업무를 시작할 수 있습니다.</p>
+<label class="block">현재 비밀번호<input id="work-current-password" type="password" autocomplete="current-password" class="${inputClass}"></label>
+<label class="block">새 비밀번호 (6자 이상)<input id="work-new-password" type="password" minlength="6" maxlength="128" autocomplete="new-password" class="${inputClass}"></label>
 <label class="block">새 비밀번호 확인<input id="work-confirm-password" type="password" autocomplete="new-password" class="${inputClass}"></label>
 <label class="block">인증 앱 코드 (이미 2단계 인증을 등록한 계정만)<input id="work-change-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="${inputClass}"></label>
-<p id="work-password-message" role="status" class="text-amber-200"></p><button id="work-password-save" class="bg-indigo-600 px-4 py-2 rounded-lg">변경 후 업무 시작</button><button id="work-password-cancel" class="px-4 py-2">로그아웃</button>`);
+<p id="work-password-message" role="status" class="text-amber-200"></p><button id="work-password-save" class="bg-indigo-600 px-4 py-2 rounded-lg">비밀번호 변경</button><button id="work-password-skip" class="px-4 py-2 bg-slate-700 rounded-lg">나중에 변경 · 업무 시작</button><button id="work-password-cancel" class="px-4 py-2">로그아웃</button>`);
 window.activateVerifiedUser=async function(user){
  if(user?.app_metadata?.easycall_must_change){pendingUser=user;show('work-password-dialog');return;}
  return legacyActivate(user);
@@ -48,6 +48,12 @@ $('work-password-save').onclick=async()=>{
   pendingUser=null;hide('work-password-dialog');await legacyActivate(data.user);
  }catch(e){message('work-password-message',e.message);}finally{busy=false;$('work-password-save').disabled=false;}
 };
+$('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');await legacyActivate(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}finally{busy=false;}};
+window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
+const originalSaveMyPassword=window.saveMyPassword;
+window.saveMyPassword=async function(){const {data}=await sbClient.auth.getUser();if(data?.user?.app_metadata?.easycall_login_id){hide('my-account-dialog');await window.openWorkPasswordChange();return;}return originalSaveMyPassword();};
+const previousLogout=window.handleLogout;
+window.handleLogout=async function(...args){pendingUser=null;hide('work-password-dialog');for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');return previousLogout(...args);};
 $('work-password-cancel').onclick=()=>window.handleLogout();
 modal('work-accounts-dialog','업무용 계정 발급·관리',`
 <p class="text-sm text-slate-300">최고관리자는 캠프 관리자와 홍보요원을, 캠프 관리자는 자기 캠프 홍보요원을 발급할 수 있습니다. 기존 이메일 계정은 이 화면에서 변경하지 않습니다.</p>
