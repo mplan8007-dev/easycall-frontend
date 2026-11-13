@@ -61,8 +61,9 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
    const rpc=sbClient.rpc;sbClient.rpc=async(name,args)=>{
     if(name==='easycall_call_transport_get')return {data:{campId:args.p_camp,...window.__policy}};
     if(name==='easycall_call_transport_set'){window.__configSaves++;if(!window.__saveConfigOK)return {error:{message:'conflict'}};window.__policy={revision:'r'+(window.__configSaves+1),config:{...args.p_config}};return {data:{campId:args.p_camp,...window.__policy}};}return rpc(name,args);
-   };refreshActiveRoleUI();return openCampCallTransport('camp01');
+   };refreshActiveRoleUI();document.getElementById('camp-edit-context').textContent='camp01 · Test';
   });
+  await page.locator('#phone-policy-open').click();await page.waitForFunction(()=>!document.getElementById('phone-policy-save').disabled);
   await page.locator('#phone-transport').selectOption('sip');await page.locator('#phone-wss').fill('ws://pbx.example.com/ws');await page.locator('#phone-domain').fill('pbx.example.com');await page.locator('#phone-policy-save').click();
   assert.equal(await page.evaluate(()=>window.__configSaves),0);
   await page.locator('#phone-wss').fill('wss://pbx.example.com/ws');await page.locator('#phone-policy-save').click();
