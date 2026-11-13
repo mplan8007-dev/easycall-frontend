@@ -27,8 +27,11 @@ modal('work-password-dialog','비밀번호 변경 (선택)',`
 <label class="block">새 비밀번호 확인<input id="work-confirm-password" type="password" autocomplete="new-password" class="${inputClass}"></label>
 <label class="block">인증 앱 코드 (이미 2단계 인증을 등록한 계정만)<input id="work-change-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="${inputClass}"></label>
 <p id="work-password-message" role="status" class="text-amber-200"></p><button id="work-password-save" class="bg-indigo-600 px-4 py-2 rounded-lg">비밀번호 변경</button><button id="work-password-skip" class="px-4 py-2 bg-slate-700 rounded-lg">나중에 변경 · 업무 시작</button><button id="work-password-cancel" class="px-4 py-2">로그아웃</button>`);
+function passwordReminderKey(user){return 'easycall_password_deferred:'+user.id+':'+(user.app_metadata?.easycall_auth_version||'initial');}
+function reminderDeferred(user){try{return localStorage.getItem(passwordReminderKey(user))==='yes';}catch{return false;}}
+function deferReminder(user){try{localStorage.setItem(passwordReminderKey(user),'yes');}catch{}}
 window.activateVerifiedUser=async function(user){
- if(user?.app_metadata?.easycall_must_change){pendingUser=user;show('work-password-dialog');return;}
+ if(user?.app_metadata?.easycall_must_change&&!reminderDeferred(user)){pendingUser=user;show('work-password-dialog');return;}
  return legacyActivate(user);
 };
 $('work-password-save').onclick=async()=>{
@@ -48,7 +51,7 @@ $('work-password-save').onclick=async()=>{
   pendingUser=null;hide('work-password-dialog');await legacyActivate(data.user);
  }catch(e){message('work-password-message',e.message);}finally{busy=false;$('work-password-save').disabled=false;}
 };
-$('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');await legacyActivate(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}finally{busy=false;}};
+$('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');await legacyActivate(user);deferReminder(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}finally{busy=false;}};
 window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
 const originalSaveMyPassword=window.saveMyPassword;
 window.saveMyPassword=async function(){const {data}=await sbClient.auth.getUser();if(data?.user?.app_metadata?.easycall_login_id){hide('my-account-dialog');await window.openWorkPasswordChange();return;}return originalSaveMyPassword();};

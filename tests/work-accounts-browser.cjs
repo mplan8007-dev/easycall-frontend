@@ -14,7 +14,10 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   assert.match(await page.evaluate(()=>window.__calls[0].email),/^[0-9a-f]{64}@login\.easycall\.invalid$/);
   assert.equal(await page.locator('#login-id').inputValue(),'Worker01');
   await page.locator('#work-password-skip').click();await page.waitForFunction(()=>window.__activated===1);assert.equal(await page.locator('#work-password-dialog').getAttribute('class').then(c=>c.includes('hidden')),true);
-  await page.evaluate(()=>{window.__changed=null;const user={id:'test-user',app_metadata:{easycall_must_change:true,easycall_login_id:'worker01'}};sbClient={auth:{mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal1',nextLevel:'aal1'}})},setSession:async()=>({}),getUser:async()=>({data:{user:{...user,app_metadata:{...user.app_metadata,easycall_must_change:false}}}})},functions:{invoke:async(name,{body})=>{window.__changed=body;return {data:{session:{access_token:'fake-access',refresh_token:'fake-refresh'}}};}}};activateVerifiedUser(user);});
+  await page.reload();await page.waitForFunction(()=>typeof window.openWorkPasswordChange==='function');
+  await page.evaluate(()=>activateVerifiedUser({id:'test-user',app_metadata:{easycall_must_change:true}}));await page.waitForFunction(()=>window.__activated===1);
+  assert.equal(await page.locator('#work-password-dialog').getAttribute('class').then(c=>c.includes('hidden')),true);
+  await page.evaluate(()=>{window.__changed=null;const user={id:'test-user',app_metadata:{easycall_must_change:true,easycall_login_id:'worker01',easycall_auth_version:'reset-v2'}};sbClient={auth:{mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal1',nextLevel:'aal1'}})},setSession:async()=>({}),getUser:async()=>({data:{user:{...user,app_metadata:{...user.app_metadata,easycall_must_change:false}}}})},functions:{invoke:async(name,{body})=>{window.__changed=body;return {data:{session:{access_token:'fake-access',refresh_token:'fake-refresh'}}};}}};activateVerifiedUser(user);});
   await page.locator('#work-current-password').fill('000123');await page.locator('#work-new-password').fill('12345');await page.locator('#work-confirm-password').fill('12345');await page.locator('#work-password-save').click();
   assert.equal(await page.evaluate(()=>window.__changed),null);assert.match(await page.locator('#work-password-message').innerText(),/6~128/);
   await page.locator('#work-new-password').fill('654321');await page.locator('#work-confirm-password').fill('654321');await page.locator('#work-password-save').click();await page.waitForFunction(()=>window.__activated===2);
@@ -25,6 +28,6 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   await page.locator('#work-account-create').click();await page.waitForFunction(()=>document.getElementById('work-account-message').textContent.includes('실패 1'));
   assert.equal(await page.locator('#work-account-result img').count(),0);assert.equal(await page.locator('#work-account-download').getAttribute('class').then(c=>c.includes('hidden')),false);
   assert.equal(await page.evaluate(()=>window.__bulk.rows[0].campId),'camp01');assert.deepEqual(errors,[]);
-  console.log('PASS: browser ID login, optional password change, six-character minimum, camp-scoped registration, partial results and escaped text. External services mocked.');
+  console.log('PASS: browser ID login, optional password change, refresh persistence, re-prompt after reset, six-character minimum, camp-scoped registration, partial results and escaped text. External services mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
