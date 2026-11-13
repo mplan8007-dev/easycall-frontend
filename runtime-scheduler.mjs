@@ -1,6 +1,6 @@
 // One outstanding request per browser, staggered timers, bounded outage retries.
 export class AdaptivePoller {
- constructor(task,{interval=25000,hiddenInterval=60000,maxDelay=120000,random=Math.random,setTimer=setTimeout,clearTimer=clearTimeout,isHidden=()=>false,isOnline=()=>true,onError=()=>{}}={}){
+ constructor(task,{interval=25000,hiddenInterval=60000,maxDelay=120000,random=Math.random,setTimer=(...args)=>globalThis.setTimeout(...args),clearTimer=(...args)=>globalThis.clearTimeout(...args),isHidden=()=>false,isOnline=()=>true,onError=()=>{}}={}){
   Object.assign(this,{task,interval,hiddenInterval,maxDelay,random,setTimer,clearTimer,isHidden,isOnline,onError});this.active=false;this.running=false;this.failures=0;this.generation=0;
  }
  start(){this.stop();this.active=true;this.schedule(Math.floor(this.random()*this.interval));}
