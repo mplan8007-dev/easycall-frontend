@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>이지콜 (EasyCall) - 통합 운영 플랫폼</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -42,6 +42,7 @@
       .no-print { display: none !important; }
     }
   </style>
+  <link rel="stylesheet" href="./responsive.css">
 </head>
 <body class="w-screen overflow-hidden flex flex-col text-slate-800">
 
@@ -1047,7 +1048,8 @@
 
     <!-- [요원 탭 1: 다이얼러] -->
     <main id="agent-tab-dialer" class="flex-1 min-h-0 flex gap-4 p-4 overflow-hidden">
-      <section class="w-[41%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
+      <nav class="ec-jump-nav" aria-label="통화 화면 내 이동"><a href="#ec-call-panel">통화 · 대상 확인</a><a href="#ec-result-panel">대본 · 결과 입력</a></nav>
+      <section id="ec-call-panel" class="w-[41%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
         <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="bg-blue-600 text-white font-extrabold text-base px-3.5 py-1 rounded-lg shadow-sm" id="voter-dong">대천1동</span>
@@ -1115,7 +1117,7 @@
         </div>
       </section>
 
-      <section class="w-[59%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
+      <section id="ec-result-panel" class="w-[59%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
         <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-3">
           <div class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5">
             <div class="flex items-center justify-between mb-1">

@@ -1,4 +1,5 @@
 import './agent-common-password.js';
+import './responsive-layout.js';
 import {transport,sipSettings,destination,waitMilliseconds,measuredSeconds,SipPhone} from './call-transport.mjs';
 const $=id=>document.getElementById(id),cfg=()=>getCampConfig(getActiveCampId()),actor=()=>verifiedIdentity?[verifiedIdentity.uid,verifiedIdentity.role,verifiedIdentity.campId,verifiedIdentity.agentId].join(':'):'';
 const agent=()=>verifiedIdentity?.role==='agent';
