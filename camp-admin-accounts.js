@@ -67,6 +67,6 @@ const bulk=window.openWorkAccounts;
 window.openWorkAccounts=function(id){if(verifiedIdentity?.role==='super')return window.openCampAdminAccounts(id);return bulk(id);};
 for(const b of document.querySelectorAll('#super-view button'))if(b.textContent==='업무용 계정 발급·관리'){b.textContent='캠프 관리자 계정 관리';b.onclick=()=>window.openCampAdminAccounts();}
 const superHeader=$('super-view')?.querySelector('header')||$('super-view');
-if(superHeader){const b=document.createElement('button');b.textContent='홍보요원 대량 발급';b.className='m-2 px-4 py-2 rounded-xl bg-slate-700 text-white text-sm';b.onclick=()=>bulk();superHeader.append(b);}
+if(superHeader){const b=document.createElement('button');b.textContent='전화담당자 대량 발급';b.className='m-2 px-4 py-2 rounded-xl bg-slate-700 text-white text-sm';b.onclick=()=>bulk();superHeader.append(b);}
 const logout=window.handleLogout;window.handleLogout=async function(...args){wipe();version++;box.classList.add('hidden');rows=[];selected=null;return logout(...args);};
 box.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}if(e.key==='Tab'){const controls=Array.from(box.querySelectorAll('button,input,select,textarea')).filter(el=>!el.disabled&&el.getClientRects().length);const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}});

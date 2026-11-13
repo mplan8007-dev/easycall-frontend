@@ -68,18 +68,18 @@ $('work-password-save').onclick=async()=>{
  }catch(e){message('work-password-message',e.message);}finally{busy=false;$('work-password-save').disabled=false;}
 };
 $('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');await legacyActivate(user);deferReminder(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}finally{busy=false;}};
-window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}if(data.user.app_metadata?.easycall_role==='agent'&&data.user.app_metadata?.easycall_agent_common_version){showToast('홍보요원은 캠프 공통 비밀번호를 사용합니다. 변경은 캠프 관리자에게 요청하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
+window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}if(data.user.app_metadata?.easycall_role==='agent'&&data.user.app_metadata?.easycall_agent_common_version){showToast('전화담당자는 캠프 공통 비밀번호를 사용합니다. 변경은 캠프 관리자에게 요청하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
 const originalSaveMyPassword=window.saveMyPassword;
 window.saveMyPassword=async function(){const {data}=await sbClient.auth.getUser();if(data?.user?.app_metadata?.easycall_login_id){hide('my-account-dialog');await window.openWorkPasswordChange();return;}return originalSaveMyPassword();};
 const previousLogout=window.handleLogout;
 window.handleLogout=async function(...args){pendingUser=null;hide('work-password-dialog');for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');return previousLogout(...args);};
 $('work-password-cancel').onclick=()=>window.handleLogout();
 modal('work-accounts-dialog','업무용 계정 발급·관리',`
-<p class="text-sm text-slate-300">최고관리자는 캠프 관리자와 홍보요원을, 캠프 관리자는 자기 캠프 홍보요원을 발급할 수 있습니다. 기존 이메일 계정은 이 화면에서 변경하지 않습니다.</p>
+<p class="text-sm text-slate-300">최고관리자는 캠프 관리자와 전화담당자를, 캠프 관리자는 자기 캠프 전화담당자를 발급할 수 있습니다. 기존 이메일 계정은 이 화면에서 변경하지 않습니다.</p>
 <label class="block">캠프 ID<input id="work-account-camp" class="${inputClass}"></label>
-<label class="block">계정 구분<select id="work-account-role" class="${inputClass}"><option value="agent">홍보요원</option><option value="admin">캠프 관리자</option></select></label>
+<label class="block">계정 구분<select id="work-account-role" class="${inputClass}"><option value="agent">전화담당자</option><option value="admin">캠프 관리자</option></select></label>
 <label class="block">계정 목록 (사용자ID,요원명,배정전화번호)<textarea id="work-account-rows" rows="5" class="${inputClass}" placeholder="tab001,김홍보,0419301001"></textarea></label>
-<p class="text-xs text-slate-300">엑셀의 3개 열을 복사해 붙여넣거나 쉼표로 구분하세요. 최대 2,000명을 25명씩 나눠 처리합니다. 캠프 관리자는 ID와 이름만 입력해도 됩니다. 홍보요원은 등록 단말 수 한도를 적용합니다.</p>
+<p class="text-xs text-slate-300">엑셀의 3개 열을 복사해 붙여넣거나 쉼표로 구분하세요. 최대 2,000명을 25명씩 나눠 처리합니다. 캠프 관리자는 ID와 이름만 입력해도 됩니다. 전화담당자는 등록 단말 수 한도를 적용합니다.</p>
 <button id="work-account-create" class="bg-indigo-600 px-4 py-2 rounded-lg">목록 검증 후 계정 발급</button>
 <hr class="border-slate-700"><label class="block">초기화·중지할 사용자 ID<input id="work-account-target" class="${inputClass}"></label>
 <div class="flex flex-wrap gap-2"><button id="work-account-reset" class="bg-amber-700 px-3 py-2 rounded-lg">임시 비밀번호 재발급</button><button id="work-account-disable" class="bg-rose-700 px-3 py-2 rounded-lg">사용 중지</button><button id="work-account-enable" class="bg-emerald-700 px-3 py-2 rounded-lg">사용 재개</button></div>
