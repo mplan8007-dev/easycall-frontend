@@ -55,6 +55,11 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   assert.equal(await page.locator('#phone-policy-open').isVisible(),false);
   await page.evaluate(()=>openCampCallTransport('camp01'));assert.equal(await page.locator('#phone-policy-dialog').isVisible(),false);
   assert.match(await page.locator('#phone-admin-readonly').innerText(),/최고관리자/);
+  assert.match(await page.locator('#admin-call-transport-badge').innerText(),/현재 통화 방식: 일반 스마트폰/);
+  await page.evaluate(()=>{Object.assign(campSettingsMap.camp01,{callTransport:'sip',sipWss:'',sipDomain:''});refreshActiveRoleUI();});
+  assert.match(await page.locator('#admin-call-transport-badge').innerText(),/SIP 인터넷전화 · 회선 설정 대기/);
+  await page.evaluate(()=>{Object.assign(campSettingsMap.camp01,{sipWss:'wss://pbx.example.com/ws',sipDomain:'pbx.example.com'});refreshActiveRoleUI();});
+  assert.match(await page.locator('#admin-call-transport-badge').innerText(),/현재 통화 방식: SIP 인터넷전화/);
   // Super administrators select the transport per camp with revision protection.
   await page.evaluate(()=>{
    verifiedIdentity={role:'super',uid:'root'};localStorage.setItem('easycall_role','super');renderSuperCampsTable=()=>{};window.__configSaves=0;window.__saveConfigOK=true;window.__policy={revision:'r1',config:{callTransport:'smartphone',sipWss:'',sipDomain:'',sipStun:''}};
@@ -79,3 +84,5 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   console.log('PASS: smartphone timing, SIP registration/answer/end, secret clearing, save-gated auto loop, cancellation and authorization denial. External services mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+
