@@ -123,3 +123,16 @@
  #login-view input,#agent-view input,#agent-view select,#agent-view textarea,#admin-view input,#admin-view select,#admin-view textarea,#super-view input,#super-view select,#super-view textarea,[role=dialog] input,[role=dialog] select,[role=dialog] textarea{font-size:16px!important}
  #agent-view button,#admin-view button,#super-view button,[role=dialog] button{min-height:44px}
 }
+
+/* The account button is inserted before the header groups at runtime. Allow
+   the groups to wrap as units instead of squeezing Korean labels vertically. */
+@media screen {
+ #admin-view>header{height:auto!important;min-height:64px;flex-wrap:wrap;gap:8px 12px;padding:10px 16px}
+ #admin-view>header>button{flex:0 0 auto;margin:0;white-space:nowrap;word-break:keep-all}
+ #admin-view>header>div{flex:0 1 auto;min-width:0;max-width:100%;flex-wrap:wrap;gap:8px}
+ #admin-view>header>div:nth-of-type(1)>div{display:flex;flex-wrap:wrap;max-width:100%}
+ #admin-view>header h1{flex-wrap:wrap;min-width:0;line-height:1.4;word-break:keep-all}
+ #admin-view>header button{white-space:normal;word-break:keep-all;overflow-wrap:normal}
+ #admin-view>header>div:nth-of-type(1)>div>button{flex:1 1 auto;min-width:max-content}
+ #admin-header-camp-name,#admin-call-transport-badge,#admin-cloud-badge{max-width:100%;word-break:keep-all;overflow-wrap:break-word;line-height:1.4}
+}
