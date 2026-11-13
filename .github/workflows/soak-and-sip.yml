@@ -86,7 +86,7 @@ jobs:
       - name: Check SIP harness and packet parser
         run: python3 tests/sip-harness.test.py
       - name: Run loopback-only SIP and RTP stages
-        run: sudo unshare --net sh -c 'ip link set lo up; python3 loadtest/sip/run.py'
+        run: sudo unshare --net sh -c 'ip link set lo up; ulimit -n 16384; python3 loadtest/sip/run.py'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
