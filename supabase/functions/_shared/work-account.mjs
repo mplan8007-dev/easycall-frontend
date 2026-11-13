@@ -18,7 +18,7 @@ export function cleanLargeBatch(rows){
  const keys=new Set();for(const r of all){const key=r.campId+':'+r.loginId;if(keys.has(key))throw Error('목록 전체에 중복 사용자 ID가 있습니다.');keys.add(key);}return all;
 }
 export function validatePassword(password,previous='') {
-  if(typeof password!=='string'||password.length<12||password.length>128||password===previous)throw Error('기존 비밀번호와 다른 12~128자의 비밀번호를 입력하세요.');
+  if(typeof password!=='string'||password.length<6||password.length>128||password===previous)throw Error('기존 비밀번호와 다른 6~128자의 비밀번호를 입력하세요.');
 }
 export function cleanBatch(rows) {
   if(!Array.isArray(rows)||rows.length<1||rows.length>25)throw Error('한 번에 1~25개 계정을 처리할 수 있습니다.');

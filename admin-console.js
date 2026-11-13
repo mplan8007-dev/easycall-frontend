@@ -249,7 +249,7 @@
   async function saveMyPassword(){
     if(delegated()){dialogError('my-account-dialog','대리접속을 종료한 뒤 본인 계정 화면에서 변경하세요.');return;}
     const password=$('my-account-password').value;
-    if(password.length<12){dialogError('my-account-dialog','12자 이상의 비밀번호를 입력하세요.');return;}
+    if(password.length<6){dialogError('my-account-dialog','6자 이상의 비밀번호를 입력하세요.');return;}
     if(state.busy||!online())return;
     if(!confirm((verifiedIdentity?.email||'현재 계정')+'의 비밀번호를 변경합니다. 진행하시겠습니까?'))return;
     state.busy=true;
