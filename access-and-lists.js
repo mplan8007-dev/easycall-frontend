@@ -72,7 +72,7 @@ import './admin-console.js';
  }
  async function changeDataPage(kind,delta){if(!pages[kind]||pages[kind].loading)return;pages[kind].failed=false;pages[kind].offset=Math.max(0,pages[kind].offset+delta*50);try{await loadPage(kind);}catch(e){}}
  async function easycallLoadCounts(){const cid=pages.camp;if(!cid)return;const data=await rpc('easycall_camp_counts',{p_camp_id:cid});if(cid!==pages.camp)return;count[cid]=data;renderAggregateStats();}
- async function refreshDataPage(kind){if(!pages[kind]||pages[kind].loading)return;pages[kind].offset=0;pages[kind].asOf=null;pages[kind].failed=false;try{await loadPage(kind);if(kind==='history')await easycallLoadCounts();}catch(e){}}
+ async function refreshDataPage(kind){if(!pages[kind])return;if(kind==='voters'){clearTimeout(searchTimer);resetCamp(getActiveCampId());pages.voters.key=JSON.stringify([$('agent-voter-search')?.value||'',searchFilterMode]);}if(pages[kind].loading)return;pages[kind].offset=0;pages[kind].asOf=null;pages[kind].failed=false;try{await loadPage(kind);if(kind==='history')await easycallLoadCounts();}catch(e){}}
  let searchTimer;
  function renderAgentSearchTable(){
   if(!pages.camp){legacy.search();return;}
