@@ -54,6 +54,9 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
    await page.waitForFunction(()=>window.__listRequests.some(r=>r.name==='easycall_admin_voter_page'&&r.args.p_query==='검증'));
    if(width===390){await page.locator('#admin-voter-list').scrollIntoViewIfNeeded();await screenshot('admin-voter-list-phone');await page.evaluate(()=>document.getElementById('admin-view').scrollTo(0,0));}
    await noOverflow('admin '+width+'x'+height);if(width===390)await screenshot('admin-phone');
+   const header=await page.evaluate(()=>{const h=document.querySelector('#admin-view>header');return {height:h.getBoundingClientRect().height,items:Array.from(h.querySelectorAll('button,h1,#admin-call-transport-badge')).map(e=>({text:e.textContent.trim(),width:e.getBoundingClientRect().width,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,break:getComputedStyle(e).wordBreak}))}});
+   assert.ok(header.height>=64,'Admin header must contain wrapped rows');
+   for(const item of header.items){assert.ok(item.width>=40,'Header item squeezed: '+JSON.stringify(item));assert.ok(item.scrollHeight<=item.clientHeight+1,'Header label clipped: '+JSON.stringify(item));assert.equal(item.break,'keep-all','Header words should not break arbitrarily');}
    await page.locator('#admin-voters-tbody [data-contact-edit]').first().click();await noOverflow('contact editor '+width+'x'+height);if(width===390)await screenshot('contact-edit-phone');await page.locator('#contact-edit-cancel').click();
    await page.evaluate(()=>{
     document.getElementById('admin-view').classList.add('hidden');document.getElementById('super-view').classList.remove('hidden');verifiedIdentity={role:'super',uid:'root'};localStorage.setItem('easycall_role','super');
@@ -73,3 +76,4 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   assert.deepEqual(errors,[]);console.log('PASS: six phone/tablet/desktop sizes, role pages, mobile table cards, account dialogs, touch targets, panel navigation and rotation draft preservation. All external page requests mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
