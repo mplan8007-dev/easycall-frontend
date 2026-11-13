@@ -1,8 +1,8 @@
 name: Work account registration checks
 on:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change"]
-    paths: ["camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
+    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk"]
+    paths: ["loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
 jobs:
@@ -18,7 +18,7 @@ jobs:
         with:
           deno-version: v2.4.5
       - name: Frontend and policy regression
-        run: node --test tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs
+        run: node --test tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs tests/agent-account-tools.test.cjs
       - name: Edge function type check
         run: deno check supabase/functions/easycall-work-accounts/index.ts
       - name: Browser account flow checks
@@ -27,6 +27,7 @@ jobs:
           npx playwright install --with-deps chromium
           node tests/work-accounts-browser.cjs
           node tests/camp-admin-accounts-browser.cjs
+          node tests/agent-accounts-browser.cjs
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"
@@ -38,6 +39,7 @@ jobs:
           cat supabase/migrations/20261113_work_accounts.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_admin_account_list.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_optional_password_change.sql >> loadtest/generated/init.sql
+          cat supabase/migrations/20261113_agent_account_list.sql >> loadtest/generated/init.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml up --build -d
           for n in $(seq 1 90); do
             if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select to_regprocedure('public.easycall_work_password_complete(uuid)') is not null" | grep -q t; then exit 0; fi
@@ -45,7 +47,9 @@ jobs:
           done
           exit 1
       - name: Actual PostgreSQL authorization rollback checks
-        run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/work-accounts-rollback.sql
+        run: |
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/work-accounts-rollback.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/agent-accounts-rollback.sql
       - name: Collect stack diagnostics
         if: failure()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80
