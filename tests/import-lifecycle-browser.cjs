@@ -25,7 +25,7 @@ const {chromium}=require('playwright');
   assert.match(await page.locator('#voter-history-body').innerText(),/실패.*배정 중/);
   await page.evaluate(()=>{
    verifiedIdentity={role:'agent',uid:'a1',campId:'camp01',agentId:'agent01'};currentAgentId='agent01';localStorage.setItem('easycall_role','agent');
-   campsList=[{campId:'camp01',name:'Fixture',tablets:15}];agentsList=[{campId:'camp01',agentId:'agent01',alias:'Fixture'}];campSettingsMap.camp01={nightLock:false,globalStopped:false,callTransport:'smartphone'};activeClaim=null;
+   campsList=[{campId:'camp01',name:'Fixture',tablets:15}];agentsList=[{campId:'camp01',agentId:'agent01',alias:'Fixture'}];campSettingsMap.camp01={nightLock:false,globalStopped:false,callTransport:'smartphone'};activeClaim=null;isEnterpriseRpcAvailable=true;
    window.__claims=0;window.__authorizations=0;window.__release=null;
    sbClient={rpc:async(name,args)=>{if(name==='easycall_claim_voter'){window.__claims++;return {data:[{voter_id:'fictional-voter',name:'Fixture',phone:'00000000000',last_result:'READY'}]};}if(name==='easycall_authorize_call')window.__authorizations++;if(name==='easycall_release_unstarted_claim')window.__release=args;return {data:null};}};
    initAgentView();
