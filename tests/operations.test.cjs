@@ -36,6 +36,14 @@ test('original visual CSS is preserved and administration controls are available
   for(const id of ['super-view','super-camps-body','camp-filter-sido','camp-edit-dialog','camp-payment-dialog','admin-backup-dialog'])assert.ok(html.includes('id="'+id+'"'));
 });
 
+test('script group token and the existing district token use the same contact group', () => {
+  const h=harness();
+  assert.equal(h.run("formatPersonalizedScript('{그룹명} / {행정동} / {유권자명}',{dong:'대천1동',name:'홍길동'})"),'대천1동 / 대천1동 / 홍길동');
+  h.run("currentAdminId='camp01';campSettingsMap.camp01={stepScripts:{1:'{행정동}',2:'{그룹명}'}};loadScenarioTextsToInputs()");
+  assert.equal(h.nodes.get('scenario-step-1').value,'{그룹명}');
+  assert.equal(h.run('campSettingsMap.camp01.stepScripts[1]'),'{행정동}');
+});
+
 test('CSV supports BOM, escaped quotes, embedded commas and multiline cells', () => {
   const h=harness();
   assert.deepEqual(JSON.parse(h.run(`JSON.stringify(parseCsv('\uFEFFname,phone,dong\\r\\n"A, ""B""",01012345678,"line1\\nline2"'))`)),

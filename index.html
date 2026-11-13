@@ -729,7 +729,7 @@
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-bullhorn mr-1 text-blue-600"></i> 후보 인지도 홍보 대본 배포 (2종 전환형)</h3>
-              <p class="text-xs text-slate-500 mt-0.5">대본에 <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{행정동}</code>, <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{유권자명}</code>을 넣으면 태블릿 화면에 실제 정보로 자동 변환됩니다.</p>
+              <p class="text-xs text-slate-500 mt-0.5">대본에 <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{그룹명}</code>, <code class="bg-slate-100 px-1.5 py-0.5 rounded text-blue-700 font-bold">{유권자명}</code>을 넣으면 태블릿 화면에 실제 정보로 자동 변환됩니다. 그룹명은 등록된 연락처의 행정동 항목을 사용합니다.</p>
             </div>
             <span id="current-active-step-badge" class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full font-bold shrink-0">현재 적용중: 대본 1</span>
           </div>
@@ -740,11 +740,11 @@
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="text-xs font-extrabold px-2.5 py-0.5 bg-blue-600 text-white rounded">대본 1 : 기본 인지도 각인</span>
                   <div class="flex gap-1">
-                    <button type="button" onclick="insertScriptToken(1, '{행정동}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold">+ {행정동}</button>
+                    <button type="button" onclick="insertScriptToken(1, '{그룹명}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold">+ {그룹명}</button>
                     <button type="button" onclick="insertScriptToken(1, '{유권자명}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold">+ {유권자명}</button>
                   </div>
                 </div>
-                <textarea id="scenario-step-1" rows="4" class="w-full p-2.5 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-900 leading-relaxed">안녕하십니까! {행정동}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!</textarea>
+                <textarea id="scenario-step-1" rows="4" class="w-full p-2.5 bg-white border border-blue-200 rounded-lg text-xs font-semibold text-slate-900 leading-relaxed">안녕하십니까! {그룹명}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!</textarea>
               </div>
               <button type="button" onclick="saveAndDeployStep(1)" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-lg transition shadow-2xs">📢 대본 1 태블릿 전체 배포</button>
             </div>
@@ -754,11 +754,11 @@
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="text-xs font-extrabold px-2.5 py-0.5 bg-indigo-600 text-white rounded">대본 2 : 투표 독려 및 예비</span>
                   <div class="flex gap-1">
-                    <button type="button" onclick="insertScriptToken(2, '{행정동}')" class="px-2 py-0.5 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded text-[11px] font-bold">+ {행정동}</button>
+                    <button type="button" onclick="insertScriptToken(2, '{그룹명}')" class="px-2 py-0.5 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded text-[11px] font-bold">+ {그룹명}</button>
                     <button type="button" onclick="insertScriptToken(2, '{유권자명}')" class="px-2 py-0.5 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded text-[11px] font-bold">+ {유권자명}</button>
                   </div>
                 </div>
-                <textarea id="scenario-step-2" rows="4" class="w-full p-2.5 bg-white border border-indigo-200 rounded-lg text-xs font-semibold text-slate-900 leading-relaxed">{유권자명}님, 이번 선거 투표일 꼭 참여하셔서 기호 1번 후보에게 소중한 한 표 부탁드립니다! {행정동}의 확실한 변화로 보답하겠습니다. 감사합니다!</textarea>
+                <textarea id="scenario-step-2" rows="4" class="w-full p-2.5 bg-white border border-indigo-200 rounded-lg text-xs font-semibold text-slate-900 leading-relaxed">{유권자명}님, 이번 선거 투표일 꼭 참여하셔서 기호 1번 후보에게 소중한 한 표 부탁드립니다! {그룹명}의 확실한 변화로 보답하겠습니다. 감사합니다!</textarea>
               </div>
               <button type="button" onclick="saveAndDeployStep(2)" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-lg transition shadow-2xs">📢 대본 2 태블릿 전체 배포</button>
             </div>
@@ -1615,10 +1615,10 @@
           dncPhones: [],
           faqs: JSON.parse(JSON.stringify(DEFAULT_FAQS)),
           stepScripts: {
-            1: "안녕하십니까! {행정동}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!",
-            2: "{유권자명}님, 이번 선거 투표일 꼭 참여하셔서 기호 1번 후보에게 소중한 한 표 부탁드립니다! {행정동}의 확실한 변화로 보답하겠습니다. 감사합니다!"
+            1: "안녕하십니까! {그룹명}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!",
+            2: "{유권자명}님, 이번 선거 투표일 꼭 참여하셔서 기호 1번 후보에게 소중한 한 표 부탁드립니다! {그룹명}의 확실한 변화로 보답하겠습니다. 감사합니다!"
           },
-          currentScript: "안녕하십니까! {행정동}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!",
+          currentScript: "안녕하십니까! {그룹명}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 지역을 살릴 일꾼, 기호 1번 후보에게 따뜻한 관심과 응원 부탁드립니다!",
           activeStepNum: "1",
           smsTemplate: "[선거캠프 안내] 바쁘신 중에도 통화에 응해주셔서 감사드립니다. 우리 지역 발전을 위한 핵심 공약을 확인해 주세요!",
           dialMode: "manual",
@@ -1665,13 +1665,13 @@
 
     // ==================== 대본 변수 치환 및 렌더링 엔진 ====================
     function formatPersonalizedScript(rawScript, voterObj) {
-      const baseText = rawScript || "안녕하십니까! {행정동}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 따뜻한 관심과 응원 부탁드립니다!";
+      const baseText = rawScript || "안녕하십니까! {그룹명}에 계신 {유권자명}님, 기호 1번 후보 선거사무소입니다. 따뜻한 관심과 응원 부탁드립니다!";
       const dongVal = (voterObj && voterObj.dong) ? voterObj.dong : '관할구역';
       let nameVal = (voterObj && voterObj.name) ? voterObj.name.replace(/\s*유권자\s*$/, '').trim() : '유권자';
       if (!nameVal) nameVal = '유권자';
 
       return baseText
-        .replace(/\{행정동\}/g, dongVal)
+        .replace(/\{(?:행정동|그룹명)\}/g, dongVal)
         .replace(/\{유권자명\}/g, nameVal);
     }
 
@@ -2695,7 +2695,7 @@
       for (let i = 1; i <= 2; i++) {
         const savedText = cfg.stepScripts && cfg.stepScripts[i];
         const el = document.getElementById(`scenario-step-${i}`);
-        if (savedText && el) el.value = savedText;
+        if (savedText && el) el.value = savedText.replace(/\{행정동\}/g, '{그룹명}');
       }
       const badge = document.getElementById('current-active-step-badge');
       if (badge) {
