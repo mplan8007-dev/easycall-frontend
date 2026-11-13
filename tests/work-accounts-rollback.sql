@@ -2,7 +2,7 @@ begin;
 select set_config('request.jwt.claim.sub',md5('easycall-loadtest-admin')::uuid::text,true);
 select set_config('request.jwt.claims',jsonb_build_object('sub',auth.uid(),'aal','aal2')::text,true);
 do $$
-declare root uuid:=auth.uid();ctx jsonb;u uuid:=gen_random_uuid();c jsonb;old_oid oid:='public.easycall_identity()'::regprocedure;
+declare root uuid:=auth.uid();ctx jsonb;u uuid:=gen_random_uuid();old_oid oid:='public.easycall_identity()'::regprocedure;
 begin
  ctx:=public.easycall_work_account_context('load1','worker','agent');
  insert into auth.users(id,email,raw_app_meta_data) values(u,ctx->>'email',jsonb_build_object('easycall_role','agent','camp_id','load1','agent_id','worker','easycall_login_id','worker','easycall_created_by',root,'easycall_work_status','pending','easycall_must_change',true));
