@@ -1,0 +1,50 @@
+name: Work account registration checks
+on:
+  push:
+    branches: ["feat/work-account-registration"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.4.5
+      - name: Frontend and policy regression
+        run: node --test tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs
+      - name: Edge function type check
+        run: deno check supabase/functions/easycall-work-accounts/index.ts
+      - name: Browser account flow checks
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node tests/work-accounts-browser.cjs
+      - name: Prepare isolated SQL fixture
+        env:
+          DEVICES: "2"
+          CAMPS: "2"
+          CONTACTS: "10"
+        run: |
+          node loadtest/prepare.mjs
+          printf '\ncreate role service_role nologin;\n' >> loadtest/generated/init.sql
+          cat supabase/migrations/20261113_work_accounts.sql >> loadtest/generated/init.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml up --build -d
+          for n in $(seq 1 90); do
+            if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select to_regprocedure('public.easycall_work_password_complete(uuid)') is not null" | grep -q t; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Actual PostgreSQL authorization rollback checks
+        run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/work-accounts-rollback.sql
+      - name: Collect stack diagnostics
+        if: failure()
+        run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80
+      - name: Stop isolated stack
+        if: always()
+        run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml down
