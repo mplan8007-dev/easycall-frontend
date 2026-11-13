@@ -24,7 +24,7 @@ export function previewAgentRows(text,snapshot){
  return {rows:result,eligible,newCount,errors,overQuota:newCount>Number(snapshot.remaining||0),skipped:result.length-eligible.length-errors};
 }
 export function deliveryText(campId,row,origin){
- return ['이지콜 홍보요원 계정 안내','접속 주소: '+origin,'캠프 ID: '+campId,'사용자 ID: '+row.loginId,...(row.password?['임시 비밀번호: '+row.password]:['비밀번호: 기존에 전달받은 비밀번호를 사용하세요.']),'비밀번호 변경은 선택사항이며, 새 비밀번호는 6자 이상으로 설정할 수 있습니다.'].join('\n');
+ return ['이지콜 홍보요원 계정 안내','접속 주소: '+origin,'캠프 ID: '+campId,'사용자 ID: '+row.loginId,...(row.password?['캠프 공통 비밀번호: '+row.password]:['비밀번호: 기존에 전달받은 비밀번호를 사용하세요.']),'홍보요원은 캠프 공통 비밀번호를 사용합니다. 비밀번호 문의는 캠프 관리자에게 하세요.'].join('\n');
 }
 export function spreadsheetXml(rows){
  const xml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));

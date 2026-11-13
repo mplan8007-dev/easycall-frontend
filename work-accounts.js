@@ -31,7 +31,7 @@ function passwordReminderKey(user){return 'easycall_password_deferred:'+user.id+
 function reminderDeferred(user){try{return localStorage.getItem(passwordReminderKey(user))==='yes';}catch{return false;}}
 function deferReminder(user){try{localStorage.setItem(passwordReminderKey(user),'yes');}catch{}}
 window.activateVerifiedUser=async function(user){
- if(user?.app_metadata?.easycall_must_change&&!reminderDeferred(user)){pendingUser=user;show('work-password-dialog');return;}
+ if(user?.app_metadata?.easycall_must_change&&!user?.app_metadata?.easycall_agent_common_version&&!reminderDeferred(user)){pendingUser=user;show('work-password-dialog');return;}
  return legacyActivate(user);
 };
 $('work-password-save').onclick=async()=>{
@@ -52,7 +52,7 @@ $('work-password-save').onclick=async()=>{
  }catch(e){message('work-password-message',e.message);}finally{busy=false;$('work-password-save').disabled=false;}
 };
 $('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');await legacyActivate(user);deferReminder(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}finally{busy=false;}};
-window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
+window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}if(data.user.app_metadata?.easycall_role==='agent'&&data.user.app_metadata?.easycall_agent_common_version){showToast('홍보요원은 캠프 공통 비밀번호를 사용합니다. 변경은 캠프 관리자에게 요청하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
 const originalSaveMyPassword=window.saveMyPassword;
 window.saveMyPassword=async function(){const {data}=await sbClient.auth.getUser();if(data?.user?.app_metadata?.easycall_login_id){hide('my-account-dialog');await window.openWorkPasswordChange();return;}return originalSaveMyPassword();};
 const previousLogout=window.handleLogout;
