@@ -24,7 +24,7 @@ box.innerHTML=`<style>
 <label for="ga-search">이름 또는 ID로 찾기</label><input id="ga-search" placeholder="이름, ID, 전화번호 검색"><p id="ga-list-count" class="ga-muted"></p>
 <div class="ga-scroll"><table><thead><tr><th>이름 / 로그인 ID</th><th>배정 전화번호</th><th>계정 상태</th><th>관리</th></tr></thead><tbody id="ga-list"></tbody></table></div>
 <div class="ga-flex"><div><button id="ga-list-prev">이전</button><span id="ga-list-page"></span><button id="ga-list-next">다음</button></div><button id="ga-reload">목록 새로고침</button></div></section>
-<section id="ga-input-panel" class="ga-hidden"><h3>1. 이름과 배정 전화번호 입력</h3><p class="ga-note">엑셀의 <strong>이름 · 배정 전화번호</strong> 두 열만 복사해 아래에 붙여넣으세요.<br>ID와 6자리 임시 비밀번호는 자동으로 만들어 드립니다. 최대 2,000명까지 처리합니다.</p>
+<section id="ga-input-panel" class="ga-hidden"><h3>1. 이름과 배정 전화번호 입력</h3><p class="ga-note">엑셀의 <strong>이름 · 배정 전화번호</strong> 두 열만 복사해 아래에 붙여넣으세요.<br>ID는 자동으로 만들고, 비밀번호는 캠프 공통 비밀번호를 사용합니다. 최대 2,000명까지 처리합니다.</p>
 <div class="ga-flex"><button id="ga-template">엑셀 입력 양식 받기</button><label style="font-weight:400;margin:0">엑셀·CSV 파일로 가져오기<input id="ga-file" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" style="padding:6px"></label></div>
 <label for="ga-paste">요원 목록 (이름, 배정 전화번호)</label><textarea id="ga-paste" rows="6" placeholder="김영희,0419301001&#10;이철수,0419301002"></textarea>
 <p class="ga-muted">이름과 전화번호를 쉼표로 구분해 한 줄에 한 명씩 직접 입력해도 됩니다. 전화번호는 앞의 0을 포함해 입력하세요.</p>
@@ -33,9 +33,9 @@ box.innerHTML=`<style>
 <div class="ga-scroll"><table><thead><tr><th>번호</th><th>이름</th><th>전화번호</th><th>자동 생성 ID</th><th>처리 내용</th></tr></thead><tbody id="ga-preview-rows"></tbody></table></div>
 <div><button id="ga-preview-prev">이전</button><span id="ga-preview-page"></span><button id="ga-preview-next">다음</button></div>
 <p class="ga-muted">이미 발급된 계정은 비밀번호를 바꾸지 않습니다. 발급하는 인원과 캠프를 확인한 뒤 진행하세요.</p><button id="ga-issue" class="ga-primary">계정 일괄 발급</button><button id="ga-edit">입력 수정</button></section>
-<section id="ga-results-panel" class="ga-hidden"><h3 id="ga-result-title">3. 발급 결과</h3><p id="ga-progress" class="ga-summary" role="status" aria-live="polite"></p><p class="ga-warning">임시 비밀번호는 이 화면을 닫으면 다시 조회할 수 없습니다. 파일로 저장하거나 해당 요원에게 개별 전달하세요.</p>
+<section id="ga-results-panel" class="ga-hidden"><h3 id="ga-result-title">3. 발급 결과</h3><p id="ga-progress" class="ga-summary" role="status" aria-live="polite"></p><p class="ga-warning">공통 비밀번호는 이 화면을 닫으면 다시 조회할 수 없습니다. 파일로 저장하거나 해당 요원에게 개별 전달하세요.</p>
 <button id="ga-export" class="ga-primary">발급 명세 엑셀 저장</button>
-<div class="ga-scroll"><table><thead><tr><th>이름 / ID</th><th>처리 결과</th><th>임시 비밀번호</th><th>전달</th></tr></thead><tbody id="ga-results"></tbody></table></div>
+<div class="ga-scroll"><table><thead><tr><th>이름 / ID</th><th>처리 결과</th><th>공통 비밀번호</th><th>전달</th></tr></thead><tbody id="ga-results"></tbody></table></div>
 <div><button id="ga-result-prev">이전</button><span id="ga-result-page"></span><button id="ga-result-next">다음</button></div><button id="ga-results-back">확인 · 요원 목록으로</button></section>
 <section id="ga-confirm-panel" class="ga-hidden"><h3 id="ga-action-title"></h3><p id="ga-action-text"></p><button id="ga-action-confirm" class="ga-primary">확인</button><button id="ga-action-cancel">취소</button></section>
 <div id="ga-guide-panel" class="ga-note ga-hidden"><h3>개별 전달 안내</h3><textarea id="ga-guide" readonly rows="7" aria-label="요원에게 전달할 로그인 안내"></textarea><button id="ga-copy" class="ga-primary">이 요원 안내 복사</button><button id="ga-guide-close">안내 접기</button><p class="ga-muted">문자·카카오톡 등의 개인 메시지로 해당 요원에게 전달하세요. 자동 발송은 하지 않습니다.</p></div>
@@ -48,7 +48,7 @@ const say=s=>{$('ga-message').textContent=s;};
 function panel(n){for(const p of ['list','input','preview','results','confirm'])$('ga-'+p+'-panel').classList.toggle('ga-hidden',p!==n);$('ga-guide-panel').classList.add('ga-hidden');$('ga-guide').value='';}
 function lock(v){busy=v;for(const el of box.querySelectorAll('button,input,textarea,select'))el.disabled=v;$('ga-guide').disabled=false;if(!v){$('ga-issue').disabled=!plan||!plan.eligible.length||plan.errors>0||plan.overQuota;$('ga-export').disabled=!results.some(r=>r.success&&r.password);if(snapshot)drawList();if(plan)drawPreview();drawResults();}}
 function hasSecrets(){return results.some(r=>r.success&&r.password);}
-function mayDiscard(){return !hasSecrets()||confirm('발급 명세를 저장하거나 전달하셨습니까? 계속하면 표시된 임시 비밀번호가 지워집니다.');}
+function mayDiscard(){return !hasSecrets()||confirm('발급 명세를 저장하거나 전달하셨습니까? 계속하면 표시된 공통 비밀번호가 지워집니다.');}
 function clearSecrets(){results=[];$('ga-results').innerHTML='';$('ga-guide').value='';$('ga-guide-panel').classList.add('ga-hidden');}
 function capacity(){const s=snapshot;$('ga-capacity').textContent=s?'등록 단말 '+s.registered+' / '+s.limit+'명 · 신규 등록 가능 '+s.remaining+'명 · 계정 발급 '+s.accounts.filter(a=>a.hasAccount).length+'명':'등록 가능 인원을 확인하는 중입니다.';}
 async function load(){const ticket=epoch,who=actor(),cid=campId;const {data,error}=await sbClient.rpc('easycall_agent_accounts',{p_camp:cid});if(!valid(ticket,who))return false;if(error)throw Error('요원 목록을 불러오지 못했습니다. 목록 새로고침으로 다시 시도하세요.');if(!data||data.campId!==cid||!Array.isArray(data.accounts))throw Error('캠프 계정 정보를 확인할 수 없습니다. 다시 로그인하세요.');snapshot=data;capacity();drawList();return true;}
@@ -58,14 +58,16 @@ function listRows(){const q=$('ga-search').value.trim().toLowerCase();return (sn
 function drawList(){const all=listRows();listPage=Math.max(1,Math.min(listPage,Math.ceil(all.length/50)||1));$('ga-list-count').textContent='검색 '+all.length+'명 / 전체 '+(snapshot?.accounts.length||0)+'명';
  $('ga-list').innerHTML=all.slice((listPage-1)*50,listPage*50).map(r=>{const i=snapshot.accounts.indexOf(r),b=(action,label)=>`<button data-ga-action="${action}" data-ga-index="${i}">${label}</button>`;
  const status=!r.hasAccount?'계정 미발급':r.status==='disabled'?'사용 중지':r.status==='pending'?'발급 확인 필요':'사용 중';
- return `<tr><td><strong>${esc(r.name)}</strong><div class="ga-muted">${esc(r.loginId)}</div></td><td>${esc(r.phone||'-')}</td><td>${status}${r.initialPassword?'<div class="ga-muted">임시 비밀번호 사용 중</div>':''}${r.legacy?'<div class="ga-muted">기존 이메일 계정</div>':''}</td><td>${!r.hasAccount?b('issue','계정 발급'):b('guide','로그인 안내')+(r.legacy?'':b('reset',r.status==='pending'?'발급 복구':'비밀번호 재발급')+(r.status==='pending'?'':b(r.status==='disabled'?'enable':'disable',r.status==='disabled'?'사용 재개':'사용 중지')))}</td></tr>`;}).join('')||'<tr><td colspan="4">등록된 요원이 없습니다. “홍보요원 한꺼번에 발급”에서 시작하세요.</td></tr>';paging('ga-list',listPage,all.length);}
+ return `<tr><td><strong>${esc(r.name)}</strong><div class="ga-muted">${esc(r.loginId)}</div></td><td>${esc(r.phone||'-')}</td><td>${status}${r.initialPassword?'<div class="ga-muted">공통 비밀번호 사용 중</div>':''}${r.legacy?'<div class="ga-muted">기존 이메일 계정</div>':''}</td><td>${!r.hasAccount?b('issue','계정 발급'):b('guide','로그인 안내')+(r.legacy?'':b('reset',r.status==='pending'?'발급 복구':'비밀번호 재발급')+(r.status==='pending'?'':b(r.status==='disabled'?'enable':'disable',r.status==='disabled'?'사용 재개':'사용 중지')))}</td></tr>`;}).join('')||'<tr><td colspan="4">등록된 요원이 없습니다. “홍보요원 한꺼번에 발급”에서 시작하세요.</td></tr>';paging('ga-list',listPage,all.length);}
 function drawPreview(){if(!plan)return;const count=plan.rows.length;previewPage=Math.max(1,Math.min(previewPage,Math.ceil(count/50)||1));
  $('ga-preview-summary').textContent='입력 '+count+'명 · 발급 대상 '+plan.eligible.length+'명 · 기존/중복 제외 '+plan.skipped+'명 · 입력 오류 '+plan.errors+'명';
  $('ga-preview-error').textContent=plan.overQuota?'신규 등록 '+plan.newCount+'명이 잔여 한도 '+snapshot.remaining+'명을 초과합니다. 인원을 줄이거나 본사에 한도 증설을 요청하세요.':plan.errors?'오류가 있는 행을 수정한 뒤 다시 확인해 주세요.':'';
  $('ga-preview-rows').innerHTML=plan.rows.slice((previewPage-1)*50,previewPage*50).map(r=>`<tr><td>${r.line}</td><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${esc(r.loginId||'-')}</td><td class="${r.kind==='error'?'ga-error':'ga-muted'}">${esc(r.message)}</td></tr>`).join('');
  $('ga-issue').textContent=plan.eligible.length+'명 계정 발급';$('ga-issue').disabled=busy||!plan.eligible.length||plan.errors>0||plan.overQuota;paging('ga-preview',previewPage,count);}
 function drawResults(){resultPage=Math.max(1,Math.min(resultPage,Math.ceil(results.length/50)||1));$('ga-results').innerHTML=results.slice((resultPage-1)*50,resultPage*50).map((r,index)=>`<tr><td>${esc(r.name)}<div class="ga-muted">${esc(r.loginId)}</div></td><td class="${r.success?'':'ga-error'}">${r.success?'발급 완료':esc(r.error||'결과 확인 필요')}</td><td><strong>${esc(r.password||'-')}</strong></td><td>${r.success&&r.password?`<button data-ga-result="${(resultPage-1)*50+index}">개별 전달 안내</button>`:''}</td></tr>`).join('');$('ga-export').disabled=busy||!hasSecrets();paging('ga-result',resultPage,results.length);}
-function guide(row){$('ga-guide').value=deliveryText(campId,{...row,loginId:row.legacy?row.email:row.loginId},location.origin+location.pathname);$('ga-guide-panel').classList.remove('ga-hidden');$('ga-guide').focus();}
+window.easycallAgentAccountContext=()=>({campId,busy});
+window.easycallAgentCommonBusy=value=>lock(value);
+async function guide(row){const ticket=epoch,who=actor();if(window.easycallCommonAgentPassword){try{row={...row,password:await window.easycallCommonAgentPassword(campId)};}catch(e){say(e.message);return;}}if(!valid(ticket,who))return;$('ga-guide').value=deliveryText(campId,{...row,loginId:row.legacy?row.email:row.loginId},location.origin+location.pathname);$('ga-guide-panel').classList.remove('ga-hidden');$('ga-guide').focus();}
 function download(rows,name){if(window.XLSX){const sheet=window.XLSX.utils.aoa_to_sheet(rows.map(r=>r.map(v=>String(v??''))));for(const key of Object.keys(sheet))if(!key.startsWith('!')){sheet[key].t='s';sheet[key].z='@';delete sheet[key].f;}sheet['!cols']=rows[0].map(()=>({wch:24}));const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,sheet,'계정 발급 명세');window.XLSX.writeFile(wb,name+'.xlsx');}else{const url=URL.createObjectURL(new Blob([spreadsheetXml(rows)],{type:'application/xml;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name+'.xml';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}
 window.openAgentAccounts=async function(id){
  if(!allowed()){showToast('본인 캠프 관리자 계정으로 로그인하세요.');return;}if(busy||!mayDiscard())return;
@@ -98,7 +100,7 @@ $('ga-issue').onclick=async()=>{
  }
  if(valid(ticket,who)){$('ga-progress').textContent='발급 완료 '+results.filter(r=>r.success).length+'명 / 확인 필요 '+results.filter(r=>!r.success).length+'명 / 미처리 '+(queue.length-results.length)+'명';lock(false);drawResults();}
 };
-$('ga-export').onclick=()=>download([['캠프 ID','이름','로그인 ID','임시 비밀번호','배정 전화번호'],...results.filter(r=>r.success&&r.password).map(r=>[campId,r.name,r.loginId,r.password,r.phone])],'홍보요원_계정발급_'+campId);
+$('ga-export').onclick=()=>download([['캠프 ID','이름','로그인 ID','공통 비밀번호','배정 전화번호'],...results.filter(r=>r.success&&r.password).map(r=>[campId,r.name,r.loginId,r.password,r.phone])],'홍보요원_계정발급_'+campId);
 $('ga-results').onclick=e=>{const b=e.target.closest('[data-ga-result]');if(b&&!busy){const r=results[Number(b.dataset.gaResult)];if(r?.success)guide(r);}};
 $('ga-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('ga-guide').value);say('이 요원의 로그인 안내를 복사했습니다. 개인 메시지로 전달하세요.');}catch{$('ga-guide').focus();$('ga-guide').select();say('안내를 선택했습니다. 직접 복사해 주세요.');}};
 $('ga-guide-close').onclick=()=>{$('ga-guide').value='';$('ga-guide-panel').classList.add('ga-hidden');};
@@ -107,7 +109,7 @@ $('ga-list').onclick=e=>{const b=e.target.closest('[data-ga-action]');if(!b||bus
  if(action==='guide'){guide(r);return;}
  if(action==='issue'){if(!/^[a-z0-9_-]{1,32}$/.test(r.loginId||'')){say('기존 단말 ID 형식이 로그인 ID 기준(영문·숫자·밑줄·하이픈 1~32자)에 맞지 않습니다. 본사에 확인하세요.');return;}plan={rows:[{...r,line:1,kind:'registered',message:'등록된 단말기에 로그인 계정 발급'}],eligible:[r],newCount:0,errors:0,overQuota:false,skipped:0};previewPage=1;panel('preview');drawPreview();say('');return;}
  selected={row:r,action};panel('confirm');$('ga-action-title').textContent=action==='reset'?'비밀번호 재발급':action==='disable'?'요원 사용 중지':'요원 사용 재개';
- $('ga-action-text').textContent='대상: '+r.name+' / '+r.loginId+' · 캠프 '+campId+'\n'+(action==='reset'?'기존 비밀번호를 새 숫자 6자리로 바꿉니다. 새 비밀번호를 이 요원에게 전달하세요.':action==='disable'?'이 요원의 업무 접근을 차단합니다. 추후 사용 재개가 가능합니다.':'이 요원의 업무 접근을 다시 허용합니다.');say('');
+ $('ga-action-text').textContent='대상: '+r.name+' / '+r.loginId+' · 캠프 '+campId+'\n'+(action==='reset'?'이 계정의 비밀번호를 캠프 공통 비밀번호로 다시 맞춥니다. 사용 중지 상태는 유지됩니다.':action==='disable'?'이 요원의 업무 접근을 차단합니다. 추후 사용 재개가 가능합니다.':'이 요원의 업무 접근을 다시 허용합니다.');say('');
 };
 $('ga-action-cancel').onclick=()=>{selected=null;panel('list');say('');};
 $('ga-action-confirm').onclick=async()=>{if(busy||!selected||!allowed())return;const target=selected,ticket=epoch,who=actor();lock(true);say('처리 중입니다.');
