@@ -13,6 +13,7 @@ function show(id){$(id).classList.remove('hidden');}
 function hide(id){$(id).classList.add('hidden');}
 const campField=document.createElement('div');campField.className='space-y-1';campField.innerHTML=`<label for="work-login-camp" class="block text-xs text-slate-400">캠프 ID (이메일 로그인은 비워두세요)</label><input id="work-login-camp" class="${inputClass}" placeholder="예: camp01" autocomplete="organization"><p class="text-xs text-slate-400">업무용 계정은 캠프 ID와 사용자 ID를 입력하세요. 기존 이메일 계정도 사용할 수 있습니다.</p>`;
 $('login-id').closest('div').before(campField);$('login-id').placeholder='사용자 ID 또는 기존 이메일';
+const loginLabel=$('login-id').closest('div').querySelector('label');if(loginLabel)loginLabel.textContent='사용자 ID 또는 기존 이메일';
 window.handleInstantLogin=async function(){
  if(busy)return;const id=$('login-id').value.trim();if(id.includes('@'))return legacyLogin();
  busy=true;
