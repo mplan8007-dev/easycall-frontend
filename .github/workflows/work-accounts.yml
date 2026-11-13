@@ -31,6 +31,10 @@ jobs:
           node tests/common-password-browser.cjs
           node tests/agent-onboarding-browser.cjs
           node tests/call-integration-browser.cjs
+      - name: Production build and SIP asset smoke
+        run: |
+          npm run build
+          node tests/call-build.cjs
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"
