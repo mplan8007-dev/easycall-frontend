@@ -1,0 +1,75 @@
+{
+  "businessTarget": {
+    "agents": 2000,
+    "callsPerDay": 400000
+  },
+  "runUrl": "https://github.com/mplan8007-dev/easycall-frontend/actions/runs/43340227021",
+  "passed": true,
+  "phases": [
+    {
+      "name": "signal-smoke",
+      "passed": true,
+      "successfulCalls": 20,
+      "failedCalls": 0,
+      "peakConcurrentCalls": 20,
+      "holdSecondsPerCall": 3
+    },
+    {
+      "name": "signal-2000",
+      "passed": true,
+      "successfulCalls": 2000,
+      "failedCalls": 0,
+      "peakConcurrentCalls": 2000,
+      "holdSecondsPerCall": 120
+    },
+    {
+      "name": "media-smoke",
+      "passed": true,
+      "successfulCalls": 20,
+      "failedCalls": 0,
+      "peakConcurrentCalls": 20,
+      "holdSecondsPerCall": 12,
+      "rtpSample": {
+        "sampleOnly": true,
+        "sentPackets": 8550,
+        "eligiblePackets": 8547,
+        "echoedPackets": 8550,
+        "distinctSentStreams": 20,
+        "distinctEchoedStreams": 20,
+        "missingEchoes": 0,
+        "sampleLossFraction": 0,
+        "loopbackRttP95Ms": 0.052928924560546875
+      }
+    },
+    {
+      "name": "media-2000",
+      "passed": true,
+      "successfulCalls": 2000,
+      "failedCalls": 0,
+      "peakConcurrentCalls": 2000,
+      "holdSecondsPerCall": 120,
+      "rtpSample": {
+        "sampleOnly": true,
+        "sentPackets": 500000,
+        "eligiblePackets": 497506,
+        "echoedPackets": 500000,
+        "distinctSentStreams": 2000,
+        "distinctEchoedStreams": 2000,
+        "missingEchoes": 1,
+        "sampleLossFraction": 0.000002010026009736566,
+        "loopbackRttP95Ms": 0.02193450927734375
+      }
+    }
+  ],
+  "priorSoak": {
+    "durationHours": 5,
+    "camp1Stored": 601596,
+    "camp20Stored": 601664,
+    "errors": 0
+  },
+  "limitations": [
+    "Isolated SIPp endpoints on loopback; not production PBX or carrier.",
+    "Two-minute media calls and sampled packets; not 400000 actual voice calls per day.",
+    "EasyCall uses tel:; end-to-end SIP integration, real devices and production hardware remain unverified."
+  ]
+}
