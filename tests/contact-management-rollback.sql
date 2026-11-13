@@ -32,10 +32,12 @@ do $$ declare v public.easycall_voters;rows jsonb;r jsonb;before_logs bigint;req
  begin perform public.easycall_admin_delete_voters('load1',rows,gen_random_uuid());raise exception 'Active delete allowed' using errcode='ZM001';exception when raise_exception then null;end;
  if (select count(*) from public.easycall_voters where camp_id='load1')<>5 then raise exception 'Partial delete was committed';end if;
  begin perform public.easycall_admin_delete_voters('load1',jsonb_build_array(jsonb_build_object('voter_id','manage-1','updated_at','2000-01-01')),gen_random_uuid());raise exception 'Stale delete allowed' using errcode='ZM001';exception when raise_exception then null;end;
+ perform public.easycall_camp_counts('load1');
  select count(*) into before_logs from public.easycall_call_logs where camp_id='load1';
  select jsonb_agg(jsonb_build_object('voter_id',voter_id,'updated_at',updated_at)) into rows from public.easycall_voters where camp_id='load1' and voter_id in ('manage-3','manage-4');
  r:=public.easycall_admin_delete_voters('load1',rows,req);if r->>'deleted'<>'2' then raise exception 'Bulk delete failed';end if;
  if public.easycall_admin_delete_voters('load1',rows,req)<>r then raise exception 'Delete replay failed';end if;
+ if (public.easycall_camp_counts('load1')->'voters'->>'total')::int<>3 then raise exception 'Cached contact counts stale';end if;
  if (select count(*) from public.easycall_call_logs where camp_id='load1')<>before_logs then raise exception 'Call history lost';end if;
 end $$;
 reset role;

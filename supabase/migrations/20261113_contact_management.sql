@@ -34,6 +34,7 @@ begin
  end if;
  if v.last_result='REJECT' then insert into easycall_private_v2.blocked_phone(camp_id,phone) values(p_camp_id,regexp_replace(v.phone,'[^0-9]','','g')) on conflict do nothing;end if;
  update public.easycall_voters set name=n,phone=ph,dong=d,last_memo=memo,last_result=case when ph<>regexp_replace(v.phone,'[^0-9]','','g') then 'READY' else v.last_result end,updated_at=clock_timestamp() where camp_id=p_camp_id and voter_id=p_voter_id;
+ delete from easycall_private_v2.runtime_cache where cache_key='overview' or left(cache_key,length('counts:'||p_camp_id||':'))='counts:'||p_camp_id||':';
  result:=jsonb_build_object('success',true,'updated',1);
  perform easycall_private_v2.audit('voter.update',p_camp_id,jsonb_build_object('voterId',v.voter_id),jsonb_build_object('voterId',v.voter_id),p_request_id,payload,result);
  return result;
@@ -55,6 +56,7 @@ begin
   if v.last_result='REJECT' then insert into easycall_private_v2.blocked_phone(camp_id,phone) values(p_camp_id,regexp_replace(v.phone,'[^0-9]','','g')) on conflict do nothing;end if;
   delete from public.easycall_voters where camp_id=p_camp_id and voter_id=v.voter_id;n:=n+1;
  end loop;
+ delete from easycall_private_v2.runtime_cache where cache_key='overview' or left(cache_key,length('counts:'||p_camp_id||':'))='counts:'||p_camp_id||':';
  result:=jsonb_build_object('success',true,'deleted',n);
  perform easycall_private_v2.audit('voter.delete',p_camp_id,jsonb_build_object('count',n),result,p_request_id,payload,result);
  return result;
