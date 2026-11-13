@@ -176,9 +176,9 @@ def phase(name, devices, hold_seconds, ramp_seconds, media):
             while client.poll() is None:
                 elapsed = time.monotonic() - start
                 if media and not captured and elapsed > ramp_seconds + 3:
-                    capture = subprocess.Popen(['tcpdump', '-i', 'lo', '-nn', '-s', '256', '-U', '-w', str(work / 'rtp.pcap'), '-c', '200000', 'udp port 6000'], stdout=capture_log, stderr=subprocess.STDOUT)
+                    capture = subprocess.Popen(['tcpdump', '-i', 'lo', '-nn', '-s', '256', '-U', '-w', str(work / 'rtp.pcap'), '-c', '1000000', 'udp port 6000'], stdout=capture_log, stderr=subprocess.STDOUT)
                     captured = True
-                if capture and capture.poll() is None and elapsed > ramp_seconds + 8:
+                if capture and capture.poll() is None and elapsed > ramp_seconds + 18:
                     capture.send_signal(2)
                     capture.wait(timeout=5)
                 if elapsed > hold_seconds + ramp_seconds + 55:
