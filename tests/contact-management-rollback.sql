@@ -3,7 +3,8 @@ begin;
 select set_config('request.jwt.claim.sub',md5('easycall-loadtest-admin')::uuid::text,true);
 select set_config('request.jwt.claims',jsonb_build_object('sub',auth.uid(),'aal','aal2')::text,true);
 delete from public.easycall_voters where camp_id='load1';
-insert into public.easycall_voters(camp_id,voter_id,name,phone,dong,last_result) select 'load1','manage-'||i,'Fixture '||i,'0000000000'||i,'Test',case when i=4 then 'REJECT' else 'READY' end from generate_series(1,5) i;
+insert into public.easycall_voters(camp_id,voter_id,name,phone,dong,last_result) select 'load1','manage-'||i,'Fixture '||i,'0000000000'||i,'Test',case when i=4 then 'REJECT' when i=1 then 'CONNECTED' else 'READY' end from generate_series(1,5) i;
+insert into easycall_private_v2.blocked_phone(camp_id,phone) values('load1','00000000099') on conflict do nothing;
 insert into public.easycall_call_logs(camp_id,agent_id,voter_id,call_result) values('load1','device1','manage-4','REJECT');
 set local role authenticated;
 do $$ declare v public.easycall_voters;r jsonb;patch jsonb;req uuid:=gen_random_uuid();rows jsonb;begin
@@ -18,6 +19,7 @@ do $$ declare v public.easycall_voters;r jsonb;patch jsonb;req uuid:=gen_random_
  select * into v from public.easycall_voters where camp_id='load1' and voter_id='manage-1';
  if v.name<>'Edited' or v.phone<>'00000000011' or v.last_memo<>'Memo' or v.last_result<>'READY' then raise exception 'Stored edit mismatch';end if;
  begin perform public.easycall_admin_update_voter('load1',v.voter_id,v.updated_at,patch||'{"phone":"00000000002"}',gen_random_uuid());raise exception 'Duplicate allowed' using errcode='ZM001';exception when raise_exception then null;end;
+ begin perform public.easycall_admin_update_voter('load1',v.voter_id,v.updated_at,patch||'{"phone":"00000000099"}',gen_random_uuid());raise exception 'DNC phone allowed' using errcode='ZM001';exception when raise_exception then null;end;
  begin perform public.easycall_admin_update_voter('load1',v.voter_id,v.updated_at,patch||'{"phone":"bad"}',gen_random_uuid());raise exception 'Bad phone allowed' using errcode='ZM001';exception when raise_exception then null;end;
 end $$;
 reset role;
