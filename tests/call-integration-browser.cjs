@@ -50,13 +50,28 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   await page.locator('#phone-auto').click();await page.waitForTimeout(1200);assert.equal(await page.evaluate(()=>window.__sipCalls.length),2);
   await page.evaluate(()=>{campSettingsMap.camp01.globalStopped=false;window.__deny=true;return startCallSimulation(true);});assert.equal(await page.evaluate(()=>window.__sipCalls.length),2);
   await page.evaluate(()=>{campSettingsMap.camp01.callTransport='smartphone';refreshActiveRoleUI();});assert.equal(await page.locator('#phone-sip-actions').isVisible(),false);assert.ok(await page.evaluate(()=>window.__disconnects)>=1);
-  // Admin settings reject insecure SIP endpoints and roll back failed saves.
-  await page.evaluate(()=>{verifiedIdentity={role:'admin',campId:'camp01',uid:'manager'};localStorage.setItem('easycall_role','admin');renderStatsAndCharts=()=>{};renderAdminLogsTable=()=>{};window.__configSaves=0;window.__saveConfigOK=true;savePersistentData=async()=>{window.__configSaves++;return window.__saveConfigOK;};refreshActiveRoleUI();});
-  await page.locator('#phone-transport').selectOption('sip');await page.locator('#phone-wss').fill('ws://pbx.example.com/ws');await page.locator('#phone-domain').fill('pbx.example.com');await page.evaluate(()=>saveDialSettings());
+  // Camp managers see the assigned mode but cannot open or change the policy.
+  await page.evaluate(()=>{verifiedIdentity={role:'admin',campId:'camp01',uid:'manager'};localStorage.setItem('easycall_role','admin');renderStatsAndCharts=()=>{};renderAdminLogsTable=()=>{};refreshActiveRoleUI();});
+  assert.equal(await page.locator('#phone-policy-open').isVisible(),false);
+  await page.evaluate(()=>openCampCallTransport('camp01'));assert.equal(await page.locator('#phone-policy-dialog').isVisible(),false);
+  assert.match(await page.locator('#phone-admin-readonly').innerText(),/최고관리자/);
+  // Super administrators select the transport per camp with revision protection.
+  await page.evaluate(()=>{
+   verifiedIdentity={role:'super',uid:'root'};localStorage.setItem('easycall_role','super');renderSuperCampsTable=()=>{};window.__configSaves=0;window.__saveConfigOK=true;window.__policy={revision:'r1',config:{callTransport:'smartphone',sipWss:'',sipDomain:'',sipStun:''}};
+   const rpc=sbClient.rpc;sbClient.rpc=async(name,args)=>{
+    if(name==='easycall_call_transport_get')return {data:{campId:args.p_camp,...window.__policy}};
+    if(name==='easycall_call_transport_set'){window.__configSaves++;if(!window.__saveConfigOK)return {error:{message:'conflict'}};window.__policy={revision:'r'+(window.__configSaves+1),config:{...args.p_config}};return {data:{campId:args.p_camp,...window.__policy}};}return rpc(name,args);
+   };refreshActiveRoleUI();return openCampCallTransport('camp01');
+  });
+  await page.locator('#phone-transport').selectOption('sip');await page.locator('#phone-wss').fill('ws://pbx.example.com/ws');await page.locator('#phone-domain').fill('pbx.example.com');await page.locator('#phone-policy-save').click();
   assert.equal(await page.evaluate(()=>window.__configSaves),0);
-  await page.locator('#phone-wss').fill('wss://pbx.example.com/ws');await page.evaluate(()=>saveDialSettings());assert.equal(await page.evaluate(()=>window.__configSaves),1);assert.equal(await page.evaluate(()=>campSettingsMap.camp01.callTransport),'sip');
-  if(process.env.CALL_UI_SCREENSHOT)await page.locator('#phone-admin-settings').screenshot({path:process.env.CALL_UI_SCREENSHOT});
-  await page.evaluate(()=>window.__saveConfigOK=false);await page.locator('#phone-transport').selectOption('smartphone');await page.evaluate(()=>saveDialSettings());assert.equal(await page.evaluate(()=>campSettingsMap.camp01.callTransport),'sip');
+  await page.locator('#phone-wss').fill('wss://pbx.example.com/ws');await page.locator('#phone-policy-save').click();
+  await page.waitForFunction(()=>document.getElementById('phone-policy-message').textContent.includes('저장했습니다'));
+  assert.equal(await page.evaluate(()=>window.__configSaves),1);assert.equal(await page.evaluate(()=>campSettingsMap.camp01.callTransport),'sip');
+  if(process.env.CALL_UI_SCREENSHOT)await page.locator('#phone-policy-dialog').screenshot({path:process.env.CALL_UI_SCREENSHOT});
+  await page.evaluate(()=>window.__saveConfigOK=false);await page.locator('#phone-transport').selectOption('smartphone');await page.locator('#phone-policy-save').click();
+  await page.waitForFunction(()=>document.getElementById('phone-policy-message').textContent.includes('저장 실패'));
+  assert.equal(await page.evaluate(()=>campSettingsMap.camp01.callTransport),'sip');await page.locator('#phone-policy-close').click();
   await page.evaluate(()=>{verifiedIdentity={role:'agent',campId:'camp01',agentId:'agent01',uid:'tester'};localStorage.setItem('easycall_role','agent');campSettingsMap.camp01.callTransport='smartphone';refreshActiveRoleUI();});
   await page.evaluate(()=>{window.__deny=false;return startCallSimulation(true);});assert.match(await page.locator('#call-state-label').innerText(),/전화 앱/);
   assert.deepEqual(errors,[]);

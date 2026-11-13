@@ -9,7 +9,7 @@ test('default transport is smartphone; SIP endpoints and dialing numbers are val
  assert.throws(()=>m.sipSettings({...config,sipDomain:'pbx.example.com@evil'}));assert.throws(()=>m.sipAccount('alice@evil'));assert.equal(m.measuredSeconds(null,50000),0);assert.equal(m.measuredSeconds(1000,4500),3);
 });
 test('pinned official bundle exposes the documented Web.SimpleUser API',()=>{
- const sip=require('../vendor/sip-0.21.2.min.js');assert.equal(typeof sip.Web.SimpleUser,'function');
+ const sandbox={setTimeout,clearTimeout,console,TextEncoder,TextDecoder,URL};require('node:vm').runInNewContext(require('node:fs').readFileSync(path.join(__dirname,'../vendor/sip-0.21.2.min.js'),'utf8'),sandbox);const sip=sandbox.SIP;assert.equal(typeof sip.Web.SimpleUser,'function');
  for(const name of ['connect','register','call','hangup','disconnect','decline'])assert.equal(typeof sip.Web.SimpleUser.prototype[name],'function',name);
 });
 test('SIP registration waits for acknowledgement, calls serialize and answer/hangup are event based',async()=>{

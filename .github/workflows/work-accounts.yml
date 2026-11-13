@@ -44,9 +44,10 @@ jobs:
           cat supabase/migrations/20261113_optional_password_change.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_agent_account_list.sql >> loadtest/generated/init.sql
           cat supabase/migrations/20261113_agent_common_password.sql >> loadtest/generated/init.sql
+          cat supabase/migrations/20261113_call_transport_policy.sql >> loadtest/generated/init.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml up --build -d
           for n in $(seq 1 90); do
-            if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select to_regprocedure('public.easycall_work_password_complete(uuid)') is not null" | grep -q t; then exit 0; fi
+            if docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -U postgres -d easycall_test -tAc "select to_regprocedure('public.easycall_call_transport_set(text,jsonb,timestamptz)') is not null" | grep -q t; then exit 0; fi
             sleep 2
           done
           exit 1
@@ -55,6 +56,7 @@ jobs:
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/work-accounts-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/agent-accounts-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/common-password-rollback.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/call-transport-policy-rollback.sql
       - name: Collect stack diagnostics
         if: failure()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80
