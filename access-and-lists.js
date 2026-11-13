@@ -88,7 +88,7 @@ import './admin-console.js';
  let searchTimer;
  function renderAgentSearchTable(){
   if(!pages.camp){legacy.search();return;}
-  const key=JSON.stringify([voterQuery(),adminVoters()?'ALL':searchFilterMode]);
+  const key=JSON.stringify([voterQuery(),adminVoters()?('ALL:'+($('admin-voter-status')?.value||'')):searchFilterMode]);
   if(key===pages.voters.key){renderPage('voters');return;}
   clearContactSelection();pages.voters.key=key;pages.voters.offset=0;pages.voters.seq++;clearTimeout(searchTimer);
   searchTimer=setTimeout(()=>{pages.voters.failed=false;loadPage('voters').catch(()=>{});},250);
