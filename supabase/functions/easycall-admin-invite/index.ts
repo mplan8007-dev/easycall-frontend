@@ -11,7 +11,7 @@ Deno.serve(async (request: Request) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': allowedOrigins.has(origin) ? origin : 'https://easycall-frontend.vercel.app',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-easycall-session',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     Vary: 'Origin',
   };

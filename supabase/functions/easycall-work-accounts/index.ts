@@ -6,7 +6,7 @@ import { updateCredential } from '../_shared/credential-update.mjs';
 const origins=new Set(['https://easycall-frontend.vercel.app','https://mplan8007-dev.github.io']);
 Deno.serve(async(request:Request)=>{
  const origin=request.headers.get('origin')||'';
- const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origins.has(origin)?origin:'https://easycall-frontend.vercel.app','Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS','Cache-Control':'no-store',Vary:'Origin'};
+ const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origins.has(origin)?origin:'https://easycall-frontend.vercel.app','Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type, x-easycall-session','Access-Control-Allow-Methods':'POST, OPTIONS','Cache-Control':'no-store',Vary:'Origin'};
  const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
  if(request.method!=='POST'||!origins.has(origin))return reply({error:'허용되지 않은 요청입니다.'},403);
