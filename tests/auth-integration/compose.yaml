@@ -1,0 +1,35 @@
+name: easycall-auth-integration
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: ${AUTH_TEST_DB_PASSWORD:?Prepare fixture first}
+      POSTGRES_DB: easycall_auth_test
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d easycall_auth_test"]
+      interval: 2s
+      retries: 40
+  auth:
+    image: supabase/gotrue:v2.197.0
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://127.0.0.1:54331
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${AUTH_TEST_DB_PASSWORD}@db:5432/easycall_auth_test
+      GOTRUE_SITE_URL: http://127.0.0.1:54331
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_SECRET: ${AUTH_TEST_JWT_SECRET:?Prepare fixture first}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+    ports:
+      - "127.0.0.1:54331:9999"
