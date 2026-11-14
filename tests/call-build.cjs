@@ -12,3 +12,5 @@ console.log('PASS: production build contains a loadable official SIP bundle, its
 
 const css=files.filter(f=>f.endsWith('.css')).map(f=>fs.readFileSync(path.join(dir,f),'utf8')).join('');
 assert.ok(css.includes('.ec-jump-nav')&&css.includes('.ec-responsive-table'),'Responsive layouts must be emitted into the production stylesheet');
+
+

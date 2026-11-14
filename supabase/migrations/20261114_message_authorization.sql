@@ -26,4 +26,3 @@ revoke all on function public.easycall_authorize_message(text,text) from public,
 grant execute on function public.easycall_authorize_message(text,text) to authenticated;
 notify pgrst,'reload schema';
 commit;
-

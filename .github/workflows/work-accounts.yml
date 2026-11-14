@@ -1,8 +1,9 @@
 name: Work account registration checks
 on:
+  workflow_dispatch:
   push:
-    branches: ["feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash", "feat/contact-management", "fix/message-authorization-release", "fix/camp-call-mode-badge", "fix/camp-header-layout", "fix/script-group-name", "fix/phone-staff-label", "fix/group-name-everywhere"]
-    paths: ["voter-import-ui.js", "runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
+    branches: ["fix/operations-reliability", "feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash", "feat/contact-management"]
+    paths: ["admin-navigation.js", "log-export-ui.js", "log-export.mjs", "loadtest/**", "voter-import-ui.js", "runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
 jobs:
@@ -18,7 +19,7 @@ jobs:
         with:
           deno-version: v2.4.5
       - name: Frontend and policy regression
-        run: node --test tests/message-authorization.test.cjs tests/password-change.test.cjs tests/voter-import.test.cjs tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs tests/agent-account-tools.test.cjs tests/common-password.test.cjs tests/call-transport.test.cjs
+        run: node --test tests/message-authorization.test.cjs tests/password-change.test.cjs tests/voter-import.test.cjs tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs tests/work-accounts.test.cjs tests/agent-account-tools.test.cjs tests/common-password.test.cjs tests/call-transport.test.cjs tests/log-export.test.cjs
       - name: Edge function type check
         run: deno check supabase/functions/easycall-work-accounts/index.ts
       - name: Browser account flow checks
@@ -26,6 +27,8 @@ jobs:
           npm install --no-save playwright@1.56.1 tailwindcss@3.4.17
           npx playwright install --with-deps chromium
           node tests/work-accounts-browser.cjs
+          node tests/usability-browser.cjs
+          node tests/admin-workflow-browser.cjs
           node tests/camp-admin-accounts-browser.cjs
           node tests/agent-accounts-browser.cjs
           node tests/common-password-browser.cjs
@@ -48,6 +51,14 @@ jobs:
         run: |
           npm run build
           node tests/call-build.cjs
+  database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"
@@ -82,10 +93,17 @@ jobs:
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/voter-import-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/import-lifecycle-rollback.sql
           docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/contact-management-rollback.sql
+      - name: Upgrade and verify operations reliability
+        run: |
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < supabase/migrations/20261114_operations_reliability.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/operations-reliability-rollback.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/operations-concurrency-setup.sql
+          node tests/operations-concurrency.mjs
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < supabase/migrations/20261114_log_export.sql
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < tests/log-export-rollback.sql
       - name: Collect stack diagnostics
         if: failure()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml logs --tail 80
       - name: Stop isolated stack
         if: always()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml down
-

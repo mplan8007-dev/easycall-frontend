@@ -26,7 +26,7 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
     campsList=[{campId:'camp01',name:'반응형 검증 캠프',tablets:15}];agentsList=[{campId:'camp01',agentId:'agent01',alias:'테스트 홍보요원'}];campSettingsMap.camp01={nightLock:false,callTransport:'smartphone',dialMode:'manual'};
     document.getElementById('voter-name').textContent='화면 테스트 홍보 대상';document.getElementById('voter-phone').textContent='010-1234-5678';
     document.getElementById('agent-header-device-badge').textContent='테스트 홍보요원 · 010-1234-5678';
-    refreshActiveRoleUI();
+    refreshActiveRoleUI();switchAdminTab('contacts');
    });
    await noOverflow('agent '+width+'x'+height);
    if(width<1200||height<=740){
@@ -46,7 +46,7 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
    });
    await page.evaluate(async()=>{
     window.__listRequests=[];sbClient={rpc:async(name,args)=>{window.__listRequests.push({name,args});return {data:name==='easycall_camp_counts'?{voters:{total:4,ready:4,callback:0},logs:{total:0},groups:[],agents:[]}:name!=='easycall_admin_voter_page'?{items:[],total:0}:{items:Array.from({length:4},(_,i)=>({voter_id:'fixture-'+i,camp_id:'camp01',name:'명부 검증 '+(i+1),phone:'0000000000'+i,dong:'검증 지역',last_result:'READY',last_memo:'',updated_at:'2026-11-13T00:00:00Z'})),total:4}}}};
-    await easycallLoadLists('camp01');
+    await easycallLoadLists('camp01');switchAdminTab('contacts');
    });
    assert.equal(await page.locator('#admin-voters-tbody tr').count(),4);
    assert.match(await page.locator('#admin-voters-page').innerText(),/4건/);
@@ -76,4 +76,3 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   assert.deepEqual(errors,[]);console.log('PASS: six phone/tablet/desktop sizes, role pages, mobile table cards, account dialogs, touch targets, panel navigation and rotation draft preservation. All external page requests mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
-

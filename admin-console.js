@@ -38,6 +38,7 @@
   function notify(message,error=false) {
     const box=$('super-save-status');
     if (box) { box.textContent=message; box.className='mt-3 text-xs rounded-xl p-3 border '+(error?'border-rose-700 bg-rose-950 text-rose-200':'border-emerald-800 bg-emerald-950 text-emerald-200'); }
+    const settings=$('admin-settings-status');if(settings&&!superView()){settings.textContent=message;settings.className='mt-2 text-sm '+(error?'text-rose-700':'text-emerald-700');}
     showToast(message);
   }
   function remember() { state.good=copy({campsList,agentsList,votersList,globalCampCallLogs,campSettingsMap}); }
@@ -62,7 +63,7 @@
     return data;
   }
   function failMessage(error) {
-    if (error.code==='40001' || /conflict/i.test(error.message)) return '다른 관리자가 먼저 변경했습니다. 입력은 유지됩니다. 닫은 뒤 최신 자료를 열어 다시 확인하세요.';
+    if (['40001','PT409'].includes(error.code) || /conflict/i.test(error.message)) return '다른 관리자가 먼저 변경했습니다. 입력은 유지됩니다. 닫은 뒤 최신 자료를 열어 다시 확인하세요.';
     return error.message || '처리하지 못했습니다. 입력을 유지했습니다.';
   }
   async function mutate(dialogId,operation,after) {
@@ -114,12 +115,18 @@
     }
     const rows=await rpc('easycall_read_state');
     if(ticket!==state.fetched) return;
-    for(const row of rows || []) stateRevisions.set(row.store_key,row.updated_at);
+    // A revision belongs to the draft it was read with. Never advance it under
+    // unsaved edits, even when a background refresh sees a newer server state.
+    for(const row of rows || []) if(!state.configDirty) stateRevisions.set(row.store_key,row.updated_at);
     const meta=rows?.find(r=>r.store_key==='MASTER_META')?.payload || {};
     const cid=getActiveCampId();
     campsList=(meta.campsList || []).filter(c=>c.campId===cid).map(ensureCampStructure);
     agentsList=(meta.agentsList || []).filter(a=>a.campId===cid).map(ensureAgentStructure);
-    for(const row of rows || []) if(row.store_key==='STATE_'+cid && !state.configDirty) campSettingsMap[cid]=row.payload.config || {};
+    for(const row of rows || []) if(row.store_key==='STATE_'+cid) {
+      if(!state.configDirty) campSettingsMap[cid]=row.payload.config || {};
+      else getCampConfig(cid).globalStopped=Boolean(row.payload.config?.globalStopped);
+    }
+    updateAdminGlobalStopUI();
     const paged=window.easycallLoadLists?await window.easycallLoadLists(cid):null;
     const [v,l]=paged?[{data:paged.voters},{data:paged.logs}]:await Promise.all([
       sbClient.from('easycall_voters').select('*').eq('camp_id',cid).order('uid').limit(50),
@@ -133,22 +140,41 @@
     remember(); updateCloudStatusBadges(true);
   }
   async function savePersistentData(targetCampId=null) {
-    if(!online()) { restoreGood(); notify('연결이 없어 저장하지 않았습니다.',true); return false; }
+    if(!online()) { notify('연결이 없어 저장하지 않았습니다. 입력은 유지됩니다.',true); return false; }
     if(verifiedIdentity.role==='agent') {
       try { await rpc('easycall_agent_signal',{p_status:isAgentOnBreak?'휴식 중 ☕':'근무 중 🟢',p_sos:Boolean(getCampConfig(getActiveCampId()).sosAlert)}); return true; }
       catch(e) { notify(failMessage(e),true); return false; }
     }
     if(state.busy) { notify('저장 중입니다. 잠시 후 다시 시도하세요.',true); return false; }
     const cid=targetCampId || getActiveCampId();
+    state.configDirty=true;
     const pending={p_camp_id:cid,p_meta:copy({campsList,agentsList}),p_config:copy(getCampConfig(cid)),p_meta_revision:stateRevisions.get('MASTER_META') || null,p_state_revision:stateRevisions.get('STATE_'+cid) || null};
     state.busy=true;
     try {
       await rpc('easycall_save_state',pending); state.configDirty=false;
       await pullStateFromSupabase(true); notify('서버 저장 완료'); return true;
-    } catch(e) { restoreGood(); notify(failMessage(e),true); return false; }
+    } catch(e) { state.configDirty=true; notify(failMessage(e)+' 입력을 유지했습니다. 최신 설정을 확인한 뒤 다시 적용하세요.',true); return false; }
     finally { state.busy=false; }
   }
   async function refreshAdminData() { if(state.busy) return; try { await pullStateFromSupabase(); refreshActiveRoleUI(); } catch(e) { updateCloudStatusBadges(false); notify(failMessage(e),true); } }
+  async function reloadAdminSettings() {
+    if(state.busy||!confirm('저장하지 않은 설정을 버리고 서버의 최신 설정을 불러오시겠습니까?'))return;
+    state.configDirty=false;
+    try{await pullStateFromSupabase(true);initAdminView();notify('최신 설정을 불러왔습니다. 필요한 변경을 다시 적용하세요.');}
+    catch(e){state.configDirty=true;notify(failMessage(e),true);}
+  }
+  async function toggleCampGlobalCalling() {
+    if(state.busy)return;
+    const cid=getActiveCampId(),stopped=!Boolean(getCampConfig(cid).globalStopped);
+    if(!stopped&&!confirm('전화 업무를 재개하시겠습니까? 발신 가능 시간과 회선 준비 상태를 확인하세요.'))return;
+    state.busy=true;const button=$('btn-toggle-camp-call');if(button)button.disabled=true;
+    try {
+      const result=await rpc('easycall_set_calling_state',{p_camp_id:cid,p_stopped:stopped,p_expected_revision:stateRevisions.get('STATE_'+cid)||null});
+      getCampConfig(cid).globalStopped=result.globalStopped;
+      if(!state.configDirty)stateRevisions.set('STATE_'+cid,result.revision);
+      updateAdminGlobalStopUI();window.easycallRefreshSetup?.();notify(stopped?'전화 업무를 중지했습니다.':'전화 업무를 재개했습니다.');
+    }catch(e){notify(failMessage(e),true);}finally{state.busy=false;if(button)button.disabled=false;}
+  }
   function refreshActiveRoleUI() {
     if(superView()) renderSuperCampsTable();
     else if(!state.configDirty) legacyRefresh();
@@ -186,9 +212,9 @@
       <td class="py-3 align-middle"><div class="flex gap-1 mb-1"><span class="px-1.5 py-0.5 rounded bg-purple-950 text-purple-300">${esc(c.electionStage)}</span><span class="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300">${esc(c.electionType)}</span></div><div class="font-bold text-slate-200">${esc(c.region)} (${esc(c.district)})</div><div class="text-slate-500 text-[10px] mt-1">${esc(c.startsOn||'-')} ~ ${esc(c.endsOn||'-')}</div></td>
       <td class="py-3 align-middle"><div class="font-extrabold text-amber-300">${esc(c.party)} · ${esc(c.candidate)}</div><button type="button" data-camp-action="edit" data-camp-id="${esc(c.campId)}" class="text-indigo-400 font-bold text-left mt-1">${esc(c.name)} 🔍</button><div class="text-[10px] text-slate-500 mt-1">담당: ${esc(c.staff||'-')}</div></td>
       <td class="py-3 align-middle"><div class="font-mono font-bold">${esc(c.campId)}</div><div class="text-[10px] text-slate-400">명부 ${Number(c.voterCount||0).toLocaleString()} / 콜 ${Number(c.callCount||0).toLocaleString()}</div><div class="text-[10px] text-slate-500 mt-1 break-all max-w-[14rem]">${esc(c.adminLoginId||(String(c.adminEmail||'').endsWith('@login.easycall.invalid')?'업무용 관리자 계정':c.adminEmail)||'관리자 계정 미연결')}</div></td>
-      <td class="py-3 align-middle"><div class="text-emerald-400 font-mono font-bold">${Number(c.registeredCount||0)} / ${Number(c.tablets||0)}대</div><div class="text-[10px] text-slate-400">현재 접속 ${Number(c.onlineCount||0)}대</div><div class="flex gap-1 mt-1">${action(c,'quota-down','-1')}${action(c,'quota-up','+1')}${action(c,'quota-five','+5')}</div></td>
-      <td class="py-3 align-middle"><span class="px-2 py-1 rounded ${c.effectiveStatus==='ready'?'bg-emerald-950 text-emerald-300':'bg-amber-950 text-amber-300'}">${esc(labels[c.effectiveStatus]||'확인 필요')}</span><div class="text-[10px] text-slate-400 mt-2">계약 ${money(c.contractAmount)}<br>입금 ${money(c.paidAmount)} / 미수 ${money(c.outstandingAmount)}</div></td>
-      <td class="py-3 align-middle"><div class="flex flex-wrap gap-1 justify-end">${action(c,'visit','상황실','bg-emerald-700 text-white')}${action(c,'edit','수정')}${action(c,'account','관리자 계정 관리')}${action(c,'payment','입금')}${action(c,'audit','이력')}${action(c,'approval',c.approved===false?'승인':'중지',c.approved===false?'bg-indigo-700 text-white':'bg-amber-700 text-white')}</div></td></tr>`).join('') || '<tr><td colspan="6" class="py-10 text-center text-slate-400">조건에 맞는 캠프가 없습니다.</td></tr>';
+      <td class="py-3 align-middle"><div class="text-slate-200 font-mono font-bold">${Number(c.registeredCount||0)} / ${Number(c.tablets||0)}대</div><div class="text-[10px] text-slate-400">현재 접속 ${Number(c.onlineCount||0)}대</div></td>
+      <td class="py-3 align-middle"><span class="px-2 py-1 rounded ${c.effectiveStatus==='ready'?'bg-emerald-950 text-emerald-300':'bg-amber-950 text-amber-300'}">${esc(labels[c.effectiveStatus]||'확인 필요')}</span><div class="text-[10px] text-slate-400 mt-2">미수 ${money(c.outstandingAmount)}</div></td>
+      <td class="py-3 align-middle"><div class="flex flex-wrap gap-1 justify-end">${action(c,'visit','상황실','bg-blue-700 text-white')}${action(c,'edit','상세 관리')}</div></td></tr>`).join('') || '<tr><td colspan="6" class="py-10 text-center text-slate-400">조건에 맞는 캠프가 없습니다.</td></tr>';
     const total=campsList, sum=(items,key)=>items.reduce((n,c)=>n+Number(c[key]||0),0);
     text('stat-total-camps',total.length+'개'); text('stat-active-camps-txt','사용 가능 '+total.filter(c=>c.effectiveStatus==='ready').length+'개 · 중지/만료 '+total.filter(c=>c.effectiveStatus==='stopped'||c.effectiveStatus==='expired').length+'개');
     text('stat-total-tablets',sum(total,'tablets')+'대 · 등록 '+sum(total,'registeredCount')+' · 접속 '+sum(total,'onlineCount'));
@@ -198,6 +224,12 @@
     text('camp-page-info',state.page+' / '+pages+'페이지 · 페이지당 '+state.pageSize+'개');
     if($('camp-page-prev')) $('camp-page-prev').disabled=state.page<=1;
     if($('camp-page-next')) $('camp-page-next').disabled=state.page>=pages;
+    if(state.edit)renderCampDetailActions(camp(state.edit.campId));
+  }
+  function renderCampDetailActions(c){
+    const host=$('camp-detail-actions');if(!host||!c)return;
+    const actions=[['account','관리자 계정 관리'],['payment','입금 관리'],['audit','변경 이력'],['approval',c.approved===false?'캠프 승인':'캠프 접근 중지']];
+    host.innerHTML='<p>계약 '+money(c.contractAmount)+' · 입금 '+money(c.paidAmount)+' · 미수 '+money(c.outstandingAmount)+'</p><p>기기 '+Number(c.registeredCount||0)+' / '+Number(c.tablets||0)+'대 · 한도는 아래 계약 항목에서 변경합니다.</p><div class="flex flex-wrap gap-2 mt-2">'+actions.map(([action,label])=>'<button type="button" data-camp-action="'+action+'" data-camp-id="'+esc(c.campId)+'" class="px-3 py-2 rounded-lg '+(action==='approval'?'bg-rose-900 text-white':'bg-slate-800 text-slate-100')+'">'+label+'</button>').join('')+'</div>';
   }
   function resetCampFilters(){for(const id of ['camp-filter-stage','camp-filter-election','camp-filter-sido','camp-filter-billing','camp-filter-party','camp-filter-status','camp-filter-staff']) if($(id)) $(id).value='ALL';if($('camp-search-input'))$('camp-search-input').value='';renderSuperCampsTable();}
   function changeCampPage(delta){state.page+=delta;renderSuperCampsTable();}
@@ -239,7 +271,7 @@
   }
   function initNewCampFormDefaults(){legacyDefaults();if($('new-camp-call-transport'))$('new-camp-call-transport').value='smartphone';for(const id of ['wss','domain','stun'])if($('new-camp-sip-'+id))$('new-camp-sip-'+id).value='';updateNewCampCallPolicy();if($('new-camp-unit-price'))$('new-camp-unit-price').value='700000';updateNewCampRevenuePreview();}
   function updateNewCampRevenuePreview(){const n=Number(val('new-camp-limit')),p=Number(val('new-camp-unit-price')||700000);const amount=val('new-camp-billing')==='시범운영(무료)'?0:Number.isSafeInteger(n*p)&&n>=1&&n<=2000&&p>=0?n*p:0;text('new-camp-revenue-preview',money(amount));if($('new-camp-contract-amount'))$('new-camp-contract-amount').value=String(amount);}
-  function openCampDetailModalById(id){const c=camp(id);if(!c)return;state.edit={campId:id,revision:c.revision,requestId:crypto.randomUUID()};text('camp-edit-context',c.campId+' · 변경 이력에 작업자가 기록됩니다.');const fields={name:c.name,candidate:c.candidate,stage:c.electionStage,election:c.electionType,sido:getCampSido(c),city:String(c.region||'').trim().split(/\s+/).slice(1).join(' '),district:c.district,party:c.party,staff:c.staff,manager:c.manager,phone:c.phone,email:c.adminEmail||c.requestedAdminEmail,start:c.startsOn,end:c.endsOn,tablets:c.tablets,price:c.unitPrice,amount:c.contractAmount};for(const [key,value] of Object.entries(fields))if($('edit-camp-'+key))$('edit-camp-'+key).value=String(value??'');openDialog('camp-edit-dialog');}
+  function openCampDetailModalById(id){const c=camp(id);if(!c)return;renderCampDetailActions(c);state.edit={campId:id,revision:c.revision,requestId:crypto.randomUUID()};text('camp-edit-context',c.campId+' · 변경 이력에 작업자가 기록됩니다.');const fields={name:c.name,candidate:c.candidate,stage:c.electionStage,election:c.electionType,sido:getCampSido(c),city:String(c.region||'').trim().split(/\s+/).slice(1).join(' '),district:c.district,party:c.party,staff:c.staff,manager:c.manager,phone:c.phone,email:c.adminEmail||c.requestedAdminEmail,start:c.startsOn,end:c.endsOn,tablets:c.tablets,price:c.unitPrice,amount:c.contractAmount};for(const [key,value] of Object.entries(fields))if($('edit-camp-'+key))$('edit-camp-'+key).value=String(value??'');openDialog('camp-edit-dialog');}
   async function saveCampEdit(){if(!state.edit)return;try{const draft=copy(state.edit),data=readCampForm('edit-camp-',false);await mutate('camp-edit-dialog',()=>rpc('easycall_admin_save_camp',{p_camp:data,p_expected_revision:draft.revision,p_request_id:draft.requestId}),()=>{$('camp-edit-dialog').classList.add('hidden');state.edit=null;});}catch(e){dialogError('camp-edit-dialog',failMessage(e));}}
   async function adjustCampTabletLimit(id,delta){const c=camp(id);if(!c)return;const next=Number(c.tablets)+delta;if(next<Math.max(1,c.registeredCount||0)||next>2000){notify('등록 대수 이상, 최대 2,000대 범위에서 변경하세요.',true);return;}if(!confirm(c.name+': 한도 '+c.tablets+' → '+next+'대. 계약 금액과 입금 기록은 유지됩니다. 변경하시겠습니까?'))return;const data={...copy(c),sido:getCampSido(c),city:String(c.region||'').split(/\s+/).slice(1).join(' '),tablets:next};await mutate(null,()=>rpc('easycall_admin_save_camp',{p_camp:data,p_expected_revision:c.revision,p_request_id:crypto.randomUUID()}));}
   async function masterToggleCampApproval(id){const c=camp(id);if(!c)return;const approve=c.approved===false;if(!confirm(c.name+'을 '+(approve?'승인':'중지')+'하시겠습니까? '+(approve?'계약기간이 유효할 때만 사용할 수 있습니다.':'이 캠프의 일반 계정 접근과 발신이 제한됩니다.')))return;const reason=prompt('변경 사유를 입력하세요.');if(!reason?.trim())return;await mutate(null,()=>rpc('easycall_admin_set_approval',{p_camp_id:id,p_approved:approve,p_reason:reason.trim(),p_expected_revision:c.revision,p_request_id:crypto.randomUUID()}));}
@@ -283,7 +315,7 @@
   async function testSupabaseConnection(){try{const data=await rpc('easycall_connection_status');text('sb-test-result-box','연결 정상 · 서버 API '+data.version+' · '+stamp(data.serverTime));$('sb-test-result-box')?.classList.remove('hidden');updateCloudStatusBadges(true);}catch(e){text('sb-test-result-box',failMessage(e));$('sb-test-result-box')?.classList.remove('hidden');updateCloudStatusBadges(false);}}
   async function forcePushToCloud(){return refreshAdminData();}
   async function resetAllSystemData(){return openBackupManager();}
-  Object.assign(window,{updateNewCampCallPolicy,openEmailCampAccount:openLegacyCampAccount,initSupabaseEngine,activateVerifiedUser,pullStateFromSupabase,savePersistentData,refreshActiveRoleUI,updateCloudStatusBadges,renderSuperCampsTable,registerNewCampByMaster,initNewCampFormDefaults,updateNewCampRevenuePreview,openCampDetailModalById,adjustCampTabletLimit,masterToggleCampApproval,masterResetCampPw,changeAdminPassword,disconnectSupabase,saveAndConnectSupabase,openSupabaseModal,testSupabaseConnection,forcePushToCloud,resetAllSystemData,refreshAdminData,resetCampFilters,changeCampPage,toggleNewCampForm,saveCampEdit,unlinkCampAccount,linkCampAccount,inviteCampAccount,resetCampAccountPassword,saveCampPayment,changeAuditPage,openBackupManager,createAdminBackup,toggleBackupSchedule,openMyAccount,saveMyPassword,handleLogout});
+  Object.assign(window,{reloadAdminSettings,toggleCampGlobalCalling,updateNewCampCallPolicy,openEmailCampAccount:openLegacyCampAccount,initSupabaseEngine,activateVerifiedUser,pullStateFromSupabase,savePersistentData,refreshActiveRoleUI,updateCloudStatusBadges,renderSuperCampsTable,registerNewCampByMaster,initNewCampFormDefaults,updateNewCampRevenuePreview,openCampDetailModalById,adjustCampTabletLimit,masterToggleCampApproval,masterResetCampPw,changeAdminPassword,disconnectSupabase,saveAndConnectSupabase,openSupabaseModal,testSupabaseConnection,forcePushToCloud,resetAllSystemData,refreshAdminData,resetCampFilters,changeCampPage,toggleNewCampForm,saveCampEdit,unlinkCampAccount,linkCampAccount,inviteCampAccount,resetCampAccountPassword,saveCampPayment,changeAuditPage,openBackupManager,createAdminBackup,toggleBackupSchedule,openMyAccount,saveMyPassword,handleLogout});
   localStorage.removeItem('easycall_cloud_force_disabled');
   document.addEventListener?.('click',async event=>{
     const button=event.target.closest?.('button');if(!button)return;

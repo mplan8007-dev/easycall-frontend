@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 test('opening a message uses message authorization and does not mark a call',async()=>{
  const html=fs.readFileSync(__dirname+'/../index.html','utf8');
  const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
- const ctx=vm.createContext({console,document:{getElementById(){return {}},querySelectorAll(){return []},addEventListener(){}},
+ const ctx=vm.createContext({crypto:require('node:crypto').webcrypto,console,document:{getElementById(){return {}},querySelectorAll(){return []},addEventListener(){}},
   localStorage:{getItem(){return null}},sessionStorage:{getItem(){return null}},location:{},
   setInterval(){},clearInterval(){},setTimeout(){},clearTimeout(){},addEventListener(){},navigator:{},Date,Intl,Blob,URL,alert(){},confirm(){return true}});
  vm.runInContext('window=globalThis',ctx);vm.runInContext(script,ctx);
@@ -15,4 +15,3 @@ test('opening a message uses message authorization and does not mark a call',asy
  assert.equal(ctx.requests.length,1);assert.equal(ctx.requests[0].name,'easycall_authorize_message');
  assert.match(ctx.location.href,/^sms:01012345678/);
 });
-

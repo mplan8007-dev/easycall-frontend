@@ -32,3 +32,4 @@ begin
  begin perform public.easycall_admin_save_camp(d||'{"campId":"new_call_forbidden","callPolicy":{"callTransport":"smartphone"}}',null,gen_random_uuid());raise exception 'Manager registered a camp' using errcode='ZC003';exception when insufficient_privilege then null;end;
 end $$;
 rollback;
+

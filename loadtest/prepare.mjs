@@ -23,6 +23,12 @@ create function public.easycall_loadtest_environment() returns jsonb language sq
 revoke all on function public.easycall_loadtest_environment() from public,anon;grant execute on function public.easycall_loadtest_environment() to authenticated;
 notify pgrst,'reload schema';
 `;
-fs.writeFileSync(path.join(dir,'generated/init.sql'),migrations.join('\n')+seed);
+let current='';
+if(process.env.CURRENT_SCHEMA==='1'){
+ const names=['20261113_work_accounts.sql','20261113_admin_account_list.sql','20261113_optional_password_change.sql','20261113_agent_account_list.sql','20261113_agent_common_password.sql','20261113_call_transport_policy.sql','20261113_new_camp_call_transport.sql','20261113_voter_import_lifecycle.sql','20261113_contact_management.sql','20261114_message_authorization.sql','20261114_operations_reliability.sql','20261114_log_export.sql'];
+ current='\ncreate role service_role nologin;\n'+names.map(name=>fs.readFileSync(path.join(dir,'../supabase/migrations',name),'utf8')).join('\n');
+ current+=`\ncreate or replace function public.easycall_loadtest_environment() returns jsonb language sql stable as $$select jsonb_build_object('environment','isolated-local-loadtest','devices',${devices},'camps',${camps},'schemaVersion','20261114_operations_reliability')$$;\n`;
+}
+fs.writeFileSync(path.join(dir,'generated/init.sql'),migrations.join('\n')+seed+current);
 fs.writeFileSync(path.join(dir,'generated/dimensions.json'),JSON.stringify({devices,camps,contacts}));
 console.log(`Prepared an isolated local stack: ${devices} devices, ${camps} camps, ${contacts} fictional contacts. Credentials remain in ignored .env.`);

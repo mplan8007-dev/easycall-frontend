@@ -11,7 +11,7 @@ const {chromium}=require('playwright');
   assert.equal(await page.locator('#voter-import-mode').inputValue(),'replace');
   await page.evaluate(()=>{
    verifiedIdentity={role:'admin',uid:'admin',campId:'camp01'};currentAdminId='camp01';localStorage.setItem('easycall_role','admin');
-   document.getElementById('login-view').classList.add('hidden');document.getElementById('admin-view').classList.remove('hidden');
+   document.getElementById('login-view').classList.add('hidden');document.getElementById('admin-view').classList.remove('hidden');switchAdminTab('contacts');
    window.__runs=[];window.__requests=[];window.__reject=false;pullStateFromSupabase=async()=>{};updateVoterQueueStatusText=()=>{};
    sbClient={rpc:async(name,args)=>{window.__requests.push({name,args});if(name==='easycall_import_history')return {data:window.__runs};if(name==='easycall_import_voters'){const result=window.__reject?{success:false,error:'배정 중인 대상이 있어 전체 교체를 중단했습니다.'}:{success:true,inserted:4,duplicates:4,blocked:0,total:8};Object.assign(result,{filename:args.p_filename,mode:args.p_mode,createdAt:new Date().toISOString()});window.__runs.unshift(result);return {data:result};}return {data:null};}};
   });
@@ -27,7 +27,7 @@ const {chromium}=require('playwright');
    verifiedIdentity={role:'agent',uid:'a1',campId:'camp01',agentId:'agent01'};currentAgentId='agent01';localStorage.setItem('easycall_role','agent');
    campsList=[{campId:'camp01',name:'Fixture',tablets:15}];agentsList=[{campId:'camp01',agentId:'agent01',alias:'Fixture'}];campSettingsMap.camp01={nightLock:false,globalStopped:false,callTransport:'smartphone'};activeClaim=null;isEnterpriseRpcAvailable=true;
    window.__claims=0;window.__authorizations=0;window.__release=null;
-   sbClient={rpc:async(name,args)=>{if(name==='easycall_claim_voter'){window.__claims++;return {data:[{voter_id:'fictional-voter',name:'Fixture',phone:'00000000000',last_result:'READY'}]};}if(name==='easycall_authorize_call')window.__authorizations++;if(name==='easycall_release_unstarted_claim')window.__release=args;return {data:null};}};
+   sbClient={rpc:async(name,args)=>{if(name==='easycall_claim_voter'){window.__claims++;return {data:[{voter_id:'fictional-voter',claim_call_id:'fictional-call',name:'Fixture',phone:'00000000000',last_result:'READY'}]};}if(name==='easycall_authorize_call')window.__authorizations++;if(name==='easycall_release_unstarted_claim')window.__release=args;return {data:null};}};
    initAgentView();
   });
   assert.equal(await page.evaluate(()=>window.__claims),0,'Login must not reserve a contact');

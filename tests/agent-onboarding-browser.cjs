@@ -83,3 +83,4 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   console.log('PASS: unified registration, existing ID preparation, one-click login guide copy, fresh quota/duplicate checks, failure visibility and common-password gating. External services mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+

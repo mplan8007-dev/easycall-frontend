@@ -1,12 +1,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto');
 function harness(){
- const nodes=new Map(),storage=new Map(),session=new Map();
+ const nodes=new Map(),storage=new Map(),session=new Map(),events=new Map();
  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',innerHTML:'',disabled:false,style:{},classList:{add(){},remove(){},toggle(){}},querySelector(){return null;}});return nodes.get(id);};
- const ctx=vm.createContext({document:{getElementById:node,querySelectorAll(){return [];},addEventListener(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},sessionStorage:{getItem:k=>session.get(k)||null,setItem:(k,v)=>session.set(k,v),removeItem:k=>session.delete(k)},navigator:{onLine:true},location:{hash:''},addEventListener(){},setInterval(){return 1;},clearInterval(){},setTimeout(){return 1;},clearTimeout(){},crypto:crypto.webcrypto,console,Date,Intl,URL,Blob,alert(){},confirm(){return true;},prompt(){return 'test';}});
+ const ctx=vm.createContext({document:{getElementById:node,querySelectorAll(){return [];},addEventListener(type,fn){if(!events.has(type))events.set(type,[]);events.get(type).push(fn);}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},sessionStorage:{getItem:k=>session.get(k)||null,setItem:(k,v)=>session.set(k,v),removeItem:k=>session.delete(k)},navigator:{onLine:true},location:{hash:''},addEventListener(){},setInterval(){return 1;},clearInterval(){},setTimeout(){return 1;},clearTimeout(){},crypto:crypto.webcrypto,console,Date,Intl,URL,Blob,alert(){},confirm(){return true;},prompt(){return 'test';}});
  vm.runInContext('window=globalThis',ctx);
  vm.runInContext(fs.readFileSync(__dirname+'/../index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1],ctx);
  vm.runInContext(fs.readFileSync(__dirname+'/../admin-console.js','utf8'),ctx);
- return {run:s=>vm.runInContext(s,ctx),nodes,session,node};
+ return {run:s=>vm.runInContext(s,ctx),nodes,session,node,events};
 }
 test('disconnected writes fail instead of pretending to save',async()=>{const h=harness();assert.equal(await h.run('savePersistentData()'),false);});
 test('delegated password changes never call authentication update',async()=>{const h=harness();h.session.set('easycall_master_impersonator','super');h.run("verifiedIdentity={role:'super'}; calls=0;sbClient={auth:{updateUser(){calls++;}}}");await h.run('changeAdminPassword()');await h.run('saveMyPassword()');assert.equal(h.run('calls'),0);});
@@ -24,3 +24,34 @@ function fillNewCamp(h){const values={'new-camp-name':'Test camp','new-camp-cand
 test('new camps submit smartphone, pending SIP or configured SIP atomically with registration',async()=>{for(const mode of ['smartphone','sip','configured']){const h=harness();fillNewCamp(h);h.node('new-camp-call-transport').value=mode==='configured'?'sip':mode;if(mode==='configured'){h.node('new-camp-sip-wss').value='wss://pbx.example.com/ws';h.node('new-camp-sip-domain').value='pbx.example.com';}await h.run('registerNewCampByMaster()');assert.equal(h.run('calls'),1);assert.equal(h.run('sent.p_camp.callPolicy.callTransport'),mode==='configured'?'sip':mode);assert.equal(h.run('sent.p_camp.callPolicy.sipWss'),mode==='configured'?'wss://pbx.example.com/ws':'');assert.equal(h.node('new-camp-call-transport').value,mode==='configured'?'sip':mode);}});
 test('incomplete or insecure SIP registration never reaches the server',async()=>{for(const wss of ['ws://pbx.example.com','wss://user:secret@pbx.example.com/ws','wss://pbx.example.com/ws?password=x','wss://pbx.example.com/ws']){const h=harness();fillNewCamp(h);h.node('new-camp-call-transport').value='sip';h.node('new-camp-sip-wss').value=wss;if(wss!=='wss://pbx.example.com/ws')h.node('new-camp-sip-domain').value='pbx.example.com';await h.run('registerNewCampByMaster()');assert.equal(h.run('calls'),0);}});
 test('new camp form defaults reset mode and clear SIP endpoints',()=>{const h=harness();h.node('new-camp-call-transport').value='sip';h.node('new-camp-sip-wss').value='wss://old.example.com/ws';h.run('initNewCampFormDefaults()');assert.equal(h.node('new-camp-call-transport').value,'smartphone');assert.equal(h.node('new-camp-sip-wss').value,'');assert.equal(h.node('new-camp-sip-options').hidden,true);});
+
+test('background refresh cannot give an old draft a newer revision or undo a stop',async()=>{
+ const h=harness();
+ h.run(`verifiedIdentity={role:'admin',campId:'c1',uid:'manager'};currentAdminId='c1';localStorage.setItem('easycall_role','admin');
+ stateRevisions.set('MASTER_META','m1');stateRevisions.set('STATE_c1','s1');campSettingsMap.c1={globalStopped:false,stepScripts:{1:'my draft'}};
+ window.easycallLoadLists=async()=>({voters:[],logs:[]});window.sent=null;
+ sbClient={rpc:async(name,args)=>name==='easycall_save_state'?(window.sent=args,{error:{code:'40001',message:'conflict'}}):{data:[
+ {store_key:'MASTER_META',updated_at:'m2',payload:{campsList:[{campId:'c1',tablets:2}],agentsList:[]}},
+ {store_key:'STATE_c1',updated_at:'s2',payload:{config:{globalStopped:true,stepScripts:{1:'other draft'}}}}]}};`);
+ for(const fn of h.events.get('input')||[])fn({target:{closest:selector=>selector==='#admin-pane-config'}});
+ await h.run('pullStateFromSupabase()');
+ assert.equal(h.run("stateRevisions.get('STATE_c1')"),'s1');
+ assert.equal(h.run('campSettingsMap.c1.globalStopped'),true);
+ assert.equal(h.run('campSettingsMap.c1.stepScripts[1]'),'my draft');
+ assert.equal(await h.run("savePersistentData('c1')"),false);
+ assert.equal(h.run('sent.p_state_revision'),'s1');
+ assert.equal(h.run('sent.p_meta_revision'),'m1');
+ assert.equal(h.run('campSettingsMap.c1.stepScripts[1]'),'my draft');
+});
+
+test('stop uses the dedicated RPC and failed resume never changes the local stopped state',async()=>{
+ const h=harness();h.run(`verifiedIdentity={role:'admin',campId:'c1'};currentAdminId='c1';campSettingsMap.c1={globalStopped:false};stateRevisions.set('STATE_c1','s1');
+ requests=[];sbClient={rpc:async(name,args)=>{requests.push({name,args});return args.p_stopped?{data:{globalStopped:true,revision:'s2'}}:{error:{code:'40001',message:'conflict'}};}};`);
+ await h.run('toggleCampGlobalCalling()');
+ assert.equal(h.run('requests[0].name'),'easycall_set_calling_state');
+ assert.equal(h.run('campSettingsMap.c1.globalStopped'),true);
+ await h.run('toggleCampGlobalCalling()');
+ assert.equal(h.run('requests[1].args.p_expected_revision'),'s2');
+ assert.equal(h.run('campSettingsMap.c1.globalStopped'),true);
+});
+

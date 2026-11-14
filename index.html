@@ -57,7 +57,6 @@
   <link rel="stylesheet" href="./responsive.css">
 </head>
 <body class="auth-restoring w-screen overflow-hidden flex flex-col text-slate-800">
-
   <div id="auth-startup" role="status" aria-live="polite">로그인 상태를 확인하고 있습니다…</div>
 
   <!-- ==================== A. 통합 로그인 화면 ==================== -->
@@ -69,8 +68,8 @@
             <i class="fa-solid fa-phone-volume"></i>
           </div>
           <div>
-            <h2 class="text-xl font-extrabold text-white tracking-tight">이지콜 (EasyCall) 통합 로그인</h2>
-            <p class="text-xs text-slate-400 mt-0.5">2,000대 분산 클라우드 & 선거 인터넷전화(SIP) 관제</p>
+            <h2 class="text-xl font-extrabold text-white tracking-tight">이지콜 EasyCall</h2>
+            <p class="text-xs text-slate-400 mt-0.5">전화 업무와 캠프 관리를 한곳에서</p>
           </div>
         </div>
         <span id="login-cloud-badge" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-950 text-indigo-300 border border-indigo-700">☁️ 엔터프라이즈 DB</span>
@@ -78,25 +77,23 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1.5">접속 계정 이메일</label>
-          <input type="text" id="login-id" onkeydown="if(event.key==='Enter') handleInstantLogin()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500 font-semibold" placeholder="등록된 계정 이메일 입력">
+          <label for="login-id" class="block text-xs font-bold text-slate-400 mb-1.5">접속 계정 이메일</label>
+          <input type="text" id="login-id" autocomplete="username" autocapitalize="none" spellcheck="false" aria-describedby="login-error" onkeydown="if(event.key==='Enter') handleInstantLogin()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500 font-semibold" placeholder="등록된 계정 이메일 입력">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1.5">비밀번호</label>
+          <label for="login-pw" class="block text-xs font-bold text-slate-400 mb-1.5">비밀번호</label>
           <input type="password" id="login-pw" onkeydown="if(event.key==='Enter') handleInstantLogin()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500 font-mono" placeholder="비밀번호 입력" autocomplete="current-password">
         </div>
-        <button type="button" onclick="handleInstantLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg text-sm">
-          시스템 로그인
+        <button type="button" id="login-submit" onclick="handleInstantLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg text-sm">
+          로그인
         </button>
-        <div id="login-error" class="text-xs text-rose-500 font-bold text-center min-h-[16px]"></div>
+        <div id="login-error" role="alert" aria-live="polite" class="text-xs text-rose-500 font-bold text-center min-h-[16px]"></div>
+        <button id="device-transfer" type="button" class="hidden w-full py-3 rounded-xl bg-amber-600 text-white font-bold" onclick="transferAgentDevice()">이 기기로 전화 업무 전환</button>
 
         <div class="pt-4 border-t border-slate-800/80">
-          <span class="block text-[11px] font-bold text-slate-500 mb-2 text-center">운영 계정은 인증 서버에서 발급합니다</span>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" disabled aria-disabled="true" class="py-2 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-lg text-xs font-bold border border-slate-700 transition">마스터 (super)</button>
-            <button type="button" disabled aria-disabled="true" class="py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 rounded-lg text-xs font-bold border border-slate-700 transition">상황실 (camp01)</button>
-            <button type="button" disabled aria-disabled="true" class="py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded-lg text-xs font-bold border border-slate-700 transition">1번단말 (tab01)</button>
-          </div>
+          <p class="text-sm font-bold text-slate-300">처음 이용하시나요?</p>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">담당 관리자에게 받은 캠프 ID, 사용자 ID와 비밀번호를 입력하세요. 로그인하면 계정에 맞는 업무 화면으로 이동합니다.</p>
+          <p class="text-xs text-slate-400 mt-2">계정 정보가 없거나 비밀번호를 잊었다면 담당 관리자에게 문의하세요.</p>
         </div>
       </div>
     </div>
@@ -489,22 +486,6 @@
               </div>
             </div>
 
-            <section id="new-camp-call-settings" class="bg-slate-950 border border-indigo-500/40 rounded-xl p-3 space-y-2">
-              <label for="new-camp-call-transport" class="block text-xs text-indigo-300 font-bold">통화 방식 *</label>
-              <select id="new-camp-call-transport" onchange="updateNewCampCallPolicy()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white">
-                <option value="smartphone">일반 스마트폰 · 유심 / 전화 앱</option>
-                <option value="sip">SIP 인터넷전화 · 브라우저 통화</option>
-              </select>
-              <p id="new-camp-call-hint" class="text-xs text-slate-400">스마트폰의 유심과 기본 전화 앱으로 발신합니다.</p>
-              <details id="new-camp-sip-options" hidden><summary class="text-xs text-indigo-300 cursor-pointer">SIP 회선 정보 (선택 · 나중에 설정 가능)</summary>
-                <div class="grid grid-cols-1 gap-2 mt-2">
-                  <div><label for="new-camp-sip-wss" class="block text-xs text-slate-400">SIP 서버 주소 (WSS)</label><input id="new-camp-sip-wss" type="text" autocomplete="off" maxlength="512" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="wss://pbx.example.com/ws"></div>
-                  <div><label for="new-camp-sip-domain" class="block text-xs text-slate-400">SIP 도메인</label><input id="new-camp-sip-domain" type="text" autocomplete="off" maxlength="255" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="pbx.example.com"></div>
-                  <div><label for="new-camp-sip-stun" class="block text-xs text-slate-400">STUN 서버 (필요한 경우)</label><input id="new-camp-sip-stun" type="text" autocomplete="off" maxlength="255" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="stun:stun.example.com:3478"></div>
-                </div><p class="text-xs text-slate-400 mt-2">SIP 비밀번호는 등록하지 않습니다. 요원이 별도 회선 계정으로 연결할 때 입력합니다.</p>
-              </details>
-            </section>
-
             <!-- 6행: 담당 사무장 성명 & 휴대폰 연락처 -->
             <div class="grid grid-cols-2 gap-2">
               <div>
@@ -538,6 +519,21 @@
               <div><label for="new-camp-contract-amount" class="block text-[11px] text-slate-400 mb-0.5">계약 금액(원)</label><input id="new-camp-contract-amount" type="number" min="0" step="1" value="10500000" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white"></div>
             </div>
             <div><label for="new-camp-login-email" class="block text-[11px] text-slate-400 mb-0.5">관리자 이메일(선택 · 계정 연결은 등록 후 진행)</label><input id="new-camp-login-email" type="email" autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-white" placeholder="실제 관리자 이메일"></div>
+            <section id="new-camp-call-settings" class="bg-slate-950 border border-indigo-500/40 rounded-xl p-3 space-y-2">
+              <label for="new-camp-call-transport" class="block text-xs text-indigo-300 font-bold">통화 방식 *</label>
+              <select id="new-camp-call-transport" onchange="updateNewCampCallPolicy()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                <option value="smartphone">일반 스마트폰 · 유심 / 전화 앱</option>
+                <option value="sip">SIP 인터넷전화 · 브라우저 통화</option>
+              </select>
+              <p id="new-camp-call-hint" class="text-xs text-slate-400">스마트폰의 유심과 기본 전화 앱으로 발신합니다.</p>
+              <details id="new-camp-sip-options" hidden><summary class="text-xs text-indigo-300 cursor-pointer">SIP 회선 정보 (선택 · 나중에 설정 가능)</summary>
+                <div class="grid grid-cols-1 gap-2 mt-2">
+                  <div><label for="new-camp-sip-wss" class="block text-xs text-slate-400">SIP 서버 주소 (WSS)</label><input id="new-camp-sip-wss" type="text" autocomplete="off" maxlength="512" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="wss://pbx.example.com/ws"></div>
+                  <div><label for="new-camp-sip-domain" class="block text-xs text-slate-400">SIP 도메인</label><input id="new-camp-sip-domain" type="text" autocomplete="off" maxlength="255" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="pbx.example.com"></div>
+                  <div><label for="new-camp-sip-stun" class="block text-xs text-slate-400">STUN 서버 (필요한 경우)</label><input id="new-camp-sip-stun" type="text" autocomplete="off" maxlength="255" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="stun:stun.example.com:3478"></div>
+                </div><p class="text-xs text-slate-400 mt-2">SIP 비밀번호는 등록하지 않습니다. 요원이 별도 회선 계정으로 연결할 때 입력합니다.</p>
+              </details>
+            </section>
             <!-- 실시간 용역매출 자동 계산 박스 -->
             <div class="bg-slate-950 border border-indigo-500/40 rounded-xl px-3 py-2 flex items-center justify-between text-xs">
               <span class="text-slate-400 font-bold">💰 단가 × 한도 예상액 · 입금액과 별도</span>
@@ -688,7 +684,7 @@
     <main id="admin-pane-config" class="flex-1 p-6 grid grid-cols-12 gap-6 overflow-y-auto custom-scrollbar">
       <div class="col-span-7 space-y-6">
         <section aria-label="캠프 업무 시작 안내" class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-slate-800">
-          <h2 class="font-extrabold text-blue-900">처음 이용하시나요? 이 순서대로 준비하세요</h2>
+          <h2 class="font-extrabold text-blue-900">처음 이용하시나요? 이 순서대로 준비하세요</h2><button type="button" onclick="reloadAdminSettings()" class="mt-2 px-3 py-2 rounded-lg border border-blue-300 bg-white text-sm">최신 설정 다시 불러오기</button><p id="admin-settings-status" class="hidden mt-2 text-sm" role="status" aria-live="polite"></p>
           <ol class="mt-2 text-sm leading-relaxed list-decimal pl-5">
             <li>전화담당자 계정을 만들고 로그인 정보를 전달합니다.</li>
             <li>연락처 명부를 등록하고 목록과 등록 건수를 확인합니다.</li>
@@ -740,7 +736,7 @@
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="text-xs font-extrabold px-2.5 py-0.5 bg-blue-600 text-white rounded">대본 1 : 기본 인지도 각인</span>
                   <div class="flex gap-1">
-                    <button type="button" onclick="insertScriptToken(1, '{그룹명}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold">+ {그룹명}</button>
+                  <button type="button" onclick="insertScriptToken(1, '{그룹명}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold">+ {그룹명}</button>
                     <button type="button" onclick="insertScriptToken(1, '{유권자명}')" class="px-2 py-0.5 bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold">+ {유권자명}</button>
                   </div>
                 </div>
@@ -754,7 +750,7 @@
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="text-xs font-extrabold px-2.5 py-0.5 bg-indigo-600 text-white rounded">대본 2 : 투표 독려 및 예비</span>
                   <div class="flex gap-1">
-                    <button type="button" onclick="insertScriptToken(2, '{그룹명}')" class="px-2 py-0.5 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded text-[11px] font-bold">+ {그룹명}</button>
+                  <button type="button" onclick="insertScriptToken(2, '{그룹명}')" class="px-2 py-0.5 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded text-[11px] font-bold">+ {그룹명}</button>
                     <button type="button" onclick="insertScriptToken(2, '{유권자명}')" class="px-2 py-0.5 bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-300 rounded text-[11px] font-bold">+ {유권자명}</button>
                   </div>
                 </div>
@@ -802,8 +798,8 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-3">
             <div>
-              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 업로드</h3>
-              <p class="text-xs text-slate-500 mt-0.5">최대 10,000건을 등록합니다. 추가 등록은 기존 연락처와 통화기록을 유지하며, 전체 교체는 배정 중인 대상이 없을 때만 가능합니다.</p>
+              <h3 class="text-base font-bold text-slate-900">📥 유권자 명부 엑셀 / CSV 대량 업로드 (1,000건 단위 청크 고속 적재)</h3>
+              <p class="text-xs text-slate-500 mt-0.5">수만 명의 대용량 엑셀도 끊김 없이 분할 업로드되며 우리 캠프 전용 샤드에 격리 저장됩니다.</p>
             </div>
             <div class="flex gap-1.5">
               <button type="button" onclick="resetVoterQueueToSample()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">샘플 복원</button>
@@ -871,10 +867,10 @@
         <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 shadow-xs">
           <div class="flex items-center gap-2 text-emerald-800 font-extrabold text-sm mb-1">
             <i class="fa-solid fa-circle-check text-emerald-600"></i>
-            <span>2,000대 무충돌 분산 DB & 공식 선거 인터넷전화(SIP) 가동</span>
+            <span>전화 업무 운영 안내</span>
           </div>
           <p class="text-xs text-emerald-700 leading-relaxed">
-            통신사 정식 선거 다회선으로 <strong>스팸 차단(FUP)이 면제</strong>되며, 클라우드 DB의 원자적 배정(Atomic Lock) 및 캠프별 샤딩 구조가 적용되어 수백 대의 태블릿이 동시에 버튼을 눌러도 중복 배정이나 데이터 유실이 발생하지 않습니다.
+            통화 대상은 서버에서 배정하며, 결과 저장 완료 여부를 화면에서 확인하세요. 동시 사용 규모는 최신 버전의 성능 검증 후 확정합니다. 발신 한도·차단 정책·요금은 통신사 계약에 따라 적용됩니다.
           </p>
         </div>
 
@@ -952,9 +948,11 @@
               <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden"><div id="bar-volunteer" class="bg-purple-500 h-full transition-all duration-500" style="width: 0%"></div></div>
             </div>
             <div>
-              <div class="flex justify-between text-xs font-bold mb-1"><span>👎 비지지 / 거부</span><span id="stat-oppose-txt">0건 (0%)</span></div>
+              <div class="flex justify-between text-xs font-bold mb-1"><span>👎 비지지</span><span id="stat-oppose-txt">0건 (0%)</span></div>
               <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden"><div id="bar-oppose" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div></div>
             </div>
+            <div><div class="flex justify-between text-xs font-bold mb-1"><span>의견 없음</span><span id="stat-no_opinion-txt">0건 (0%)</span></div><div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden"><div id="bar-no_opinion" class="bg-slate-500 h-full" style="width:0%"></div></div></div>
+            <div><div class="flex justify-between text-xs font-bold mb-1"><span>답변 안 함</span><span id="stat-no_response-txt">0건 (0%)</span></div><div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden"><div id="bar-no_response" class="bg-slate-500 h-full" style="width:0%"></div></div></div>
           </div>
         </div>
 
@@ -1030,18 +1028,18 @@
         <div>
           <h1 class="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
             <span>선거 전화홍보</span>
-            <span id="agent-header-device-badge" class="text-sm bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full font-extrabold">1번단말 (회선: 041-930-1001)</span>
+            <span id="agent-header-device-badge" class="text-sm bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full font-extrabold">사용 기기 확인 중</span>
           </h1>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition">📞 다이얼러</button>
+          <button type="button" id="tab-dialer-btn" onclick="switchAgentTab('dialer')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold bg-white text-blue-600 shadow-xs transition">전화하기</button>
           <button type="button" id="tab-search-btn" onclick="switchAgentTab('search')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition flex items-center gap-1">
-            <span>🔍 검색/콜백</span>
+            <span>재통화·검색</span>
             <span id="callback-count-badge" class="px-2 py-0.5 bg-amber-500 text-white rounded-full text-xs font-black">0</span>
           </button>
-          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition">📋 내 실적</button>
+          <button type="button" id="tab-history-btn" onclick="switchAgentTab('history')" class="px-3.5 py-1.5 rounded-lg text-sm font-extrabold text-slate-700 transition">통화기록</button>
         </div>
 
         <div class="bg-slate-50 border border-slate-300 px-3 py-1 rounded-xl flex items-center gap-2 w-44">
@@ -1070,12 +1068,15 @@
       </div>
     </header>
 
+    <section id="agent-recovery-notice" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm text-amber-900" role="status" aria-live="polite">
+      <p id="agent-recovery-text"></p><div class="flex gap-2 mt-2"><button type="button" onclick="recoverAgentAssignment()" class="px-3 py-2 rounded-lg bg-white border border-amber-300">업무 상태 다시 확인</button><button type="button" id="agent-discard-draft" class="hidden px-3 py-2 rounded-lg bg-white border border-amber-300" onclick="discardExpiredDraft()">만료된 입력 정리</button></div>
+    </section>
     <!-- [요원 탭 1: 다이얼러] -->
     <main id="agent-tab-dialer" class="flex-1 min-h-0 flex gap-4 p-4 overflow-hidden">
       <nav class="ec-jump-nav" aria-label="통화 화면 내 이동"><a href="#ec-call-panel">통화 · 대상 확인</a><a href="#ec-result-panel">대본 · 결과 입력</a></nav>
       <section id="ec-call-panel" class="w-[41%] h-full bg-white rounded-2xl border border-slate-300 p-4 flex flex-col justify-between shadow-sm overflow-hidden">
         <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 space-y-2.5">
-          <p class="text-sm font-bold text-slate-700" aria-label="전화 업무 순서">① 대상 확인 → ② 전화 걸기 → ③ 결과 저장</p>
+          <p class="text-sm font-bold text-slate-700" id="agent-workflow-state" aria-live="polite" aria-label="전화 업무 순서">① 대상 확인 → ② 전화 걸기 → ③ 결과 저장</p>
           <div class="flex justify-between items-center">
             <span class="bg-blue-600 text-white font-extrabold text-base px-3.5 py-1 rounded-lg shadow-sm" id="voter-dong">대천1동</span>
             <div class="flex items-center gap-1.5">
@@ -1086,14 +1087,10 @@
           </div>
 
           <div class="flex items-center justify-between bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200">
-            <button type="button" onclick="navigateVoter(-1)" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
-              <i class="fa-solid fa-chevron-left text-xs"></i> 이전 유권자
-            </button>
-            <span id="voter-queue-progress" class="text-sm font-black text-slate-700 font-mono">순번: 1 / 5명</span>
-            <button type="button" onclick="navigateVoter(1)" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-extrabold border border-slate-300 shadow-2xs transition flex items-center gap-1">
-              건너뛰기 <i class="fa-solid fa-chevron-right text-xs"></i>
-            </button>
+            <span class="text-sm font-bold text-slate-700">대상 자동 배정</span>
+            <span id="voter-queue-progress" class="text-sm font-black text-slate-700 font-mono">현재 배정 없음</span>
           </div>
+          <p class="text-xs text-slate-500">현재 대상의 결과를 저장하면 다음 대상을 배정합니다.</p>
 
           <div class="bg-gradient-to-br from-blue-50/90 to-slate-50 border-2 border-blue-200 rounded-2xl p-4">
             <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight" id="voter-name">홍길동 유권자</h2>
@@ -1194,6 +1191,8 @@
               <button type="button" onclick="selectSupportStatus('FAVORABLE')" id="btn-status-FAVORABLE" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">😊 우호 / 호의</button>
               <button type="button" onclick="selectSupportStatus('VOLUNTEER')" id="btn-status-VOLUNTEER" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">🙋 자원봉사 희망</button>
               <button type="button" onclick="selectSupportStatus('OPPOSE')" id="btn-status-OPPOSE" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg">👎 비지지 / 거부</button>
+              <button type="button" onclick="selectSupportStatus('NO_OPINION')" id="btn-status-NO_OPINION" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left font-bold text-lg">의견 없음</button>
+              <button type="button" onclick="selectSupportStatus('NO_RESPONSE')" id="btn-status-NO_RESPONSE" class="status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left font-bold text-lg">답변 안 함</button>
             </div>
           </div>
 
@@ -1210,11 +1209,14 @@
               <button type="button" onclick="appendQuickMemo('#바쁨/재통화요망')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-800 border border-slate-300 rounded-lg text-sm font-bold transition">#바쁨/재통화요망</button>
             </div>
             <textarea id="memo-input" rows="2" placeholder="유권자 민원 사항이나 특이 메모 입력..." class="w-full p-2.5 border-2 border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:outline-none focus:border-blue-600"></textarea>
+            <p class="text-xs text-slate-500 mt-2">비지지·답변 안 함은 수신거부와 다릅니다. 연락 중단을 요청받았을 때만 수신거부를 선택하세요.</p>
+            <label for="callback-at" class="block text-sm text-slate-600 mt-3">재통화 예약 (선택 · 이 기기의 시간 기준)</label><input id="callback-at" type="datetime-local" class="w-full p-2 border border-slate-300 rounded-lg"><p class="text-xs text-slate-500 mt-1">시간을 선택한 뒤 ‘재통화’로 저장하면 예약 목록에 표시됩니다.</p>
           </div>
         </div>
 
         <div class="pt-3 border-t-2 border-slate-200 mt-2 shrink-0 bg-white">
-          <button type="button" id="btn-save-next" onclick="saveResultToStorage(selectedStatus, 'CONNECTED')" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-md">💾 통화성공 저장 후 다음 유권자 ➔</button>
+          <p id="result-save-status" role="status" aria-live="polite" class="text-sm text-slate-600 mb-2">응답 결과를 선택한 뒤 저장하세요. 저장이 완료되면 다음 대상을 배정합니다.</p>
+          <button type="button" id="btn-save-next" onclick="saveResultToStorage(selectedStatus, 'CONNECTED')" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-md">💾 결과 저장 후 다음 대상 ➔</button>
         </div>
       </section>
     </main>
@@ -1240,7 +1242,7 @@
         <table class="w-full text-left text-base">
           <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 font-extrabold">
             <tr>
-              <th class="p-3.5">ID</th>
+              <th class="p-3.5">순서</th>
               <th class="p-3.5">유권자명</th>
               <th class="p-3.5">연락처</th>
               <th class="p-3.5">그룹명</th>
@@ -1292,7 +1294,7 @@
     </main>
   </div>
 
-<div id="camp-edit-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="캠프 기본정보 · 계약 수정"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">캠프 기본정보 · 계약 수정</h3><button type="button" data-close-dialog="camp-edit-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p class="text-xs text-slate-400 mb-4" id="camp-edit-context"></p><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label for="edit-camp-name" class="block text-xs text-slate-400 mb-1">캠프명</label><input id="edit-camp-name" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-candidate" class="block text-xs text-slate-400 mb-1">후보자</label><input id="edit-camp-candidate" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label class="block text-xs text-slate-400 mb-1" for="edit-camp-stage">선거 단계</label><select id="edit-camp-stage" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="본선">본선</option><option value="당내 경선">당내 경선</option><option value="예비후보">예비후보</option></select></div><div><label class="block text-xs text-slate-400 mb-1" for="edit-camp-election">선거 구분</label><select id="edit-camp-election" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="기초단체장(시장·군수)">기초단체장(시장·군수)</option><option value="광역단체장(도지사·시장)">광역단체장(도지사·시장)</option><option value="광역의원(도의원)">광역의원(도의원)</option><option value="기초의원(시의원)">기초의원(시의원)</option><option value="교육감">교육감</option><option value="국회의원">국회의원</option><option value="조합장(농·수·축협)">조합장(농·수·축협)</option></select></div><div><label for="edit-camp-sido" class="block text-xs text-slate-400 mb-1">시·도</label><select id="edit-camp-sido" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="충청남도">충청남도</option><option value="서울특별시">서울특별시</option><option value="부산광역시">부산광역시</option><option value="대구광역시">대구광역시</option><option value="인천광역시">인천광역시</option><option value="광주광역시">광주광역시</option><option value="대전광역시">대전광역시</option><option value="울산광역시">울산광역시</option><option value="세종특별자치시">세종특별자치시</option><option value="경기도">경기도</option><option value="강원특별자치도">강원특별자치도</option><option value="충청북도">충청북도</option><option value="전북특별자치도">전북특별자치도</option><option value="전라남도">전라남도</option><option value="경상북도">경상북도</option><option value="경상남도">경상남도</option><option value="제주특별자치도">제주특별자치도</option></select></div><div><label for="edit-camp-city" class="block text-xs text-slate-400 mb-1">시·군·구 / 선거 범위</label><input id="edit-camp-city" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-district" class="block text-xs text-slate-400 mb-1">세부 선거구</label><input id="edit-camp-district" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-party" class="block text-xs text-slate-400 mb-1">정당 / 소속</label><input id="edit-camp-party" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-staff" class="block text-xs text-slate-400 mb-1">본사 담당자</label><input id="edit-camp-staff" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-manager" class="block text-xs text-slate-400 mb-1">담당 사무장</label><input id="edit-camp-manager" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-phone" class="block text-xs text-slate-400 mb-1">연락처(선택)</label><input id="edit-camp-phone" type="tel"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-email" class="block text-xs text-slate-400 mb-1">연결할 관리자 이메일(선택)</label><input id="edit-camp-email" type="email"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-start" class="block text-xs text-slate-400 mb-1">계약 시작일</label><input id="edit-camp-start" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-end" class="block text-xs text-slate-400 mb-1">계약 종료일</label><input id="edit-camp-end" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-tablets" class="block text-xs text-slate-400 mb-1">태블릿 한도</label><input id="edit-camp-tablets" type="number" min="1" max="2000" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-price" class="block text-xs text-slate-400 mb-1">단가(원)</label><input id="edit-camp-price" type="number" min="0" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-amount" class="block text-xs text-slate-400 mb-1">계약 금액(원)</label><input id="edit-camp-amount" type="number" min="0" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div></div><p class="text-xs text-slate-400 mt-3">입금액은 입금 기록으로 관리합니다. 한도 변경만으로 입금액이 바뀌지 않습니다.</p><button type="button" onclick="saveCampEdit()" class="mt-4 w-full py-3 rounded-xl bg-indigo-600 text-sm font-bold disabled:opacity-50">검증 후 저장</button><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="camp-account-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="캠프 관리자 계정 관리"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">캠프 관리자 계정 관리</h3><button type="button" data-close-dialog="camp-account-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p id="camp-account-context" class="text-sm mb-3"></p><div id="camp-account-state" class="p-3 bg-slate-950 rounded-xl text-xs text-slate-300 mb-3"></div><div><label for="camp-account-email" class="block text-xs text-slate-400 mb-1">실제 관리자 이메일</label><input id="camp-account-email" type="email"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div class="flex flex-wrap gap-2 mt-4"><button type="button" onclick="linkCampAccount()" class="px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">기존 계정 연결</button><button type="button" onclick="inviteCampAccount()" class="px-4 py-2 rounded-xl bg-blue-600 text-sm font-bold">새 계정 초대</button><button type="button" onclick="resetCampAccountPassword()" class="px-4 py-2 rounded-xl bg-slate-700 text-sm font-bold">재설정 메일 보내기</button><button type="button" onclick="unlinkCampAccount()" class="bg-rose-950 border border-rose-800 text-rose-300 rounded-xl px-4 py-3 font-bold">연결 해제</button></div><p class="text-xs text-slate-400 mt-3">연결·초대는 해당 이메일에 이 캠프 관리자 권한을 부여합니다. 다른 캠프 계정 또는 최고관리자 계정은 전환하지 않습니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="camp-payment-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="계약 · 입금 기록"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">계약 · 입금 기록</h3><button type="button" data-close-dialog="camp-payment-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p id="camp-payment-context" class="text-sm mb-3"></p><div id="camp-payment-summary" class="p-3 bg-slate-950 rounded-xl text-xs mb-3"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label for="payment-amount" class="block text-xs text-slate-400 mb-1">실제 입금액(원)</label><input id="payment-amount" type="number" min="1" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="payment-date" class="block text-xs text-slate-400 mb-1">입금일</label><input id="payment-date" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="payment-memo" class="block text-xs text-slate-400 mb-1">입금 메모(선택)</label><input id="payment-memo" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div></div><button type="button" onclick="saveCampPayment()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">입금 기록 추가</button><p class="text-xs text-slate-400 mt-2">입금 내역을 기록하는 기능이며 실제 송금은 실행하지 않습니다.</p><div id="camp-payment-list" class="mt-4 text-xs space-y-2"></div><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="admin-audit-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="관리 변경 이력"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">관리 변경 이력</h3><button type="button" data-close-dialog="admin-audit-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><div id="admin-audit-list" class="text-xs space-y-2"></div><div class="flex justify-between mt-4"><button type="button" onclick="changeAuditPage(-1)" class="px-3 py-2 bg-slate-800 rounded-xl text-xs">이전</button><button type="button" onclick="changeAuditPage(1)" class="px-3 py-2 bg-slate-800 rounded-xl text-xs">다음</button></div><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="admin-backup-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="백업 · 복원 관리"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">백업 · 복원 관리</h3><button type="button" data-close-dialog="admin-backup-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p class="text-xs text-slate-400 mb-3">백업에는 업무 데이터와 계약·입금 기록이 포함됩니다. 인증 비밀번호와 로그인 세션은 복원하지 않습니다.</p><div class="flex flex-wrap gap-2"><button type="button" onclick="createAdminBackup()" class="px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">지금 백업</button><button type="button" onclick="toggleBackupSchedule()" id="backup-schedule-button" class="px-4 py-2 rounded-xl bg-slate-700 text-sm font-bold">자동 백업 설정</button></div><p id="backup-schedule-state" class="text-xs text-slate-400 mt-2"></p><div id="admin-backup-list" class="mt-4 space-y-2 text-xs"></div><p class="mt-4 text-xs text-slate-400">복원 시 현재 데이터를 자동으로 다시 백업합니다. 캠프별 복원만 제공하며, 처리 중인 배정이 있으면 복원하지 않습니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="my-account-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="내 계정"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">내 계정</h3><button type="button" data-close-dialog="my-account-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><div id="my-account-summary" class="text-sm p-3 bg-slate-950 rounded-xl mb-4"></div><button type="button" onclick="openMfaSettings()" class="mt-3 bg-indigo-600 text-white rounded-xl px-4 py-2 font-bold">2단계 인증 설정</button><p id="my-account-mfa" class="text-xs text-slate-400 mb-3"></p><div><label for="my-account-password" class="block text-xs text-slate-400 mb-1">본인 계정 새 비밀번호</label><input id="my-account-password" type="password" autocomplete="new-password" minlength="6" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><button type="button" onclick="saveMyPassword()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">내 비밀번호 변경</button><p class="mt-3 text-xs text-slate-400">캠프 계정의 비밀번호는 계정 관리에서 재설정 메일로 처리합니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div>
+<div id="camp-edit-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="캠프 기본정보 · 계약 수정"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">캠프 기본정보 · 계약 수정</h3><button type="button" data-close-dialog="camp-edit-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p class="text-xs text-slate-400 mb-4" id="camp-edit-context"></p><section id="camp-detail-actions" class="mb-4 p-3 rounded-xl border border-slate-700 text-sm" aria-label="캠프 상세 관리"></section><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label for="edit-camp-name" class="block text-xs text-slate-400 mb-1">캠프명</label><input id="edit-camp-name" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-candidate" class="block text-xs text-slate-400 mb-1">후보자</label><input id="edit-camp-candidate" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label class="block text-xs text-slate-400 mb-1" for="edit-camp-stage">선거 단계</label><select id="edit-camp-stage" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="본선">본선</option><option value="당내 경선">당내 경선</option><option value="예비후보">예비후보</option></select></div><div><label class="block text-xs text-slate-400 mb-1" for="edit-camp-election">선거 구분</label><select id="edit-camp-election" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="기초단체장(시장·군수)">기초단체장(시장·군수)</option><option value="광역단체장(도지사·시장)">광역단체장(도지사·시장)</option><option value="광역의원(도의원)">광역의원(도의원)</option><option value="기초의원(시의원)">기초의원(시의원)</option><option value="교육감">교육감</option><option value="국회의원">국회의원</option><option value="조합장(농·수·축협)">조합장(농·수·축협)</option></select></div><div><label for="edit-camp-sido" class="block text-xs text-slate-400 mb-1">시·도</label><select id="edit-camp-sido" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm"><option value="충청남도">충청남도</option><option value="서울특별시">서울특별시</option><option value="부산광역시">부산광역시</option><option value="대구광역시">대구광역시</option><option value="인천광역시">인천광역시</option><option value="광주광역시">광주광역시</option><option value="대전광역시">대전광역시</option><option value="울산광역시">울산광역시</option><option value="세종특별자치시">세종특별자치시</option><option value="경기도">경기도</option><option value="강원특별자치도">강원특별자치도</option><option value="충청북도">충청북도</option><option value="전북특별자치도">전북특별자치도</option><option value="전라남도">전라남도</option><option value="경상북도">경상북도</option><option value="경상남도">경상남도</option><option value="제주특별자치도">제주특별자치도</option></select></div><div><label for="edit-camp-city" class="block text-xs text-slate-400 mb-1">시·군·구 / 선거 범위</label><input id="edit-camp-city" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-district" class="block text-xs text-slate-400 mb-1">세부 선거구</label><input id="edit-camp-district" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-party" class="block text-xs text-slate-400 mb-1">정당 / 소속</label><input id="edit-camp-party" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-staff" class="block text-xs text-slate-400 mb-1">본사 담당자</label><input id="edit-camp-staff" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-manager" class="block text-xs text-slate-400 mb-1">담당 사무장</label><input id="edit-camp-manager" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-phone" class="block text-xs text-slate-400 mb-1">연락처(선택)</label><input id="edit-camp-phone" type="tel"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-email" class="block text-xs text-slate-400 mb-1">연결할 관리자 이메일(선택)</label><input id="edit-camp-email" type="email"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-start" class="block text-xs text-slate-400 mb-1">계약 시작일</label><input id="edit-camp-start" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-end" class="block text-xs text-slate-400 mb-1">계약 종료일</label><input id="edit-camp-end" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-tablets" class="block text-xs text-slate-400 mb-1">태블릿 한도</label><input id="edit-camp-tablets" type="number" min="1" max="2000" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-price" class="block text-xs text-slate-400 mb-1">단가(원)</label><input id="edit-camp-price" type="number" min="0" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="edit-camp-amount" class="block text-xs text-slate-400 mb-1">계약 금액(원)</label><input id="edit-camp-amount" type="number" min="0" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div></div><p class="text-xs text-slate-400 mt-3">입금액은 입금 기록으로 관리합니다. 한도 변경만으로 입금액이 바뀌지 않습니다.</p><button type="button" onclick="saveCampEdit()" class="mt-4 w-full py-3 rounded-xl bg-indigo-600 text-sm font-bold disabled:opacity-50">검증 후 저장</button><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="camp-account-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="캠프 관리자 계정 관리"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">캠프 관리자 계정 관리</h3><button type="button" data-close-dialog="camp-account-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p id="camp-account-context" class="text-sm mb-3"></p><div id="camp-account-state" class="p-3 bg-slate-950 rounded-xl text-xs text-slate-300 mb-3"></div><div><label for="camp-account-email" class="block text-xs text-slate-400 mb-1">실제 관리자 이메일</label><input id="camp-account-email" type="email"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div class="flex flex-wrap gap-2 mt-4"><button type="button" onclick="linkCampAccount()" class="px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">기존 계정 연결</button><button type="button" onclick="inviteCampAccount()" class="px-4 py-2 rounded-xl bg-blue-600 text-sm font-bold">새 계정 초대</button><button type="button" onclick="resetCampAccountPassword()" class="px-4 py-2 rounded-xl bg-slate-700 text-sm font-bold">재설정 메일 보내기</button><button type="button" onclick="unlinkCampAccount()" class="bg-rose-950 border border-rose-800 text-rose-300 rounded-xl px-4 py-3 font-bold">연결 해제</button></div><p class="text-xs text-slate-400 mt-3">연결·초대는 해당 이메일에 이 캠프 관리자 권한을 부여합니다. 다른 캠프 계정 또는 최고관리자 계정은 전환하지 않습니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="camp-payment-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="계약 · 입금 기록"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">계약 · 입금 기록</h3><button type="button" data-close-dialog="camp-payment-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p id="camp-payment-context" class="text-sm mb-3"></p><div id="camp-payment-summary" class="p-3 bg-slate-950 rounded-xl text-xs mb-3"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label for="payment-amount" class="block text-xs text-slate-400 mb-1">실제 입금액(원)</label><input id="payment-amount" type="number" min="1" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="payment-date" class="block text-xs text-slate-400 mb-1">입금일</label><input id="payment-date" type="date"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><div><label for="payment-memo" class="block text-xs text-slate-400 mb-1">입금 메모(선택)</label><input id="payment-memo" type="text"  class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div></div><button type="button" onclick="saveCampPayment()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">입금 기록 추가</button><p class="text-xs text-slate-400 mt-2">입금 내역을 기록하는 기능이며 실제 송금은 실행하지 않습니다.</p><div id="camp-payment-list" class="mt-4 text-xs space-y-2"></div><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="admin-audit-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="관리 변경 이력"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">관리 변경 이력</h3><button type="button" data-close-dialog="admin-audit-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><div id="admin-audit-list" class="text-xs space-y-2"></div><div class="flex justify-between mt-4"><button type="button" onclick="changeAuditPage(-1)" class="px-3 py-2 bg-slate-800 rounded-xl text-xs">이전</button><button type="button" onclick="changeAuditPage(1)" class="px-3 py-2 bg-slate-800 rounded-xl text-xs">다음</button></div><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="admin-backup-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="백업 · 복원 관리"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">백업 · 복원 관리</h3><button type="button" data-close-dialog="admin-backup-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><p class="text-xs text-slate-400 mb-3">백업에는 업무 데이터와 계약·입금 기록이 포함됩니다. 인증 비밀번호와 로그인 세션은 복원하지 않습니다.</p><div class="flex flex-wrap gap-2"><button type="button" onclick="createAdminBackup()" class="px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">지금 백업</button><button type="button" onclick="toggleBackupSchedule()" id="backup-schedule-button" class="px-4 py-2 rounded-xl bg-slate-700 text-sm font-bold">자동 백업 설정</button></div><p id="backup-schedule-state" class="text-xs text-slate-400 mt-2"></p><div id="admin-backup-list" class="mt-4 space-y-2 text-xs"></div><p class="mt-4 text-xs text-slate-400">복원 시 현재 데이터를 자동으로 다시 백업합니다. 캠프별 복원만 제공하며, 처리 중인 배정이 있으면 복원하지 않습니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div><div id="my-account-dialog" class="hidden fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="내 계정"><div class="w-full max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar-dark bg-slate-900 border border-slate-700 rounded-2xl p-6 text-slate-100 shadow-2xl"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-indigo-300">내 계정</h3><button type="button" data-close-dialog="my-account-dialog" class="px-3 py-1 rounded-lg bg-slate-800 text-sm" aria-label="닫기">닫기</button></div><div id="my-account-summary" class="text-sm p-3 bg-slate-950 rounded-xl mb-4"></div><button type="button" onclick="openMfaSettings()" class="mt-3 bg-indigo-600 text-white rounded-xl px-4 py-2 font-bold">2단계 인증 설정</button><p id="my-account-mfa" class="text-xs text-slate-400 mb-3"></p><div><label for="my-account-password" class="block text-xs text-slate-400 mb-1">본인 계정 새 비밀번호</label><input id="my-account-password" type="password" autocomplete="new-password" minlength="6" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-white"></div><button type="button" onclick="saveMyPassword()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-sm font-bold">내 비밀번호 변경</button><p class="mt-3 text-xs text-slate-400">캠프 계정의 비밀번호는 계정 관리에서 재설정 메일로 처리합니다.</p><div data-dialog-error class="hidden mt-3 p-3 rounded-lg border border-rose-800 bg-rose-950 text-rose-200 text-xs" role="alert"></div></div></div>
   <!-- Toast 알림 -->
   <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl font-bold text-base flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none z-50">
     <i class="fa-solid fa-shield-halved text-emerald-400 text-lg"></i>
@@ -1306,6 +1308,10 @@
     let statePushQueue = Promise.resolve();
     const stateRevisions = new Map();
     let activeClaim = null;
+    const easycallSessionId = crypto.randomUUID();
+    let recoveryBlocked = false;
+    let recoveryFlight = null;
+    let agentLogoutApproved = false;
     let claimRequestVersion = 0;
     let isSavingResult = false;
     let isUploading = false;
@@ -1323,6 +1329,7 @@
         const node = document.getElementById(id); if (node) node.innerText = text;
       }
       showToast(message);
+      const progress=document.getElementById('voter-queue-progress');if(progress)progress.innerText='현재 배정 없음';
     }
     function mergeLogs(...lists) {
       const seen = new Set();
@@ -1349,7 +1356,16 @@
       const agentId = String(meta.agent_id || '').toLowerCase();
       const validId = value => /^[a-z0-9_-]{1,64}$/.test(value);
       if (!['super','admin','agent'].includes(role) || (role !== 'super' && !validId(campId)) || (role === 'agent' && !validId(agentId))) throw new Error('서버 계정 권한 설정이 필요합니다.');
-      verifiedIdentity = { role, campId, agentId };
+      if(verifiedIdentity?.role==='agent')persistAgentDraft();
+      activeClaim=null;recoveryBlocked=false;claimRequestVersion++;
+      verifiedIdentity = { role, campId, agentId, uid:data.user.id };
+      if(role==='agent') {
+        let previous=null;try{previous=sessionStorage.getItem('easycall_device:'+data.user.id);}catch{}
+        const opened=await sbClient.rpc('easycall_open_agent_session',{p_previous_session:previous,p_takeover:false});
+        if(opened.error)throw opened.error;
+        if(!opened.data?.active){const busy=new Error(opened.data?.reason||'다른 기기에서 업무 중입니다.');busy.code='DEVICE_BUSY';throw busy;}
+        try{sessionStorage.setItem('easycall_device:'+data.user.id,easycallSessionId);}catch{}
+      }
       currentAdminId = campId || 'camp01'; currentAgentId = agentId;
       for (const key of Object.keys(localStorage)) if (key.startsWith('pw_') || ['easycall_camps','easycall_agents','easycall_voters','easycall_logs','easycall_camp_settings_map'].includes(key)) localStorage.removeItem(key);
       localStorage.setItem('easycall_role', role);
@@ -1360,7 +1376,7 @@
       document.getElementById('login-view').classList.add('hidden');
       if (role === 'super') initSuperView();
       else if (role === 'admin') initAdminView();
-      else initAgentView();
+      else {initAgentView();await recoverAgentAssignment();}
       clearInterval(controlPollTimer);
       // Polling also handles deployments without Realtime publication configured.
       controlPollTimer = setInterval(async () => {
@@ -1392,6 +1408,69 @@
         }
       });
     }
+    function agentDraftKey() { return verifiedIdentity?.uid ? 'easycall_draft:'+verifiedIdentity.uid+':'+verifiedIdentity.campId : null; }
+    function hasAgentDraft() { return Boolean((activeClaim || readAgentDraft()) && (document.getElementById('memo-input')?.value.trim() || selectedStatus || activeClaim?.started)); }
+    function persistAgentDraft() {
+      const key=agentDraftKey(),previous=readAgentDraft(),claim=activeClaim||(recoveryBlocked?previous:null);if(!key||!claim)return;
+      try{sessionStorage.setItem(key,JSON.stringify({callId:claim.callId,voterId:claim.voterId,memo:document.getElementById('memo-input')?.value||'',status:selectedStatus,gender:selectedGender,age:selectedAge,duration:document.getElementById('phone-duration')?.value||currentCallSeconds,callback:document.getElementById('callback-at')?.value||'',expires:previous?.callId===claim.callId?previous.expires:Date.now()+8*60*60*1000}));}
+      catch{showToast('이 기기에서 임시 입력을 보관할 수 없습니다. 새로고침 전에 결과를 저장하세요.');}
+    }
+    function readAgentDraft() {
+      try{const key=agentDraftKey(),raw=key&&sessionStorage.getItem(key),draft=raw&&JSON.parse(raw);if(draft&&draft.expires>Date.now())return draft;if(key)sessionStorage.removeItem(key);}catch{}
+      return null;
+    }
+    function clearAgentDraft() {try{const key=agentDraftKey();if(key)sessionStorage.removeItem(key);}catch{}}
+    function showRecoveryNotice(message,blocked=false) {
+      recoveryBlocked=blocked;const box=document.getElementById('agent-recovery-notice'),text=document.getElementById('agent-recovery-text');
+      if(text)text.textContent=message;if(box)box.classList.toggle('hidden',!message);
+      document.getElementById('agent-discard-draft')?.classList.toggle('hidden',!blocked);
+      const save=document.getElementById('btn-save-next');if(save)save.disabled=blocked||isSavingResult;
+    }
+    function restoreAgentDraftFields(draft) {
+      document.getElementById('memo-input').value=draft.memo||'';selectSupportStatus(draft.status||null);selectVoterGender(draft.gender||'미상');selectVoterAge(draft.age||'미상');
+      if(document.getElementById('phone-duration'))document.getElementById('phone-duration').value=draft.duration||0;
+      if(document.getElementById('callback-at'))document.getElementById('callback-at').value=draft.callback||'';
+    }
+    async function recoverAgentAssignment() {
+      if(verifiedIdentity?.role!=='agent'||!sbClient||isSavingResult)return;
+      if(recoveryFlight)return recoveryFlight;
+      const identity=verifiedIdentity,initialClaim=activeClaim,draft=readAgentDraft(),callId=activeClaim?.callId||draft?.callId||null;
+      recoveryFlight=(async()=>{
+        try{
+          const {data,error}=await sbClient.rpc('easycall_resume_assignment',{p_call_id:callId});if(error)throw error;
+          if(verifiedIdentity!==identity||activeClaim!==initialClaim||isSavingResult)return;
+          if(data?.completed){clearAgentDraft();activeClaim=null;document.getElementById('memo-input').value='';selectSupportStatus(null);showNoAssignment('이전 결과가 서버에 저장되어 있습니다. 다음 대상을 준비하세요.');showRecoveryNotice('이전 결과 저장을 확인했습니다.');return;}
+          const row=data?.assignment;
+          if(!row){if(activeClaim||draft){if(!activeClaim&&draft)restoreAgentDraftFields(draft);showRecoveryNotice('이전 배정이 만료되었거나 다른 담당자에게 넘어갔습니다. 입력을 확인한 뒤 정리하세요. 자동으로 발신하지 않습니다.',true);}else showRecoveryNotice('');return;}
+          if(activeClaim&&activeClaim.callId!==row.claim_call_id){showRecoveryNotice('서버의 진행 중 업무가 현재 화면과 다릅니다. 입력을 유지했습니다. 관리자에게 확인하세요.',true);return;}
+          if(!activeClaim){applyClaimRow(row);if(draft?.callId===row.claim_call_id)restoreAgentDraftFields(draft);}
+          showRecoveryNotice(row.call_started_at?'진행 중이던 대상을 복구했습니다. 실제 전화의 종료 여부를 확인한 뒤 결과를 저장하세요.':'진행 중인 대상과 임시 입력을 확인했습니다.');persistAgentDraft();
+        }catch(e){if(verifiedIdentity===identity&&activeClaim===initialClaim&&!isSavingResult)showRecoveryNotice(e.message||'업무 상태 확인에 실패했습니다. 연결을 확인하고 다시 확인하세요.',true);}
+      })();try{await recoveryFlight;}finally{recoveryFlight=null;}
+    }
+    async function discardExpiredDraft() {
+      const {data,error}=await sbClient.rpc('easycall_resume_assignment',{p_call_id:activeClaim?.callId||readAgentDraft()?.callId||null});
+      if(error){showToast('서버 상태를 확인한 뒤 입력을 정리할 수 있습니다.');return;}
+      if(data?.assignment){showToast('아직 진행 중인 대상이 있습니다. 결과를 저장하거나 관리자에게 문의하세요.');return;}
+      if(!confirm('만료된 업무의 임시 입력을 지우시겠습니까? 필요한 메모는 먼저 복사하세요.'))return;
+      clearAgentDraft();activeClaim=null;document.getElementById('memo-input').value='';selectSupportStatus(null);showRecoveryNotice('');showNoAssignment('새 대상을 준비하세요.');
+    }
+    async function transferAgentDevice() {
+      if(!confirm('이 기기로 업무를 전환하시겠습니까? 이전 기기는 더 이상 발신할 수 없습니다.'))return;
+      const button=document.getElementById('device-transfer');if(button)button.disabled=true;
+      try{const {data,error}=await sbClient.rpc('easycall_open_agent_session',{p_takeover:true,p_previous_session:null});if(error)throw error;if(!data?.active)throw Error('업무 전환을 확인하지 못했습니다.');await activateVerifiedUser();document.getElementById('login-pw').value='';}
+      catch(e){document.getElementById('login-error').textContent=e.message;}finally{if(button)button.disabled=false;}
+    }
+    async function prepareAgentLogout() {
+      if(agentLogoutApproved||verifiedIdentity?.role!=='agent')return true;
+      if(hasAgentDraft()&&!confirm('저장하지 않은 입력을 지우고 로그아웃하시겠습니까?'))return false;
+      try{const {error}=await sbClient.rpc('easycall_close_agent_session');if(error)throw error;clearAgentDraft();agentLogoutApproved=true;return true;}
+      catch(e){if(e.code==='42501'){clearAgentDraft();agentLogoutApproved=true;return true;}showToast(e.message||'통화 결과를 저장한 뒤 로그아웃하세요.');return false;}
+    }
+    window.addEventListener('beforeunload',event=>{persistAgentDraft();if(hasAgentDraft()){event.preventDefault();event.returnValue='';}});
+    window.addEventListener('pagehide',persistAgentDraft);
+    document.addEventListener?.('input',event=>{if(event.target.closest?.('#ec-result-panel,#phone-agent'))persistAgentDraft();});
+    document.addEventListener?.('visibilitychange',()=>{if(document.hidden)persistAgentDraft();else if(verifiedIdentity?.role==='agent')void recoverAgentAssignment();});
     function parseCsv(text) {
       const rows = []; let row = [], cell = '', quoted = false, closed = false;
       text = String(text).replace(/^\uFEFF/, '');
@@ -1761,7 +1840,7 @@
       }
     }
 
-    // ==================== [2,000대 엔터프라이즈] 캠프별 분할 샤딩 & 무충돌 동기화 엔진 ====================
+    // ==================== 서버 동기화 엔진 ====================
     function openSupabaseModal() {
       document.getElementById('sb-url-input').value = localStorage.getItem('easycall_sb_url') || DEFAULT_SB_URL;
       document.getElementById('sb-key-input').value = localStorage.getItem('easycall_sb_key') || DEFAULT_SB_KEY;
@@ -1876,7 +1955,7 @@
 
       try {
         if (sbRealtimeChannel && sbClient) { await sbClient.removeChannel(sbRealtimeChannel); sbRealtimeChannel = null; }
-        if (!sbClient) sbClient = window.supabase.createClient(url, key);
+        if (!sbClient) sbClient = window.supabase.createClient(url, key, {global:{headers:{'x-easycall-session':easycallSessionId}}});
         const { data: identity, error: identityError } = await sbClient.auth.getUser();
         if (identityError || !identity.user) { updateCloudStatusBadges(false); return; }
 
@@ -2035,8 +2114,8 @@
         await initSupabaseEngine(false);
         if (!sbClient) throw new Error('서버 연결을 확인한 뒤 다시 시도하세요.');
         const { data, error } = await sbClient.auth.getUser();
-        if (error) throw error;
-        if (data.user) {
+        if (error && error.name!=='AuthSessionMissingError') throw error;
+        if (data?.user) {
           document.getElementById('login-view').classList.add('hidden');
           await activateVerifiedUser(data.user);
         }
@@ -2044,7 +2123,8 @@
         verifiedIdentity = null;
         for (const id of ['super-view','admin-view','agent-view']) document.getElementById(id).classList.add('hidden');
         document.getElementById('login-view').classList.remove('hidden');
-        document.getElementById('login-error').innerText = '로그인 상태를 확인하지 못했습니다. 연결을 확인하고 다시 로그인하세요.';
+        document.getElementById('login-error').innerText = e.code==='DEVICE_BUSY'?e.message:(e.status===401||e.code==='session_not_found')?'로그인이 만료되었습니다. 다시 로그인하세요.':'로그인 상태를 확인하지 못했습니다. 연결을 확인하고 다시 로그인하세요.';
+        document.getElementById('device-transfer')?.classList.toggle?.('hidden',e.code!=='DEVICE_BUSY');
         console.error('Session restoration failed', e);
       } finally {
         document.body.classList.remove('auth-restoring');
@@ -2057,30 +2137,41 @@
       document.getElementById('login-error').innerText = '';
     }
 
-    async function handleInstantLogin() {
+    let loginInFlight = false;
+    async function handleInstantLogin(emailOverride = null) {
+      if (loginInFlight) return;
       const errorEl = document.getElementById('login-error');
-      const email = document.getElementById('login-id').value.trim();
+      const email = typeof emailOverride === 'string' ? emailOverride : document.getElementById('login-id').value.trim();
       const password = document.getElementById('login-pw').value;
       errorEl.innerText = '';
+      document.getElementById('device-transfer')?.classList.add('hidden');
       if (!sbClient || !email || !password) {
         errorEl.innerText = '클라우드 연결과 등록된 이메일·비밀번호를 확인하세요.'; return;
       }
+      loginInFlight = true;
+      const submit = document.getElementById('login-submit');
+      if (submit) { submit.disabled = true; submit.textContent = '로그인 중…'; }
       try {
         const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         await activateVerifiedUser(data.user);
         document.getElementById('login-pw').value = '';
       } catch (error) {
-        await sbClient.auth.signOut();
-        errorEl.innerText = '로그인 실패: 계정 정보와 서버 권한 설정을 확인하세요.';
+        if(error.code!=='DEVICE_BUSY')try { await sbClient.auth.signOut({scope:'local'}); } catch (signOutError) { console.error('Sign out failed', signOutError); }
+        errorEl.innerText = error.code==='DEVICE_BUSY'?error.message:'로그인 실패: 계정 정보와 서버 권한 설정을 확인하세요.';
+        document.getElementById('device-transfer')?.classList.toggle?.('hidden',error.code!=='DEVICE_BUSY');
         console.error('Login failed', error);
+      } finally {
+        loginInFlight = false;
+        if (submit) { submit.disabled = false; submit.textContent = '로그인'; }
       }
     }
 
     async function handleLogout() {
+      if(!await prepareAgentLogout())return;
       clearInterval(callTimerInterval); clearInterval(wrapUpTimer);
       clearTimeout(autoDialTimer);
-      if (sbClient) { await sbClient.removeAllChannels(); await sbClient.auth.signOut(); }
+      if (sbClient) { await sbClient.removeAllChannels(); await sbClient.auth.signOut({scope:'local'}); }
       for (const key of Object.keys(localStorage)) {
         if (key.startsWith('easycall_') && !['easycall_sb_url','easycall_sb_key'].includes(key)) localStorage.removeItem(key);
         if (key.startsWith('pw_')) localStorage.removeItem(key);
@@ -2409,7 +2500,7 @@
       renderAdminLogsTable();
       renderStatsAndCharts();
 
-      const savedAdminTab = sessionStorage.getItem('easycall_admin_tab') || 'config';
+      const savedAdminTab = sessionStorage.getItem('easycall_admin_tab') || 'stats';
       switchAdminTab(savedAdminTab);
     }
 
@@ -2510,7 +2601,7 @@
                 <span class="font-mono font-extrabold text-indigo-700"><i class="fa-solid fa-phone mr-1"></i>${escapeHTML(a.assignedPhone)}</span>
                 <button type="button" onclick="openDeviceEditModal('${escapeHTML(a.agentId)}')" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded text-[10px] font-bold">번호수정</button>
               </div>
-              <div class="text-[11px] text-slate-500 mt-0.5">누적 발신: <strong>${totalCallCnt}건</strong> (FUP 제한 없음)</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">누적 발신: <strong>${totalCallCnt}건</strong> (통신사 계약 기준)</div>
             </td>
             <td class="p-2 text-right align-middle space-x-1">
               <button type="button" onclick="unbindAgentDevice('${escapeHTML(a.agentId)}')" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded text-[10px] font-bold">기기해제</button>
@@ -2823,26 +2914,8 @@
     }
 
     async function exportCallLogsToCsv(filterType) {
-      if (!sbClient || !verifiedIdentity || verifiedIdentity.role === 'agent') return;
-      let logs = [], offset = 0;
-      try {
-        while (true) {
-          const { data, error } = await sbClient.from('easycall_call_logs').select('*')
-            .eq('camp_id', currentAdminId).order('created_at').order('call_id').range(offset, offset + 499);
-          if (error) throw error;
-          logs.push(...(data || []).map(logFromRow));
-          if (!data || data.length < 500) break;
-          offset += data.length;
-        }
-        if (filterType === 'POSITIVE_ONLY') logs = logs.filter(l => l.callResult === 'CONNECTED' && ['SUPPORT','FAVORABLE','VOLUNTEER'].includes(l.status));
-        if (!logs.length) { showToast('다운로드할 기록이 없습니다.'); return; }
-        const rows = [['기록ID','캠프','단말기','발신회선','이름','연락처','그룹명','성별','연령','통화결과','응답결과','경과시간','메모','기록시각']];
-        for (const l of logs) rows.push([l.callId,l.campId,l.agentId,l.usedPhone,l.voterName,l.voterPhone,l.dong,l.gender,l.age,l.callResult,l.status,l.duration,l.memo,l.createdAt]);
-        const blob = new Blob(['\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob), link = document.createElement('a');
-        link.href = url; link.download = 'EasyCall_' + currentAdminId + '_' + new Date().toISOString().slice(0,10) + '.csv';
-        document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } catch (error) { showToast('내보내기 실패: 서버 연결을 확인하세요.'); console.error(error); }
+      if (window.easycallExportLogs) return window.easycallExportLogs(filterType);
+      showToast('내려받기 화면을 준비하고 있습니다. 잠시 후 다시 시도하세요.');
     }
 
     async function saveDialSettings() {
@@ -3026,6 +3099,8 @@
       if (status === 'FAVORABLE') return '😊 우호호의';
       if (status === 'VOLUNTEER') return '🙋 자원봉사';
       if (status === 'OPPOSE') return '👎 비지지';
+      if (status === 'NO_OPINION') return '의견 없음';
+      if (status === 'NO_RESPONSE') return '답변 안 함';
       return status || '-';
     }
 
@@ -3093,7 +3168,7 @@
       if (devBadge && agObj) {
         const campObj = campsList.find(c => c.campId.toLowerCase() === agObj.campId.toLowerCase());
         const campTitle = campObj ? campObj.name : agObj.campId;
-        devBadge.innerText = `📱 [${campTitle}] ${agObj.alias} | 회선: ${agObj.assignedPhone || '041-930-1001'}`;
+        devBadge.innerText = `📱 [${campTitle}] ${agObj.alias} | 회선: ${agObj.assignedPhone || '발신번호 미등록'}`;
       }
     }
 
@@ -3164,44 +3239,47 @@
       const secs = cfg.waitSecs || '2';
       const btn = document.getElementById('btn-save-next');
       if (!btn) return;
+      if (isSavingResult) { btn.textContent = '결과 저장 중…'; return; }
 
       if (mode === 'auto') {
         btn.innerHTML = `💾 결과 저장 후 다음 대상 대기 ➔`;
         btn.className = "w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-xl shadow-lg transition";
       } else {
-        btn.innerHTML = `💾 통화성공 저장 후 다음 유권자 ➔`;
+        btn.innerHTML = `💾 결과 저장 후 다음 대상 ➔`;
         btn.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-xl shadow-lg transition";
       }
     }
 
-    async function loadCurrentVoterToDialer(useRpcClaim = true) {
+    async function loadCurrentVoterToDialer(useRpcClaim = true, selectedVoterId = null) {
       const cid = getActiveCampId();
       const myVoters = getCampVoters(cid);
 
-      if (isSavingResult || activeClaim) return false;
-      activeClaim = null;
+      if (isSavingResult || recoveryBlocked || (activeClaim && !selectedVoterId)) return false;
+      if(selectedVoterId&&hasAgentDraft()){showToast('현재 대상의 입력과 통화 결과를 먼저 저장하세요.');return false;}
       if (!sbClient || !isEnterpriseRpcAvailable || !useRpcClaim) {
         showNoAssignment('서버 배정이 필요합니다. 임의 대상 발신은 지원하지 않습니다.'); return false;
       }
       const request = ++claimRequestVersion;
-      const { data, error } = await sbClient.rpc('easycall_claim_voter', {
-        p_camp_id: cid
-      });
+      const { data, error } = await sbClient.rpc(selectedVoterId?'easycall_claim_selected_voter':'easycall_claim_voter', selectedVoterId?{p_camp_id:cid,p_voter_id:selectedVoterId}:{p_camp_id:cid});
       if (request !== claimRequestVersion) return false;
       if (error || !data || !data.length) {
-        showNoAssignment(error ? '대상 배정 실패: 다시 시도하세요.' : '배정 가능한 대상이 없습니다.'); return false;
+        const message=error?.message||'배정 가능한 대상이 없습니다.';if(activeClaim)showToast(message);else showNoAssignment(message);return false;
       }
-      const row = data[0];
+      return applyClaimRow(data[0]);
+    }
+    function applyClaimRow(row) {
+      const cid=getActiveCampId();
+      if(!row.claim_call_id){showNoAssignment('배정 식별값을 확인하지 못했습니다. 관리자에게 프로그램 업데이트를 확인하세요.');return false;}
       const v = { id: String(row.voter_id), campId: cid, name: row.name || '',
         phone: row.phone || '', dong: row.dong || '', lastResult: row.last_result || 'READY',
-        lastMemo: row.last_memo || '', lockedBy: currentAgentId };
+        lastMemo: row.last_memo || '', callbackAt:row.callback_at, lockedBy: currentAgentId };
       if (v.lastResult === 'REJECT' || (getCampConfig(cid).dncPhones || []).includes(normalizePhone(v.phone))) {
         showNoAssignment('수신거부 대상으로 발신을 차단했습니다.'); return false;
       }
       const actualIndex = votersList.findIndex(item => item.campId === cid && item.id === v.id);
       if (actualIndex >= 0) votersList[actualIndex] = v; else votersList.push(v);
       currentVoterIdx = getCampVoters(cid).findIndex(item => item.id === v.id);
-      activeClaim = { voterId: v.id, callId: crypto.randomUUID(), voter: v };
+      activeClaim = { voterId: v.id, callId: row.claim_call_id, voter: v, started:Boolean(row.call_started_at) };
 
       document.getElementById('voter-name').innerText = v.name;
       document.getElementById('voter-phone').innerText = v.phone;
@@ -3211,7 +3289,7 @@
       renderAgentScriptBox(v);
 
       const progEl = document.getElementById('voter-queue-progress');
-      if (progEl) progEl.innerText = `순번: ${currentVoterIdx + 1} / ${myVoters.length}명`;
+      if (progEl) progEl.innerText = '현재 대상 1명 담당 중';
 
       const prevMemoTxt = document.getElementById('voter-prev-memo-txt');
       if (prevMemoTxt) {
@@ -3220,7 +3298,7 @@
       }
 
       const lockBadge = document.getElementById('voter-lock-badge');
-      if (lockBadge) lockBadge.innerText = `🔒 ${currentAgentId} 점유중`;
+      if (lockBadge) lockBadge.innerText = `🔒 ${currentAgentId} 담당 중`;
 
       const statusEl = document.getElementById('voter-last-status');
       if (v.lastResult === 'ABSENT') {
@@ -3240,7 +3318,8 @@
       selectVoterGender('미상');
       selectVoterAge('미상');
       selectSupportStatus(null);
-      updateAgentButtonTextPreview();
+      if(document.getElementById('callback-at'))document.getElementById('callback-at').value='';
+      updateAgentButtonTextPreview();persistAgentDraft();return true;
     }
 
     async function sendCallbackSmsToVoter() {
@@ -3284,6 +3363,10 @@
 
     async function saveResultToStorage(status, callResult = 'CONNECTED') {
       if (isSavingResult || !activeClaim || !sbClient) return;
+      if(recoveryBlocked){showToast('업무 상태를 다시 확인한 뒤 저장하세요. 입력은 유지됩니다.');return;}
+      if(callResult==='REJECT'&&!confirm('수신거부로 등록하면 이 번호로 다시 연락할 수 없습니다. 요청받은 수신거부가 맞습니까?'))return;
+      const callbackValue=document.getElementById('callback-at')?.value;
+      if(callResult==='CALLBACK'&&callbackValue&&(!Number.isFinite(new Date(callbackValue).getTime())||new Date(callbackValue)<=new Date())){showToast('재통화 예약은 앞으로의 시간을 선택하세요.');return;}
       if (callResult === 'CONNECTED' && !selectedStatus) { showToast('응답 결과를 먼저 선택하세요.'); return; }
       const cid = getActiveCampId();
       const v = getCampVoters(cid).find(item => item.id === activeClaim.voterId);
@@ -3296,17 +3379,23 @@
         gender: selectedGender, age: selectedAge, call_result: callResult,
         status: callResult === 'CONNECTED' ? selectedStatus : 'NONE',
         duration_seconds: callResult === 'CONNECTED' ? currentCallSeconds : 0,
-        memo: document.getElementById('memo-input').value.trim()
+        memo: document.getElementById('memo-input').value.trim(),
+        callback_at:callResult==='CALLBACK'&&callbackValue?new Date(callbackValue).toISOString():null
       };
       const saveBtn = document.getElementById('btn-save-next');
-      if (saveBtn) saveBtn.disabled = true;
+      const resultStatus = document.getElementById('result-save-status');
+      const resultControls = Array.from(document.querySelectorAll('#ec-result-panel button, #ec-result-panel input, #ec-result-panel textarea, #ec-result-panel select, #phone-duration'));
+      const previousDisabled = resultControls.map(control => control.disabled);
+      resultControls.forEach(control => { control.disabled = true; });
+      if (resultStatus) resultStatus.textContent = '결과를 저장하고 있습니다. 잠시만 기다려 주세요.';
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '결과 저장 중…'; }
       let saved = false;
       try {
         const { data, error } = await sbClient.rpc('easycall_complete_call', { p_entry: entry });
         if (error) throw error;
         globalCampCallLogs = mergeLogs([logFromRow(data)], globalCampCallLogs);
         v.lastResult = callResult; v.lastMemo = entry.memo; v.lockedBy = null;
-        activeClaim = null;
+        clearAgentDraft();activeClaim = null;showRecoveryNotice('');
         document.getElementById('memo-input').value = '';
         currentCallSeconds = 0;
         document.getElementById('call-idle-state').classList.remove('hidden');
@@ -3314,13 +3403,17 @@
         selectSupportStatus(null);
         updateCallbackBadgeCount(); updateAgentGoalGauge();
         showToast('서버 저장 완료');
+        if (resultStatus) resultStatus.textContent = '결과를 저장했습니다. 다음 대상의 정보를 확인하세요.';
         saved = true;
       } catch (error) {
         console.error(error);
         showToast('⚠️ 저장 실패: 입력은 유지됩니다. 저장 버튼으로 재시도하세요.');
+        if (resultStatus) resultStatus.textContent = '저장하지 못했습니다. 입력 내용은 유지됩니다. 연결을 확인하고 다시 저장하세요.';
       } finally {
         isSavingResult = false;
-        if (saveBtn) saveBtn.disabled = false;
+        resultControls.forEach((control, index) => { control.disabled = previousDisabled[index]; });
+        if (saveBtn) saveBtn.disabled = recoveryBlocked;
+        updateAgentButtonTextPreview();
       }
       if (saved) await loadCurrentVoterToDialer(true);
     }
@@ -3390,23 +3483,25 @@
         if (query && !kw.includes(query)) return;
 
         const isDnc = v.lastResult === 'REJECT';
+        const invalid = v.lastResult === 'INVALID';
         const isLockedOther = v.lockedBy && v.lockedBy !== currentAgentId;
 
         let lockHtml = `<span class="text-slate-500 font-semibold">대기</span>`;
         if (v.lockedBy === currentAgentId) lockHtml = `<span class="text-emerald-700 font-extrabold">🔒 내 점유</span>`;
         else if (isLockedOther) lockHtml = `<span class="text-amber-700 font-extrabold">⚠️ 통화중</span>`;
 
-        let actionBtn = `<button type="button" onclick="selectVoterByIndexAndCall(${idx})" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition shadow-xs">📞 다이얼러 호출</button>`;
+        let actionBtn = `<button type="button" data-claim-voter="${escapeHTML(v.id)}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition shadow-xs">통화 대상 선택</button>`;
         if (isDnc) actionBtn = `<span class="px-3.5 py-2 bg-slate-200 text-slate-500 font-bold rounded-xl text-sm">수신거부</span>`;
+        else if (invalid) actionBtn = '<span class="text-slate-500">결번 · 발신 불가</span>';
         else if (isLockedOther) actionBtn = `<span class="px-3.5 py-2 bg-amber-100 text-amber-800 font-bold rounded-xl text-sm">타요원 진행중</span>`;
 
         html += `
           <tr class="hover:bg-slate-50 transition ${isDnc ? 'opacity-60 bg-rose-50/30' : ''}">
-            <td class="p-3.5 font-mono font-bold text-slate-500">#${v.id}</td>
+            <td class="p-3.5 font-mono font-bold text-slate-500" title="${escapeHTML(v.id)}">${idx+1}</td>
             <td class="p-3.5 font-black text-slate-900 text-lg">${escapeHTML(v.name)}</td>
-            <td class="p-3.5 font-mono text-blue-700 font-extrabold text-lg">${v.phone}</td>
+            <td class="p-3.5 font-mono text-blue-700 font-extrabold text-lg">${escapeHTML(v.phone)}</td>
             <td class="p-3.5 font-bold text-slate-800">${escapeHTML(v.dong)}</td>
-            <td class="p-3.5">${formatCallResultBadge(v.lastResult || 'READY')}</td>
+            <td class="p-3.5">${formatCallResultBadge(v.lastResult || 'READY')}${v.callbackAt?`<div class="text-xs mt-1">예약 ${escapeHTML(new Date(v.callbackAt).toLocaleString('ko-KR'))}</div>`:''}</td>
             <td class="p-3.5">${lockHtml}</td>
             <td class="p-3.5 text-slate-700 font-semibold">${escapeHTML(v.lastMemo || '-')}</td>
             <td class="p-3.5 text-right">${actionBtn}</td>
@@ -3417,9 +3512,13 @@
       tbody.innerHTML = html || `<tr><td colspan="8" class="py-10 text-center text-slate-400 font-bold">조건에 맞는 유권자가 없습니다.</td></tr>`;
     }
 
-    function selectVoterByIndexAndCall() { showToast('동시 배정 보호를 위해 서버가 배정한 대상만 처리할 수 있습니다.'); }
+    async function selectVoterForCallback(voterId) {
+      if(await loadCurrentVoterToDialer(true,String(voterId))){switchAgentTab('dialer');refreshActiveRoleUI();showToast('선택한 대상을 준비했습니다. 정보를 확인하고 전화하기를 누르세요.');}
+    }
+    function selectVoterByIndexAndCall(index) {const voter=getCampVoters(getActiveCampId())[index];if(voter)return selectVoterForCallback(voter.id);}
+    document.addEventListener?.('click',event=>{const button=event.target.closest?.('[data-claim-voter]');if(button&&!button.disabled)void selectVoterForCallback(button.dataset.claimVoter);});
 
-    function selectVoterByPhoneFromHistory() { showToast('동시 배정 보호를 위해 서버가 배정한 대상만 처리할 수 있습니다.'); }
+    function selectVoterByPhoneFromHistory(phone) { document.getElementById('agent-voter-search').value=String(phone||'');switchAgentTab('search'); }
 
     function selectVoterGender(gender) {
       selectedGender = gender;
@@ -3447,7 +3546,7 @@
     }
 
     function selectSupportStatus(status) {
-      selectedStatus = status;
+      selectedStatus = status;persistAgentDraft();
       document.querySelectorAll('.status-btn').forEach(b => b.className = "status-btn p-3 rounded-xl border-2 border-slate-300 bg-white text-left transition font-black text-lg text-slate-800");
       const btn = document.getElementById(`btn-status-${status}`);
       if (btn) btn.className = "status-btn p-3 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-800 text-left transition shadow-sm font-black text-lg";
@@ -3500,7 +3599,7 @@
           <td class="p-3.5 text-slate-700 font-semibold">${escapeHTML(h.memo || '-')}</td>
           <td class="p-3.5 text-right space-x-2">
             <span class="font-mono text-slate-500 text-sm">${escapeHTML(h.time)}</span>
-            <button type="button" data-history-phone="${escapeHTML(h.voterPhone)}" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-extrabold">📞 다시 걸기</button>
+            <button type="button" ${!h.voterId||h.callResult==='REJECT'?'disabled':''} data-claim-voter="${escapeHTML(h.voterId||'')}" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-extrabold">📞 다시 걸기</button>
           </td>
         </tr>`;
       });
@@ -3519,6 +3618,3 @@
   <script type="module" src="./call-integration.js"></script>
 </body>
 </html>
-
-
-

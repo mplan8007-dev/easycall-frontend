@@ -48,3 +48,4 @@ export class SipPhone{
  async hangup(){if(this.active&&this.user)await this.user.hangup();}
  async disconnect(){this.cancelRegistration?.(Error('연결을 취소했습니다.'));this.cancelRegistration=null;const user=this.user;this.generation++;this.user=null;this.ready=false;this.active=false;this.connecting=false;this.onState('offline');if(user){try{await user.disconnect();}catch{/* Do not retain or log credentials. */}}}
 }
+
