@@ -111,3 +111,24 @@ jobs:
       - name: Stop isolated stack
         if: always()
         run: docker compose --env-file loadtest/.env -f loadtest/compose.yaml down
+
+  auth-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Prepare isolated Auth service
+        run: |
+          node tests/auth-integration/run.mjs --prepare
+          docker compose --env-file tests/auth-integration/.env -f tests/auth-integration/compose.yaml up -d
+      - name: Actual Auth credential lifecycle
+        run: node tests/auth-integration/run.mjs
+      - name: Auth fixture diagnostics
+        if: failure()
+        run: docker compose --env-file tests/auth-integration/.env -f tests/auth-integration/compose.yaml logs --tail 30
+      - name: Stop isolated Auth service
+        if: always()
+        run: docker compose --env-file tests/auth-integration/.env -f tests/auth-integration/compose.yaml down
