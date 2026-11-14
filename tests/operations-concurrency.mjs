@@ -26,11 +26,11 @@ for(let i=0;i<12;i++){
   request(manager,'easycall_save_state',{p_camp_id:'load1',p_meta:meta.payload,p_config:{...state.payload.config,globalStopped:false,dailyGoal:250+i},p_meta_revision:meta.updated_at,p_state_revision:state.updated_at}),
   request(manager,'easycall_set_calling_state',{p_camp_id:'load1',p_stopped:true,p_expected_revision:state.updated_at})
  ]);
- assert.equal(results[1].ok,true);assert.ok(results[0].ok||results[0].data?.code==='40001');
+ assert.equal(results[1].ok,true);assert.ok(results[0].ok||results[0].data?.code==='PT409');
  const current=(await rpc(manager,'easycall_read_state')).find(r=>r.store_key==='STATE_load1');
  assert.equal(current.payload.config.globalStopped,true,'A concurrent settings save resumed calling');
  const stale=await request(manager,'easycall_set_calling_state',{p_camp_id:'load1',p_stopped:false,p_expected_revision:state.updated_at});
- assert.equal(stale.data?.code,'40001');
+ assert.equal(stale.data?.code,'PT409');
  await rpc(manager,'easycall_set_calling_state',{p_camp_id:'load1',p_stopped:false,p_expected_revision:current.updated_at});
 }
 const opened=await Promise.all([request(first,'easycall_open_agent_session'),request(duplicate,'easycall_open_agent_session')]);

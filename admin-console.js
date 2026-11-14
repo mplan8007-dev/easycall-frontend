@@ -63,7 +63,7 @@
     return data;
   }
   function failMessage(error) {
-    if (error.code==='40001' || /conflict/i.test(error.message)) return '다른 관리자가 먼저 변경했습니다. 입력은 유지됩니다. 닫은 뒤 최신 자료를 열어 다시 확인하세요.';
+    if (['40001','PT409'].includes(error.code) || /conflict/i.test(error.message)) return '다른 관리자가 먼저 변경했습니다. 입력은 유지됩니다. 닫은 뒤 최신 자료를 열어 다시 확인하세요.';
     return error.message || '처리하지 못했습니다. 입력을 유지했습니다.';
   }
   async function mutate(dialogId,operation,after) {

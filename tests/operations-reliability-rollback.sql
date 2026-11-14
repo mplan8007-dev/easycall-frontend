@@ -17,14 +17,14 @@ do $$ declare s public.easycall_sync_store;meta public.easycall_sync_store;r jso
  select * into meta from public.easycall_sync_store where store_key='MASTER_META';
  r:=public.easycall_set_calling_state('load1',true,s.updated_at);
  begin perform public.easycall_save_state('load1',meta.payload,s.payload->'config',meta.updated_at,s.updated_at);
- exception when serialization_failure then conflict:=true;end;
+ exception when sqlstate 'PT409' then conflict:=true;end;
  if not conflict then raise exception 'Stale draft must conflict';end if;
  select * into s from public.easycall_sync_store where store_key='STATE_load1';
  -- Even a fresh revision cannot smuggle a resume into a general settings save.
  perform public.easycall_save_state('load1',meta.payload,jsonb_set(s.payload->'config','{globalStopped}','false'),meta.updated_at,s.updated_at);
  if not (select (payload->'config'->>'globalStopped')::boolean from public.easycall_sync_store where store_key='STATE_load1') then raise exception 'Settings save resumed calling';end if;
  conflict:=false;
- begin perform public.easycall_set_calling_state('load1',false,s.updated_at);exception when serialization_failure then conflict:=true;end;
+ begin perform public.easycall_set_calling_state('load1',false,s.updated_at);exception when sqlstate 'PT409' then conflict:=true;end;
  if not conflict then raise exception 'Stale resume must conflict';end if;
  select * into s from public.easycall_sync_store where store_key='STATE_load1';
  perform public.easycall_set_calling_state('load1',false,s.updated_at);

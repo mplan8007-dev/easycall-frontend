@@ -1,6 +1,15 @@
 -- Apply atomically before deploying the matching frontend. Old clients fail closed.
 begin;
 
+-- Business revision conflicts are permanent for a request, not serialization retries.
+-- Preserve installed function bodies and grants while correcting their error code.
+do $migration$ declare f record;begin
+ for f in select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+ where n.nspname='public' and p.proname in ('easycall_admin_save_camp','easycall_admin_set_approval','easycall_call_transport_set') loop
+  execute replace(pg_get_functiondef(f.oid),'errcode=''40001''','errcode=''PT409''');
+ end loop;
+end $migration$;
+
 create or replace function public.easycall_save_state(p_camp_id text,p_meta jsonb,p_config jsonb,p_meta_revision timestamptz,p_state_revision timestamptz)
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare m jsonb:=public.easycall_require_camp(p_camp_id);oldmeta public.easycall_sync_store;oldstate public.easycall_sync_store;
@@ -10,7 +19,7 @@ begin
   if jsonb_typeof(p_meta->'agentsList') is distinct from 'array' or jsonb_typeof(p_config) is distinct from 'object' then raise exception '설정 형식 오류';end if;
   select * into oldmeta from public.easycall_sync_store where store_key='MASTER_META' for update;
   select * into oldstate from public.easycall_sync_store where store_key='STATE_'||p_camp_id for update;
-  if oldmeta.updated_at is distinct from p_meta_revision or oldstate.updated_at is distinct from p_state_revision then raise exception '설정 변경 충돌' using errcode='40001';end if;
+  if oldmeta.updated_at is distinct from p_meta_revision or oldstate.updated_at is distinct from p_state_revision then raise exception '설정 변경 충돌' using errcode='PT409';end if;
   quota:=(easycall_private_v2.camp_json(p_camp_id)->>'tablets')::integer;
   select coalesce(jsonb_agg(e),'[]') into agents from jsonb_array_elements(p_meta->'agentsList') e where e->>'campId'=p_camp_id;
   if jsonb_array_length(agents)>quota then raise exception '서버 라이선스 한도를 초과했습니다.';end if;
@@ -42,7 +51,7 @@ begin
  select * into s from public.easycall_sync_store where store_key='STATE_'||p_camp_id for update;
  if not found then raise exception '캠프 설정을 확인하세요.';end if;
  -- Stopping is always safe. Resuming requires a fresh, explicitly confirmed view.
- if not p_stopped and s.updated_at is distinct from p_expected_revision then raise exception '설정 변경 충돌: 최신 상태를 확인한 뒤 재개하세요.' using errcode='40001';end if;
+ if not p_stopped and s.updated_at is distinct from p_expected_revision then raise exception '설정 변경 충돌: 최신 상태를 확인한 뒤 재개하세요.' using errcode='PT409';end if;
  rev:=clock_timestamp();
  update public.easycall_sync_store set payload=jsonb_set(s.payload,'{config}',coalesce(s.payload->'config','{}')||jsonb_build_object('globalStopped',p_stopped)),updated_at=rev where store_key=s.store_key;
  perform easycall_private_v2.audit('camp.calling_state',p_camp_id,jsonb_build_object('stopped',s.payload->'config'->'globalStopped'),jsonb_build_object('stopped',p_stopped));
