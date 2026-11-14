@@ -12,7 +12,7 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   await page.evaluate(()=>{window.__calls=[];sbClient={auth:{signInWithPassword:async args=>{window.__calls.push(args);return {data:{user:{id:'test-user',app_metadata:{easycall_must_change:true}}}}},signOut:async()=>({})}};});
   await page.locator('#work-login-camp').fill(' CAMP01 ');await page.locator('#login-id').fill('Worker01');await page.locator('#login-pw').fill('fictional-temporary-password');await page.locator('#login-pw').press('Enter');
   await page.waitForFunction(()=>!document.getElementById('work-password-dialog').classList.contains('hidden'));
-  assert.match(await page.evaluate(()=>window.__calls[0].email),/^[0-9a-f]{64}@login\.easycall\.invalid$/);
+  assert.deepEqual(await page.evaluate(()=>window.__calls[0]),{email:require('node:crypto').createHash('sha256').update('camp01:worker01').digest('hex')+'@login.easycall.invalid',password:'fictional-temporary-password'});
   assert.equal(await page.locator('#login-id').inputValue(),'Worker01');
   await page.locator('#work-password-skip').click();await page.waitForFunction(()=>window.__activated===1);assert.equal(await page.locator('#work-password-dialog').getAttribute('class').then(c=>c.includes('hidden')),true);
   await page.reload();await page.waitForFunction(()=>typeof window.openWorkPasswordChange==='function');

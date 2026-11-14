@@ -115,7 +115,7 @@ async function manage(action){if(busy||!canManage())return;if(issued.length&&!co
  try{let data;
   if(action==='create'){const results=[];for(let i=0;i<payload.rows.length;i+=25){const part=await request({action,rows:payload.rows.slice(i,i+25)});if(!Array.isArray(part.results))throw Error('발급 응답을 확인할 수 없습니다. 이미 발급된 명세를 저장하세요.');results.push(...part.results);showResults(results);message('work-account-message',`${results.length} / ${payload.rows.length}명 처리 중`);if(i+25<payload.rows.length)await new Promise(r=>setTimeout(r,500));}data={results};}
   else data=await request(payload);
-  if(data.results)showResults(data.results);else if(data.password)showResults([{...payload,success:true,password:data.password}]);message('work-account-message',data.results?`성공 ${data.results.filter(r=>r.success).length} / 실패 ${data.results.filter(r=>!r.success).length}`:'처리 완료');}
+  if(data.results)showResults(data.results);else if(data.password)showResults([{...payload,success:true,password:data.password}]);message('work-account-message',data.results?`성공 ${data.results.filter(r=>r.success).length} / 실패 ${data.results.filter(r=>!r.success).length}`:data.auditPending?'비밀번호는 변경됐지만 결과 기록 확인이 필요합니다. 확인 번호: '+data.requestId:'처리 완료');}
  catch(e){message('work-account-message',e.message);}finally{busy=false;}
 }
 for(const action of ['create','reset','disable','enable'])$('work-account-'+action).onclick=()=>manage(action);

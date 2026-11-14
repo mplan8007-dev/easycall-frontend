@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { accountKey, cleanBatch, temporaryPassword, validatePassword } from '../_shared/work-account.mjs';
 import { validateCommonPassword, sealCommonPassword, openCommonPassword } from '../_shared/common-password.mjs';
 import { finishPasswordChange } from '../_shared/password-change.mjs';
+import { updateCredential } from '../_shared/credential-update.mjs';
 const origins=new Set(['https://easycall-frontend.vercel.app','https://mplan8007-dev.github.io']);
 Deno.serve(async(request:Request)=>{
  const origin=request.headers.get('origin')||'';
@@ -61,13 +62,8 @@ Deno.serve(async(request:Request)=>{
     if(batch.busy)return reply({state,busy:true});
     for(const uid of batch.users){
      try{
-      // Never change a manager credential or revive a disabled/pending account.
-      const latest=await admin.auth.admin.getUserById(uid);
-      if(latest.error&&latest.error.status!==404)throw Error('조회 실패');
-      if(latest.data?.user?.app_metadata?.easycall_role==='agent'&&latest.data.user.app_metadata.camp_id===campId){
-       const changed=await admin.auth.admin.updateUserById(uid,{password});
-       if(changed.error)throw Error('적용 실패');
-      }
+      // Reject unexpected targets; never report a manager as successfully updated.
+      await updateCredential({admin,actorId:identity.user.id,userId:uid,password,path:'agent_common',expected:{campId,role:'agent'}});
       await serviceRpc('easycall_agent_common_finish',{p_camp:campId,p_version:state.version,p_user:uid,p_lease:batch.lease,p_success:true});
      }catch{
       await serviceRpc('easycall_agent_common_finish',{p_camp:campId,p_version:state.version,p_user:uid,p_lease:batch.lease,p_success:false});
@@ -133,10 +129,9 @@ Deno.serve(async(request:Request)=>{
    // This also blocks existing sessions before changing the credential.
    const targetState=await rpc('easycall_work_account_state',{...args,p_state:'reset'});
    const password=held?held.password:temporaryPassword();
-   const changed=await admin.auth.admin.updateUserById(targetState.userId,{password});
-   if(changed.error)throw Error('초기화 실패. 계정은 비밀번호 변경 대기 상태입니다. 다시 초기화하세요.');
+   const audit=await updateCredential({admin,actorId:identity.user.id,userId:targetState.userId,password,path:'admin_reset',expected:{campId:target.campId,role,loginId:target.loginId}});
    if(held){await serviceRpc('easycall_agent_common_release',{p_camp:target.campId,p_version:held.version,p_lease:held.lease,p_user:targetState.userId});held=null;}
-   return reply({success:true,password,commonPassword:role==='agent'});
+   return reply({success:true,password,commonPassword:role==='agent',auditPending:audit.auditPending,requestId:audit.requestId});
    }finally{if(held)try{await serviceRpc('easycall_agent_common_release',{p_camp:target.campId,p_version:held.version,p_lease:held.lease,p_user:null});}catch{/* Lease expires safely. */}}
   }
   return reply({error:'지원하지 않는 작업입니다.'},400);
