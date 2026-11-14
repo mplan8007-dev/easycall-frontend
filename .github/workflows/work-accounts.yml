@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: ["fix/operations-reliability", "feat/work-account-registration", "main", "feat/optional-password-change", "feat/agent-account-bulk", "feat/agent-common-password", "feat/simple-agent-onboarding", "feat/dual-call-transport", "feat/dual-call-transport-assets", "feat/new-camp-call-transport", "feat/responsive-device-layout", "fix/imported-voter-refresh", "fix/verified-voter-import", "fix/password-admin-voters", "fix/contact-import-lifecycle", "fix/session-refresh-flash", "feat/contact-management"]
-    paths: ["voter-import-ui.js", "runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
+    paths: ["admin-navigation.js", "log-export-ui.js", "log-export.mjs", "loadtest/**", "voter-import-ui.js", "runtime-scaling.js", "access-and-lists.js", "responsive.css", "responsive-layout.js", "call-integration.js", "call-transport.mjs", "vendor/**", "agent-common-password.js", "loadtest/bootstrap.sql", "agent-accounts.js", "agent-account-tools.mjs", "camp-admin-accounts.js", "work-accounts.js", "admin-console.js", "index.html", "tests/**", "supabase/**", ".github/workflows/work-accounts.yml"]
 permissions:
   contents: read
 jobs:
@@ -51,6 +51,14 @@ jobs:
         run: |
           npm run build
           node tests/call-build.cjs
+  database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Prepare isolated SQL fixture
         env:
           DEVICES: "2"

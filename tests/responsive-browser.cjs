@@ -46,7 +46,7 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
    });
    await page.evaluate(async()=>{
     window.__listRequests=[];sbClient={rpc:async(name,args)=>{window.__listRequests.push({name,args});return {data:name==='easycall_camp_counts'?{voters:{total:4,ready:4,callback:0},logs:{total:0},groups:[],agents:[]}:name!=='easycall_admin_voter_page'?{items:[],total:0}:{items:Array.from({length:4},(_,i)=>({voter_id:'fixture-'+i,camp_id:'camp01',name:'명부 검증 '+(i+1),phone:'0000000000'+i,dong:'검증 지역',last_result:'READY',last_memo:'',updated_at:'2026-11-13T00:00:00Z'})),total:4}}}};
-    await easycallLoadLists('camp01');
+    await easycallLoadLists('camp01');switchAdminTab('contacts');
    });
    assert.equal(await page.locator('#admin-voters-tbody tr').count(),4);
    assert.match(await page.locator('#admin-voters-page').innerText(),/4건/);
