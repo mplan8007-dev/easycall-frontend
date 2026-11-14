@@ -5,4 +5,3 @@
 운영 반영 전 격리된 PostgreSQL 환경에서 회귀 테스트를 실행하고 `20261114_message_authorization.sql`을 프런트엔드보다 먼저 적용해야 합니다. DB 함수 없이 새 프런트엔드만 배포하면 문자 앱 열기가 실패합니다. 구버전 프런트엔드는 계속 기존 함수로 동작합니다.
 
 검증: `node --test tests/message-authorization.test.cjs`; 데이터베이스 검증: `tests/import-lifecycle-rollback.sql` (마이그레이션 적용 후 격리된 시험 DB에서만 실행).
-

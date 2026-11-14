@@ -8,6 +8,16 @@ test('default transport is smartphone; SIP endpoints and dialing numbers are val
  for(const sipWss of ['ws://pbx.example.com','https://pbx.example.com','wss://a:b@pbx.example.com','wss://pbx.example.com/?token=secret'])assert.throws(()=>m.sipSettings({...config,sipWss}));
  assert.throws(()=>m.sipSettings({...config,sipDomain:'pbx.example.com@evil'}));assert.throws(()=>m.sipAccount('alice@evil'));assert.equal(m.measuredSeconds(null,50000),0);assert.equal(m.measuredSeconds(1000,4500),3);
 });
+
+test('pending registration cancels promptly and rejects overlapping connects',async()=>{
+ const {SipPhone}=await mod();let options;
+ const phone=new SipPhone((server,o)=>{options=o;return {connect:async()=>{},register:async()=>{},disconnect:async()=>{}};});
+ const pending=phone.connect(config,{username:'1001',password:'fake-only',audio:{}});
+ await new Promise(r=>setImmediate(r));
+ await assert.rejects(phone.connect(config,{username:'1001',password:'fake-only',audio:{}}));
+ await phone.disconnect();await assert.rejects(pending);options.delegate.onRegistered();assert.equal(phone.ready,false);assert.equal(phone.user,null);
+});
+
 test('pinned official bundle exposes the documented Web.SimpleUser API',()=>{
  const sandbox={setTimeout,clearTimeout,console,TextEncoder,TextDecoder,URL};require('node:vm').runInNewContext(require('node:fs').readFileSync(path.join(__dirname,'../vendor/sip-0.21.2.min.js'),'utf8'),sandbox);const sip=sandbox.SIP;assert.equal(typeof sip.Web.SimpleUser,'function');
  for(const name of ['connect','register','call','hangup','disconnect','decline'])assert.equal(typeof sip.Web.SimpleUser.prototype[name],'function',name);
@@ -27,11 +37,3 @@ test('registration failure/timeout cannot appear ready and cleans up the user',a
  await assert.rejects(phone.call('sip:1001@pbx.example.com'));
 });
 
-test('pending registration cancels promptly and rejects overlapping connects',async()=>{
- const {SipPhone}=await mod();let options;
- const phone=new SipPhone((server,o)=>{options=o;return {connect:async()=>{},register:async()=>{},disconnect:async()=>{}};});
- const pending=phone.connect(config,{username:'1001',password:'fake-only',audio:{}});
- await new Promise(r=>setImmediate(r));
- await assert.rejects(phone.connect(config,{username:'1001',password:'fake-only',audio:{}}));
- await phone.disconnect();await assert.rejects(pending);options.delegate.onRegistered();assert.equal(phone.ready,false);assert.equal(phone.user,null);
-});

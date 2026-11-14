@@ -23,14 +23,25 @@ async function request(body){
 function canManage(){return verifiedIdentity&&['super','admin'].includes(verifiedIdentity.role)&&!sessionStorage.getItem('easycall_master_impersonator');}
 function show(id){$(id).classList.remove('hidden');}
 function hide(id){$(id).classList.add('hidden');}
+function offerDeviceTransfer(error){if(error.code!=='DEVICE_BUSY')return false;hide('work-password-dialog');show('login-view');show('device-transfer');message('login-error',error.message);pendingUser=null;return true;}
 const campField=document.createElement('div');campField.className='space-y-1';campField.innerHTML=`<label for="work-login-camp" class="block text-xs text-slate-400">캠프 ID (이메일 로그인은 비워두세요)</label><input id="work-login-camp" class="${inputClass}" placeholder="예: camp01" autocomplete="organization"><p class="text-xs text-slate-400">업무용 계정은 캠프 ID와 사용자 ID를 입력하세요. 기존 이메일 계정도 사용할 수 있습니다.</p>`;
 $('login-id').closest('div').before(campField);$('login-id').placeholder='사용자 ID 또는 기존 이메일';
 const loginLabel=$('login-id').closest('div').querySelector('label');if(loginLabel)loginLabel.textContent='사용자 ID 또는 기존 이메일';
+// Keep the common login path short; existing email accounts remain available.
+campField.querySelector('label').textContent='캠프 ID';
+campField.querySelector('p').textContent='담당 관리자에게 받은 캠프 ID를 입력하세요.';
+if(loginLabel)loginLabel.textContent='사용자 ID';$('login-id').placeholder='발급받은 사용자 ID';
+const loginMode=document.createElement('button');loginMode.type='button';loginMode.className='text-sm text-slate-300 underline underline-offset-4';loginMode.textContent='기존 이메일로 로그인';loginMode.setAttribute('aria-pressed','false');
+$('login-submit').after(loginMode);
+loginMode.onclick=()=>{const email=loginMode.getAttribute('aria-pressed')!=='true';loginMode.setAttribute('aria-pressed',String(email));campField.hidden=email;loginMode.textContent=email?'캠프 계정으로 로그인':'기존 이메일로 로그인';loginLabel.textContent=email?'이메일':'사용자 ID';$('login-id').type=email?'email':'text';$('login-id').placeholder=email?'등록된 이메일 주소':'발급받은 사용자 ID';message('login-error','');$('login-id').focus();};
 window.handleInstantLogin=async function(){
- if(busy)return;const id=$('login-id').value.trim();if(id.includes('@'))return legacyLogin();
+ if(busy)return;const id=$('login-id').value.trim();
+ message('login-error','');
+ if(!id||!$('login-pw').value){message('login-error','사용자 ID와 비밀번호를 입력하세요.');(!id?$('login-id'):$('login-pw')).focus();return;}
+ if(!id.includes('@')&&!$('work-login-camp').value.trim()){message('login-error','담당 관리자에게 받은 캠프 ID를 입력하세요.');$('work-login-camp').focus();return;}
  busy=true;
- try{const k=accountKey($('work-login-camp').value,id);$('login-id').value=await accountAddress(k.campId,k.loginId);await legacyLogin();}
- catch(e){showToast(e.message);}finally{$('login-id').value=id;busy=false;}
+ try{if(id.includes('@')){await legacyLogin();return;}const k=accountKey($('work-login-camp').value,id);await legacyLogin(await accountAddress(k.campId,k.loginId));}
+ catch(e){message('login-error',e.message||'로그인 정보를 확인하세요.');}finally{busy=false;}
 };
 modal('work-password-dialog','비밀번호 변경 (선택)',`
 <p class="text-sm text-slate-300">지금 변경하거나 나중에 변경할 수 있습니다. 임시 비밀번호로도 업무를 시작할 수 있습니다.</p>
@@ -65,9 +76,9 @@ $('work-password-save').onclick=async()=>{
   const {data,error}=await sbClient.auth.getUser();if(error||data.user?.id!==pendingUser.id)throw Error('다시 로그인하세요.');
   for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';
   pendingUser=null;hide('work-password-dialog');await legacyActivate(data.user);
- }catch(e){message('work-password-message',e.message);}finally{busy=false;$('work-password-save').disabled=false;}
+ }catch(e){if(!offerDeviceTransfer(e))message('work-password-message',e.message);}finally{busy=false;$('work-password-save').disabled=false;}
 };
-$('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');await legacyActivate(user);deferReminder(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}finally{busy=false;}};
+$('work-password-skip').onclick=async()=>{if(busy||!pendingUser)return;busy=true;try{const user=pendingUser;hide('work-password-dialog');deferReminder(user);await legacyActivate(user);pendingUser=null;for(const id of ['work-current-password','work-new-password','work-confirm-password','work-change-otp'])$(id).value='';message('work-password-message','');}catch(e){if(!offerDeviceTransfer(e)){show('work-password-dialog');message('work-password-message',e.message||'로그인 상태를 확인하세요.');}}finally{busy=false;}};
 window.openWorkPasswordChange=async function(){const {data,error}=await sbClient.auth.getUser();if(error||!data?.user){showToast('다시 로그인하세요.');return;}if(data.user.app_metadata?.easycall_role==='agent'&&data.user.app_metadata?.easycall_agent_common_version){showToast('전화담당자는 캠프 공통 비밀번호를 사용합니다. 변경은 캠프 관리자에게 요청하세요.');return;}pendingUser=data.user;message('work-password-message','');show('work-password-dialog');};
 const originalSaveMyPassword=window.saveMyPassword;
 window.saveMyPassword=async function(){const {data}=await sbClient.auth.getUser();if(data?.user?.app_metadata?.easycall_login_id){hide('my-account-dialog');await window.openWorkPasswordChange();return;}return originalSaveMyPassword();};

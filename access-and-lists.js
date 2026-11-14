@@ -35,7 +35,7 @@ import './admin-console.js';
   const kind=verifiedIdentity?.role==='agent'?'history':'logs';
   const results=await Promise.all([loadPage('voters'),loadPage(kind),rpc('easycall_camp_counts',{p_camp_id:cid})]);
   if(cid!==pages.camp)return {voters:[],logs:[]};
-  count[cid]=results[2];renderAggregateStats();
+  count[cid]=results[2];renderAggregateStats();window.easycallRefreshSetup?.();
   return {voters:pages.voters.items,logs:pages[kind].items};
  }
  function drawPager(kind){const p=pages[kind],id='pager-'+kind,el=$(id);if(!el)return;const total=p.total,pn=Math.floor(p.offset/50)+1,last=Math.max(1,Math.ceil(total/50));
@@ -44,7 +44,7 @@ import './admin-console.js';
   if(kind==='voters'){text('admin-voters-page',p.loading?'조회 중…':p.failed?'조회 실패 · 다시 조회하세요.':`${total.toLocaleString()}건 · ${pn}/${last}페이지 · 50개씩`);if($('admin-voters-prev'))$('admin-voters-prev').disabled=Boolean(p.loading)||p.offset===0;if($('admin-voters-next'))$('admin-voters-next').disabled=Boolean(p.loading)||p.offset+50>=total;}
 
  }
- function mapVoter(r){return {id:String(r.voter_id),campId:r.camp_id,name:r.name,phone:r.phone,dong:r.dong,lastResult:r.last_result,lastMemo:r.last_memo,lockedBy:r.locked_by};}
+ function mapVoter(r){return {id:String(r.voter_id),campId:r.camp_id,name:r.name,phone:r.phone,dong:r.dong,lastResult:r.last_result,lastMemo:r.last_memo,callbackAt:r.callback_at,lockedBy:r.locked_by};}
  function renderPage(kind){
   const p=pages[kind];
   if(kind==='logs'){
@@ -73,7 +73,7 @@ import './admin-console.js';
   const connected=sum(g=>g.callResult==='CONNECTED'),pct=(n,d)=>d?Math.round(n/d*100):0;
   text('admin-total-calls',total.toLocaleString()+'건');text('my-stat-total',total.toLocaleString()+'건');
   for(const [key,result] of [['success','CONNECTED'],['absent','ABSENT'],['callback','CALLBACK'],['reject','REJECT'],['invalid','INVALID']]){const n=sum(g=>g.callResult===result);text('stat-conn-'+key,n.toLocaleString()+'건 ('+pct(n,total)+'%)');}
-  for(const status of ['SUPPORT','FAVORABLE','VOLUNTEER','OPPOSE']){const n=sum(g=>g.callResult==='CONNECTED'&&g.status===status),key=status.toLowerCase();text('stat-'+key+'-txt',n.toLocaleString()+'건 ('+pct(n,connected)+'%)');text('my-stat-'+key,n.toLocaleString()+'건');if($('bar-'+key))$('bar-'+key).style.width=pct(n,connected)+'%';}
+  for(const status of ['SUPPORT','FAVORABLE','VOLUNTEER','OPPOSE','NO_OPINION','NO_RESPONSE']){const n=sum(g=>g.callResult==='CONNECTED'&&g.status===status),key=status.toLowerCase();text('stat-'+key+'-txt',n.toLocaleString()+'건 ('+pct(n,connected)+'%)');text('my-stat-'+key,n.toLocaleString()+'건');if($('bar-'+key))$('bar-'+key).style.width=pct(n,connected)+'%';}
   text('my-stat-unconnected',sum(g=>g.callResult!=='CONNECTED').toLocaleString()+'건');
   const positive=g=>g.callResult==='CONNECTED'&&['SUPPORT','FAVORABLE','VOLUNTEER'].includes(g.status);
   if($('gender-cross-chart'))$('gender-cross-chart').innerHTML=['남성','여성','미상'].map(g=>{const n=sum(r=>r.callResult==='CONNECTED'&&r.gender===g),pos=sum(r=>r.gender===g&&positive(r));return '<div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">'+esc(g)+' '+n.toLocaleString()+'건 · 긍정 '+pos.toLocaleString()+'건 ('+pct(pos,n)+'%)</div>';}).join('');
@@ -250,7 +250,7 @@ import './admin-console.js';
   $('admin-voters-next').onclick=()=>changeDataPage('voters',1);
  }
  mountAdminVoters();
- Object.assign(window,{easycallPrepareLists:resetCamp,easycallLoadLists,easycallAgentCallCount,openBriefingReportModal,changeDataPage,refreshDataPage,renderAdminLogsTable,renderAgentSearchTable,renderAgentHistoryTable,renderStatsAndCharts:renderAggregateStats,updateAgentGoalGauge:renderAggregateStats,updateVoterQueueStatusText,activateVerifiedUser,openMfaSettings,startMfaEnrollment,verifyMfaCode,closeMfa,toggleMfaPolicy});
+ Object.assign(window,{easycallAdminCounts:cid=>count[cid],easycallPrepareLists:resetCamp,easycallLoadLists,easycallAgentCallCount,openBriefingReportModal,changeDataPage,refreshDataPage,renderAdminLogsTable,renderAgentSearchTable,renderAgentHistoryTable,renderStatsAndCharts:renderAggregateStats,updateAgentGoalGauge:renderAggregateStats,updateVoterQueueStatusText,activateVerifiedUser,openMfaSettings,startMfaEnrollment,verifyMfaCode,closeMfa,toggleMfaPolicy});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearMfaSecret();});
  window.addEventListener('pagehide',clearMfaSecret);
 })();

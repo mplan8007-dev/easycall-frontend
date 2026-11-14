@@ -24,3 +24,4 @@ begin
  perform set_config('request.jwt.claim.sub',root::text,true);
 end $$;
 rollback;
+

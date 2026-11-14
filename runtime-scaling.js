@@ -18,6 +18,7 @@ import {AdaptivePoller} from './runtime-scheduler.mjs';
     if(request.abortSignal)request=request.abortSignal(abort.signal);
     const {data,error}=await request;if(error)throw error;
     if(key()!==actor)return;
+    if(data.assignmentValid===false)showRecoveryNotice('대상 배정이 만료되었습니다. 입력을 보존했습니다. 업무 상태를 다시 확인하세요.',true);
     if(data.camp)campsList=[ensureCampStructure(data.camp)];
     if(data.agent)agentsList=[ensureAgentStructure(data.agent)];
     if(data.config)campSettingsMap[cid]=data.config;
@@ -28,7 +29,7 @@ import {AdaptivePoller} from './runtime-scheduler.mjs';
     votersList=activeClaim?[activeClaim.voter]:[];
     if(activeClaim)currentVoterIdx=0;
     updateCloudStatusBadges(true);refreshActiveRoleUI();
-   }finally{clearTimeout(timer);}
+   }catch(error){if(key()===actor&&(activeClaim||error.code==='42501'))showRecoveryNotice(error.message||'업무 상태 확인 실패. 다시 확인한 뒤 계속하세요.',true);throw error;}finally{clearTimeout(timer);}
   })();
   flight={actor,promise};try{return await promise;}finally{if(flight?.promise===promise)flight=null;}
  }

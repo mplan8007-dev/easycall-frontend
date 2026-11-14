@@ -1,5 +1,52 @@
 /* Device layouts; screen-only rules keep printed reports unchanged. */
 @media screen {
+ #login-view{background:radial-gradient(ellipse at 18% 12%,#172c52 0,transparent 55%),#0b1220}
+ #login-view>div{border-color:#334155;box-shadow:0 24px 80px #0005}
+ #login-view>div>div:first-child{flex-wrap:wrap;gap:12px}
+ #login-view label{color:#cbd5e1;font-size:13px;line-height:1.5}
+ #login-view input{min-height:48px;border-color:#475569;border-radius:12px;padding:12px;background:#0f172a}
+ #login-view input::placeholder{color:#94a3b8;font-weight:400}
+ #login-view input:focus{border-color:#60a5fa}
+ #login-submit{min-height:48px;box-shadow:0 4px 16px #2563eb30}
+ #login-error{color:#fda4af;text-align:left;line-height:1.6}
+ #super-view>header,#admin-view>header,#agent-view>header{box-shadow:0 1px 8px #0f172a08}
+ #admin-pane-config>div>div,#ec-call-panel,#ec-result-panel{box-shadow:0 4px 18px #0f172a06}
+ #super-new-camp-panel{border-color:#475569}
+ #new-camp-call-settings{margin-top:16px;padding:16px;border-color:#6366f180}
+ #new-camp-call-settings label{font-size:13px;line-height:1.5}
+ #new-camp-call-settings select,#new-camp-call-settings input{min-height:44px}
+ #new-camp-call-settings p{line-height:1.65}
+ #result-save-status{line-height:1.55;user-select:text}
+ button:disabled{cursor:not-allowed;opacity:.55;box-shadow:none!important}
+ button:not(:disabled){cursor:pointer}
+ button,input,select,textarea{transition:border-color .15s,background-color .15s,box-shadow .15s}
+ #admin-view h2,#admin-view h3,#agent-view h2,#super-view h2{word-break:keep-all;overflow-wrap:break-word}
+}
+@media (prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+@media screen{
+ #agent-view>header{height:auto;min-height:64px;gap:10px;flex-wrap:wrap;padding:10px 16px}
+ #agent-view>header button,#agent-view>header h1{word-break:keep-all;overflow-wrap:normal}
+ #tab-dialer-btn,#tab-search-btn,#tab-history-btn{white-space:nowrap!important;min-width:max-content;flex-shrink:0}
+ .ec-work-menu{position:relative;font-size:14px;color:#334155;flex-shrink:0}
+ .ec-work-menu>summary{cursor:pointer;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;min-height:44px;white-space:nowrap}
+ .ec-work-menu-panel{position:absolute;right:0;top:calc(100% + 8px);z-index:60;display:grid;gap:12px;width:min(300px,calc(100vw - 24px));padding:16px;border:1px solid #cbd5e1;border-radius:14px;background:#fff;box-shadow:0 12px 32px #0f172a22}
+ .ec-work-menu-panel .w-44{width:100%;min-width:0}
+ .ec-work-menu-panel button{width:100%}
+ #agent-recovery-notice{flex-shrink:0;line-height:1.5}
+ #agent-workflow-state{color:#1d4ed8;line-height:1.5}
+}
+@media screen and (max-width:639px){
+ #agent-view>header{gap:8px;padding:8px 12px}
+ .ec-agent-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:4px!important}
+ .ec-agent-tabs button{min-width:0!important;padding:8px!important;font-size:12px!important;justify-content:center}
+ #callback-count-badge{display:none}
+ #agent-view>header>div:last-child{gap:8px}
+ #agent-header-device-badge{font-size:12px;max-width:100%;padding:2px 8px}
+ #ec-result-panel>div:last-child{position:sticky;bottom:0;z-index:20;background:white;border-top:1px solid #e2e8f0;padding-top:10px;padding-bottom:env(safe-area-inset-bottom)}
+}
+@media screen {
  html,body{width:100%;max-width:100%;margin:0}
  *,*::before,*::after{box-sizing:border-box}
  #login-view{padding:16px;overflow-y:auto;align-items:safe center}
@@ -19,6 +66,23 @@
  #agent-tab-dialer .phone-box{overflow-wrap:anywhere}
  #agent-accounts .ga-card,#camp-edit-dialog>div,[role=dialog]>div{min-width:0;max-width:100%}
 }
+
+
+@media screen and (pointer:coarse),screen and (max-height:500px){
+ #login-view input,#agent-view input,#agent-view select,#agent-view textarea,#admin-view input,#admin-view select,#admin-view textarea,#super-view input,#super-view select,#super-view textarea,[role=dialog] input,[role=dialog] select,[role=dialog] textarea{font-size:16px!important}
+ #agent-view button,#admin-view button,#super-view button,[role=dialog] button{min-height:44px}
+}
+
+
+@media screen and (max-width:639px){
+ #camp-detail-modal,#device-edit-modal,#supabase-config-modal,#briefing-report-modal{padding:8px;align-items:flex-start;overflow-y:auto}
+ #camp-detail-modal>div,#device-edit-modal>div,#supabase-config-modal>div,#briefing-report-modal>div{width:100%!important;max-width:100%!important;max-height:calc(100dvh - 16px);overflow-y:auto;padding:16px}
+ #camp-detail-modal .grid-cols-2,#supabase-config-modal .grid-cols-2{grid-template-columns:minmax(0,1fr)}
+ #camp-detail-modal .flex,#supabase-config-modal .flex{flex-wrap:wrap}
+ #device-edit-modal input,#supabase-config-modal input{font-size:16px;min-height:44px}
+ #device-edit-modal button,#camp-detail-modal button,#supabase-config-modal button{min-height:44px}
+}
+
 @media screen and (max-width:1199px),screen and (max-height:740px){
  body{height:100dvh!important;overflow:hidden!important}
  #super-view:not(.hidden),#admin-view:not(.hidden),#agent-view:not(.hidden){height:100dvh;overflow-y:auto!important;overscroll-behavior-y:contain;padding-bottom:env(safe-area-inset-bottom)}
@@ -110,20 +174,6 @@
  .ec-responsive-table button{min-height:44px;max-width:100%;margin:3px}
 }
 
-@media screen and (max-width:639px){
- #camp-detail-modal,#device-edit-modal,#supabase-config-modal,#briefing-report-modal{padding:8px;align-items:flex-start;overflow-y:auto}
- #camp-detail-modal>div,#device-edit-modal>div,#supabase-config-modal>div,#briefing-report-modal>div{width:100%!important;max-width:100%!important;max-height:calc(100dvh - 16px);overflow-y:auto;padding:16px}
- #camp-detail-modal .grid-cols-2,#supabase-config-modal .grid-cols-2{grid-template-columns:minmax(0,1fr)}
- #camp-detail-modal .flex,#supabase-config-modal .flex{flex-wrap:wrap}
- #device-edit-modal input,#supabase-config-modal input{font-size:16px;min-height:44px}
- #device-edit-modal button,#camp-detail-modal button,#supabase-config-modal button{min-height:44px}
-}
-
-@media screen and (pointer:coarse),screen and (max-height:500px){
- #login-view input,#agent-view input,#agent-view select,#agent-view textarea,#admin-view input,#admin-view select,#admin-view textarea,#super-view input,#super-view select,#super-view textarea,[role=dialog] input,[role=dialog] select,[role=dialog] textarea{font-size:16px!important}
- #agent-view button,#admin-view button,#super-view button,[role=dialog] button{min-height:44px}
-}
-
 /* The account button is inserted before the header groups at runtime. Allow
    the groups to wrap as units instead of squeezing Korean labels vertically. */
 @media screen {
@@ -136,3 +186,28 @@
  #admin-view>header>div:nth-of-type(1)>div>button{flex:1 1 auto;min-width:max-content}
  #admin-header-camp-name,#admin-call-transport-badge,#admin-cloud-badge{max-width:100%;word-break:keep-all;overflow-wrap:break-word;line-height:1.4}
 }
+
+
+@media screen{.ec-work-menu:not([open])>.ec-work-menu-panel{display:none}}
+/* Task navigation and bounded log export. Independent of the utility CSS CDN. */
+#admin-view .ec-admin-tabs{display:flex;gap:4px;flex-wrap:wrap;background:#f1f5f9;padding:4px;border-radius:12px}
+#admin-view .ec-admin-tab{white-space:nowrap;word-break:keep-all;min-height:40px;padding:8px 12px;border-radius:8px;color:#475569;font-size:14px;font-weight:600}
+#admin-view .ec-admin-tab.is-active{background:#fff;color:#1d4ed8;box-shadow:0 1px 3px #0f172a18}
+#admin-view .ec-admin-content{display:block}
+#admin-view .ec-admin-content.hidden{display:none}
+.ec-admin-section{max-width:1200px;margin:auto;display:grid;gap:20px}
+.ec-admin-section[hidden]{display:none!important}
+.ec-admin-feedback{padding:8px 24px;border-bottom:1px solid #e2e8f0;background:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ec-admin-feedback button{font-size:12px;padding:6px 10px;color:#475569}
+.ec-admin-feedback p{margin:0}
+.ec-operation-status{border:1px solid #e2e8f0;border-radius:16px;background:#fff;padding:20px}
+.ec-setup-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:12px 0}
+.ec-setup-grid>div{padding:16px;border:1px solid #cbd5e1;border-radius:12px;background:white}
+.ec-setup-grid h3{font-weight:700}.ec-setup-grid p{font-size:13px;line-height:1.6;margin:8px 0}
+.ec-setup-grid button{padding:8px 10px;border-radius:8px;background:#eff6ff;color:#1d4ed8;font-size:13px}
+.ec-export-panel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px;border:1px solid #cbd5e1;border-radius:12px;font-size:14px;background:#f8fafc}
+.ec-export-panel input{padding:8px;border:1px solid #94a3b8;border-radius:8px;background:white}
+.ec-export-panel p{flex-basis:100%;color:#475569;margin:0}
+.ec-export-panel button{padding:8px 12px;border:1px solid #94a3b8;border-radius:8px;background:white}
+@media(max-width:900px){.ec-setup-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#admin-view .ec-admin-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.ec-admin-feedback{padding:8px 12px}.ec-operation-status>div{flex-wrap:wrap;gap:16px}}
+@media(max-width:480px){.ec-setup-grid{grid-template-columns:1fr}.ec-admin-section{gap:12px}.ec-export-panel input{max-width:100%}}

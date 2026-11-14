@@ -26,7 +26,7 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
     campsList=[{campId:'camp01',name:'반응형 검증 캠프',tablets:15}];agentsList=[{campId:'camp01',agentId:'agent01',alias:'테스트 홍보요원'}];campSettingsMap.camp01={nightLock:false,callTransport:'smartphone',dialMode:'manual'};
     document.getElementById('voter-name').textContent='화면 테스트 홍보 대상';document.getElementById('voter-phone').textContent='010-1234-5678';
     document.getElementById('agent-header-device-badge').textContent='테스트 홍보요원 · 010-1234-5678';
-    refreshActiveRoleUI();
+    refreshActiveRoleUI();switchAdminTab('contacts');
    });
    await noOverflow('agent '+width+'x'+height);
    if(width<1200||height<=740){
@@ -76,4 +76,3 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   assert.deepEqual(errors,[]);console.log('PASS: six phone/tablet/desktop sizes, role pages, mobile table cards, account dialogs, touch targets, panel navigation and rotation draft preservation. All external page requests mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
-

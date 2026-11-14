@@ -49,3 +49,4 @@ revoke all on function public.easycall_call_transport_get(text),public.easycall_
 grant execute on function public.easycall_call_transport_get(text),public.easycall_call_transport_set(text,jsonb,timestamptz) to authenticated;
 notify pgrst,'reload schema';
 commit;
+

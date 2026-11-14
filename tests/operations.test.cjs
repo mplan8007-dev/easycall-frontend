@@ -9,18 +9,19 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 function harness() {
   const nodes = new Map();
   const storage = new Map();
+  const session = new Map();
   const context = vm.createContext({
     window: { addEventListener() {}, location: {} },
     document: {
       getElementById(id) {
         if (!nodes.has(id)) nodes.set(id, { value:'', innerText:'', innerHTML:'', disabled:false,
-          classList:{add(){},remove(){}}, style:{} });
+          classList:{add(){},remove(){},toggle(){}}, style:{} });
         return nodes.get(id);
       },
       querySelectorAll() { return []; },
     },
     localStorage: {getItem:k=>storage.get(k) ?? null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
-    sessionStorage: {getItem(){return null;},removeItem(){}},
+    sessionStorage: {getItem:k=>session.get(k)||null,setItem:(k,v)=>session.set(k,v),removeItem:k=>session.delete(k)},
     console: {log(){},warn(){},error(){}},
     setInterval(){return 1;},clearInterval(){},setTimeout(){return 1;},clearTimeout(){},
     crypto: crypto.webcrypto, Date, Intl, Blob, URL, alert(){},confirm(){return true;},
@@ -131,4 +132,116 @@ test('real authentication is required even if the browser role says super', asyn
   h.run(`localStorage.setItem('easycall_role','super'); sbClient={auth:{getUser:async()=>({data:{user:null},error:{message:'unauthenticated'}})}};`);
   await assert.rejects(h.run('activateVerifiedUser()'));
   assert.equal(h.run('verifiedIdentity'),null);
+});
+
+test('camp call policy is real form markup, never CSS text', () => {
+  for (const [, style] of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)) {
+    assert.doesNotMatch(style, /<(?:section|input|select|div|label)\b/);
+  }
+  assert.equal((html.match(/id="new-camp-call-settings"/g) || []).length, 1);
+  const panel = html.slice(html.indexOf('id="super-new-camp-panel"'), html.indexOf('<!-- ==================== 후보자 일일'));
+  assert.match(panel, /id="new-camp-call-transport"/);
+});
+
+test('email login serializes requests and recovers even when sign-out fails', async () => {
+  const h = harness();
+  h.nodes.set('login-id', {value:'manager@example.test'});
+  h.nodes.set('login-pw', {value:'test-password'});
+  h.run(`globalThis.requests=0;sbClient={auth:{
+    signInWithPassword:()=>{requests++;return new Promise(resolve=>{globalThis.finishLogin=resolve;});},
+    signOut:async()=>{throw Error('offline');}
+  }};`);
+  const pending = h.run('handleInstantLogin()');
+  await h.run('handleInstantLogin()');
+  assert.equal(h.run('requests'),1);
+  assert.equal(h.nodes.get('login-submit').disabled,true);
+  h.run(`finishLogin({error:{message:'denied'}})`);
+  await pending;
+  assert.equal(h.nodes.get('login-submit').disabled,false);
+  assert.match(h.nodes.get('login-error').innerText,/로그인 실패/);
+  assert.equal(h.nodes.get('login-id').value,'manager@example.test');
+  assert.equal(h.run('loginInFlight'),false);
+});
+
+test('saving freezes result inputs and restores them after failure with persistent guidance', async () => {
+  const h=harness(),memo={value:'작성 중인 메모',disabled:false},previouslyDisabled={disabled:true};
+  h.nodes.set('memo-input',memo);
+  h.context.document.querySelectorAll=()=>[memo,previouslyDisabled];
+  h.run(`verifiedIdentity={role:'agent',campId:'camp01',agentId:'tab01'};currentAgentId='tab01';
+    votersList=[{id:'1',campId:'camp01'}];activeClaim={voterId:'1',callId:'same'};selectedStatus='SUPPORT';
+    sbClient={rpc:()=>new Promise(resolve=>{globalThis.finishSave=resolve;})};`);
+  const pending=h.run(`saveResultToStorage('SUPPORT')`);
+  assert.equal(memo.disabled,true);
+  assert.match(h.nodes.get('btn-save-next').textContent,/저장 중/);
+  h.run(`updateAgentButtonTextPreview()`);
+  assert.match(h.nodes.get('btn-save-next').textContent,/저장 중/);
+  h.run(`finishSave({error:{message:'offline'}})`);await pending;
+  assert.equal(memo.disabled,false);
+  assert.equal(previouslyDisabled.disabled,true);
+  assert.equal(memo.value,'작성 중인 메모');
+  assert.match(h.nodes.get('result-save-status').textContent,/다시 저장/);
+});
+
+function agentFixture(h) {
+ h.run(`verifiedIdentity={uid:'user1',role:'agent',campId:'c1',agentId:'a1'};currentAgentId='a1';currentAdminId='c1';localStorage.setItem('easycall_role','agent');isEnterpriseRpcAvailable=true;
+ agentsList=[{campId:'c1',agentId:'a1'}];campSettingsMap.c1={nightLock:false,dncPhones:[]};
+ globalThis.fixture={voter_id:'v1',camp_id:'c1',name:'Test',phone:'01012345678',last_result:'ABSENT',claim_call_id:'server-call-id'};`);
+}
+
+test('selected contact is assigned by the server and uses its stable call identity',async()=>{
+ const h=harness();agentFixture(h);
+ h.run(`requests=[];sbClient={rpc:async(name,args)=>{requests.push({name,args});return {data:[fixture]};}};`);
+ assert.equal(await h.run("loadCurrentVoterToDialer(true,'v1')"),true);
+ assert.equal(h.run('requests[0].name'),'easycall_claim_selected_voter');
+ assert.equal(h.run('requests[0].args.p_voter_id'),'v1');
+ assert.equal(h.run('activeClaim.callId'),'server-call-id');
+ assert.equal(h.run('requests.length'),1);
+ assert.equal(h.nodes.get('voter-queue-progress').innerText,'현재 대상 1명 담당 중');
+ h.nodes.get('memo-input').value='not saved';
+ assert.equal(await h.run("loadCurrentVoterToDialer(true,'v2')"),false);
+ assert.equal(h.run('requests.length'),1);
+});
+
+test('reload restores only the draft matched to the server assignment',async()=>{
+ const h=harness();agentFixture(h);
+ h.run(`applyClaimRow(fixture);document.getElementById('memo-input').value='recover my memo';selectedStatus='NO_OPINION';persistAgentDraft();
+ activeClaim=null;document.getElementById('memo-input').value='';selectedStatus=null;sbClient={rpc:async()=>({data:{assignment:fixture}})};`);
+ await h.run('recoverAgentAssignment()');
+ assert.equal(h.run('activeClaim.callId'),'server-call-id');
+ assert.equal(h.nodes.get('memo-input').value,'recover my memo');
+ assert.equal(h.run('selectedStatus'),'NO_OPINION');
+ assert.equal(h.run('recoveryBlocked'),false);
+});
+
+test('expired assignments retain the memo and block saving; acknowledged saves clear the draft',async()=>{
+ const h=harness();agentFixture(h);
+ h.run(`applyClaimRow(fixture);document.getElementById('memo-input').value='keep expired memo';selectedStatus='NO_RESPONSE';persistAgentDraft();
+ requests=[];sbClient={rpc:async(name,args)=>{requests.push(name);return {data:{assignment:null}};}};`);
+ await h.run('recoverAgentAssignment()');
+ assert.equal(h.run('recoveryBlocked'),true);
+ await h.run("saveResultToStorage('NO_RESPONSE')");
+ assert.equal(h.run("requests.includes('easycall_complete_call')"),false);
+ assert.equal(h.nodes.get('memo-input').value,'keep expired memo');
+ h.run(`sbClient={rpc:async()=>({data:{completed:true}})};`);
+ await h.run('recoverAgentAssignment()');
+ assert.equal(h.run('activeClaim'),null);
+ assert.equal(h.run('readAgentDraft()'),null);
+ assert.equal(h.nodes.get('memo-input').value,'');
+});
+
+test('a second device cannot activate business screens before explicit transfer',async()=>{
+ const h=harness();h.run(`requests=[];sbClient={auth:{getUser:async()=>({data:{user:{id:'user1',app_metadata:{easycall_role:'agent',camp_id:'c1',agent_id:'a1'}}}})},rpc:async(name)=>{requests.push(name);return {data:{active:false,reason:'Other device'}};}};`);
+ await assert.rejects(h.run('activateVerifiedUser()'),error=>error.code==='DEVICE_BUSY');
+ assert.equal(h.run('requests.length'),1);
+ assert.equal(h.run('requests[0]'),'easycall_open_agent_session');
+});
+
+test('late recovery responses cannot erase a newly assigned contact or its inputs',async()=>{
+ const h=harness();agentFixture(h);h.run(`applyClaimRow(fixture);sbClient={rpc:()=>new Promise(resolve=>globalThis.finishRecovery=resolve)};`);
+ const pending=h.run('recoverAgentAssignment()');
+ h.run(`activeClaim={voterId:'new',callId:'new-call',voter:{id:'new',campId:'c1'}};document.getElementById('memo-input').value='new memo';finishRecovery({data:{completed:true}});`);
+ await pending;
+ assert.equal(h.run('activeClaim.callId'),'new-call');
+ assert.equal(h.nodes.get('memo-input').value,'new memo');
+ assert.equal(h.run('recoveryBlocked'),false);
 });

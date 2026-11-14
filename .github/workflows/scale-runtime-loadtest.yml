@@ -29,6 +29,7 @@ jobs:
         run: node --test tests/operations.test.cjs tests/admin-console.test.cjs tests/access-and-lists.test.cjs tests/runtime-scheduler.test.cjs tests/runtime-scaling.test.cjs
       - name: Prepare fictional, local-only fixture
         env:
+          CURRENT_SCHEMA: "1"
           DEVICES: "2000"
           CAMPS: ${{ matrix.camps }}
           CONTACTS: "200000"
@@ -48,6 +49,10 @@ jobs:
           RAMP_SECONDS: "120"
           CALL_INTERVAL_SECONDS: "60"
         run: node loadtest/run.mjs
+      - name: Seed and export 400000 fictional records
+        run: |
+          docker compose --env-file loadtest/.env -f loadtest/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d easycall_test < loadtest/export-seed.sql
+          node loadtest/export.mjs
       - name: Record isolated machine and container resources
         if: always()
         run: |

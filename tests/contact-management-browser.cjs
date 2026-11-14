@@ -9,7 +9,7 @@ const {chromium}=require('playwright');
   await page.goto(origin+'/index.html');await page.waitForFunction(()=>typeof easycallLoadLists==='function'&&!document.body.classList.contains('auth-restoring'));
   await page.evaluate(async()=>{
    verifiedIdentity={role:'admin',uid:'fixture-admin',campId:'camp01'};currentAdminId='camp01';localStorage.setItem('easycall_role','admin');
-   document.getElementById('login-view').classList.add('hidden');document.getElementById('admin-view').classList.remove('hidden');
+   document.getElementById('login-view').classList.add('hidden');document.getElementById('admin-view').classList.remove('hidden');switchAdminTab('contacts');
    window.__rows=Array.from({length:4},(_,i)=>({voter_id:'v'+(i+1),camp_id:'camp01',name:i===0?'<img src=x>':'Fixture '+(i+1),phone:'0000000000'+(i+1),dong:'Test',last_result:i===2?'REJECT':'READY',last_memo:'Memo',updated_at:'2026-11-13T00:00:00.00000'+i+'Z',locked_by:i===3?'device1':null}));
    window.__requests=[];window.__stale=false;
    sbClient={rpc:async(name,args)=>{

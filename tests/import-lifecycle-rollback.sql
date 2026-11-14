@@ -47,4 +47,3 @@ end $$;
 reset role;
 select 'PASS: safe release, started-call protection, append, duplicates, retry, durable failure history and authorization' as validation;
 rollback;
-

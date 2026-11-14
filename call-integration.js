@@ -1,4 +1,6 @@
 import './agent-common-password.js';
+import './admin-navigation.js';
+import './log-export-ui.js';
 import './responsive-layout.js';
 import './voter-import-ui.js';
 import {transport,sipSettings,destination,waitMilliseconds,measuredSeconds,SipPhone} from './call-transport.mjs';
@@ -17,7 +19,7 @@ const dialog=document.createElement('section');dialog.id='phone-dialog';dialog.c
 function message(s){$('phone-status').textContent=s;}
 function stopAuto(text=''){armed=false;clearTimeout(autoTimer);autoTimer=null;if(text)message(text);$('phone-auto').textContent='연속 발신 시작';}
 function stopClock(){clearInterval(ticker);ticker=null;if(started!==null)currentCallSeconds=measuredSeconds(started,performance.now());started=null;$('call-timer-display').textContent=formatDuration(currentCallSeconds);}
-function ended(){stopClock();dialing=false;$('call-active-state').classList.add('hidden');$('call-idle-state').classList.remove('hidden');message('통화가 종료됐습니다. 결과를 선택하고 저장하세요.');}
+function ended(){stopClock();dialing=false;$('call-active-state').classList.add('hidden');$('call-idle-state').classList.remove('hidden');message('통화가 종료됐습니다. 결과를 선택하고 저장하세요.');sync();}
 async function library(){if(window.SIP?.Web?.SimpleUser)return window.SIP.Web.SimpleUser;if(!modulePromise)modulePromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=new URL('./vendor/sip-0.21.2.min.js',import.meta.url).href;s.dataset.license=new URL('./vendor/SIP.js-LICENSE.md',import.meta.url).href;s.onload=()=>window.SIP?.Web?.SimpleUser?resolve(window.SIP.Web.SimpleUser):reject(Error('SIP 모듈을 불러오지 못했습니다.'));s.onerror=()=>reject(Error('SIP 모듈을 불러오지 못했습니다.'));document.head.append(s);}).catch(e=>{modulePromise=null;throw e;});return modulePromise;}
 const phone=new SipPhone((server,options)=>new window.SIP.Web.SimpleUser(server,options),{
  onState:state=>{$('phone-state').textContent=({offline:'SIP 회선 미연결',connecting:'SIP 회선 연결 중',ready:'SIP 회선 연결 완료',calling:'상대방 응답 대기 중',active:'SIP 통화 중'})[state]||state;if(state==='offline'){stopClock();stopAuto('SIP 연결이 해제됐습니다. 회선을 다시 연결하세요.');}},
@@ -55,7 +57,10 @@ function sync(){
  if(!sip)$('phone-state').textContent='스마트폰 유심 / 기본 전화 앱 사용';
  $('btn-dial-action').textContent=!activeClaim?'통화 대상 준비':sip?'SIP 회선으로 발신':'스마트폰 전화 앱으로 발신';
  $('phone-auto').classList.toggle('phone-hidden',!sip||c.dialMode!=='auto');
- $('btn-save-next').textContent=sip&&c.dialMode==='auto'?'결과 저장 · 다음 번호 자동 발신':'결과 저장 · 다음 대상 준비';
+ $('btn-dial-action').disabled=!permitted()||phone.active||dialing;
+ $('btn-save-next').disabled=!activeClaim||isSavingResult||recoveryBlocked||phone.active||dialing;
+ const step=$('agent-workflow-state');if(step)step.textContent=recoveryBlocked?'업무 상태 확인이 필요합니다. 임시 입력은 유지됩니다.':isSavingResult?'결과 저장 중입니다.':phone.active?'통화 중 · 통화를 종료한 뒤 결과를 저장하세요.':!activeClaim?'1. 통화 대상 준비를 눌러 시작하세요.':activeClaim.started?'3. 통화 결과를 선택하고 저장하세요.':'2. 대상을 확인하고 전화하기를 누르세요.';
+ $('btn-save-next').textContent=isSavingResult?'결과 저장 중…':sip&&armed&&c.dialMode==='auto'?'결과 저장 · 다음 번호 자동 발신':'결과 저장 · 다음 대상 준비';
 }
 $('phone-connect').onclick=()=>{if(!agent())return;try{const s=sipSettings(cfg());$('phone-destination').textContent='연결 서버: '+s.wss+' / 도메인: '+s.domain;$('phone-connect-message').textContent='';dialog.classList.remove('phone-hidden');$('phone-sip-user').focus();}catch(e){message(e.message+' 캠프 관리자에게 문의하세요.');}};
 $('phone-connect-close').onclick=()=>{clearCredentials();dialog.classList.add('phone-hidden');};
@@ -69,7 +74,7 @@ $('phone-connect-form').onsubmit=async e=>{
 };
 $('phone-disconnect').onclick=async()=>{if(phone.active&&phone.ready){message('먼저 통화를 종료한 뒤 회선 연결을 해제하세요.');return;}const interrupted=phone.active;stopAuto();await phone.disconnect();if(interrupted){ended();message('끊어진 회선을 정리했습니다. 실제 통화 상태를 확인하고 결과를 저장하세요.');}};
 $('phone-audio-play').onclick=()=>$('phone-audio').play().catch(()=>message('음성 재생에 실패했습니다. 기기의 소리 설정을 확인하세요.'));
-function permitted(){return agent()&&!isAgentOnBreak&&!isSavingResult&&!checkAgentGlobalStopBanner()&&navigator.onLine!==false;}
+function permitted(){return agent()&&!recoveryBlocked&&!isAgentOnBreak&&!isSavingResult&&!checkAgentGlobalStopBanner()&&navigator.onLine!==false;}
 window.easycallPlaceCall=async function(launch=true){
  if(!launch||dialing||phone.active)return;if(!permitted()){stopAuto('현재 발신할 수 없습니다. 업무 상태와 네트워크를 확인하세요.');return;}
  const c=cfg(),sip=transport(c)==='sip',who=actor(),claim=activeClaim,signature=fingerprint();
@@ -81,25 +86,25 @@ window.easycallPlaceCall=async function(launch=true){
   const {error}=await sbClient.rpc('easycall_authorize_call',{p_camp_id:getActiveCampId(),p_voter_id:claim.voterId});
   if(error)throw Error('발신 권한 또는 배정이 만료됐습니다.');
   if(actor()!==who||activeClaim!==claim||fingerprint()!==signature||!permitted())throw Error('발신 조건이 변경됐습니다. 다시 확인하세요.');
+  claim.started=true;persistAgentDraft();
   currentCallSeconds=0;$('phone-duration').value='0';stopClock();started=null;
   if(sip){await phone.call(uri);if(!phone.active){dialing=false;return;}$('call-state-label').textContent=started!==null?'SIP 통화 중':'상대방 응답 대기 중';}
   else{window.location.href=uri;$('call-state-label').textContent='전화 앱 통화 후 결과를 입력하세요.';$('call-timer-display').textContent='시간 수동 입력';}
   $('call-idle-state').classList.add('hidden');$('call-active-state').classList.remove('hidden');
   message(sip?'SIP 발신 요청을 보냈습니다.':'전화 앱에서 통화한 뒤 돌아와 통화 완료를 눌러 주세요.');
- }catch(e){stopAuto(e.message);}finally{dialing=false;}
+ }catch(e){stopAuto(e.message);}finally{dialing=false;sync();}
 };
 window.endCallSimulation=async function(){if(transport(cfg())==='sip'){if(phone.active){try{await phone.hangup();}catch{message('통화 종료 요청에 실패했습니다. 회선 상태를 확인하세요.');}}}else{ended();message('전화 앱에서 실제 통화를 종료했는지 확인한 뒤 결과를 저장하세요.');}};
 const oldSave=window.saveResultToStorage;window.saveResultToStorage=async function(...args){
  if(phone.active||dialing){message('통화를 종료한 뒤 결과를 저장하세요.');return;}
  if(transport(cfg())==='smartphone')currentCallSeconds=Math.min(86400,Math.max(0,Math.floor(Number($('phone-duration').value)||0)));
- const old=activeClaim,who=actor();await oldSave(...args);
+ const old=activeClaim,who=actor();await oldSave(...args);sync();
  if(old&&actor()===who&&activeClaim!==old){$('phone-duration').value='0';started=null;if(armed&&activeClaim&&cfg().dialMode==='auto'&&transport(cfg())==='sip'&&phone.ready){clearTimeout(autoTimer);const target=activeClaim,signature=fingerprint();message('결과 저장 완료. 다음 번호 발신을 대기합니다.');autoTimer=setTimeout(()=>{autoTimer=null;if(armed&&actor()===who&&activeClaim===target&&fingerprint()===signature&&!document.hidden)void window.easycallPlaceCall(true);else stopAuto();},waitMilliseconds(cfg().waitSecs));}}
 };
 $('phone-auto').onclick=()=>{if(armed){stopAuto('연속 발신을 중지했습니다.');return;}if(!permitted()||transport(cfg())!=='sip'||cfg().dialMode!=='auto'||!phone.ready){message('SIP 회선 연결과 업무 상태를 먼저 확인하세요.');return;}armed=true;$('phone-auto').textContent='연속 발신 중지';void window.easycallPlaceCall(true);};
 const oldRefresh=window.refreshActiveRoleUI;window.refreshActiveRoleUI=function(...args){const result=oldRefresh(...args);sync();return result;};
-const oldLogout=window.handleLogout;window.handleLogout=async function(...args){stopAuto();stopClock();clearCredentials();policyTicket++;policyDialog.classList.add('phone-hidden');dialog.classList.add('phone-hidden');await phone.disconnect();dialing=false;if(agent()&&activeClaim&&sbClient){try{await sbClient.rpc('easycall_release_unstarted_claim',{p_camp_id:getActiveCampId(),p_voter_id:activeClaim.voterId});}catch{}}return oldLogout(...args);};
+const oldLogout=window.handleLogout;window.handleLogout=async function(...args){if(!await prepareAgentLogout())return;stopAuto();stopClock();clearCredentials();policyTicket++;policyDialog.classList.add('phone-hidden');dialog.classList.add('phone-hidden');await phone.disconnect();dialing=false;if(agent()&&activeClaim&&sbClient){try{await sbClient.rpc('easycall_release_unstarted_claim',{p_camp_id:getActiveCampId(),p_voter_id:activeClaim.voterId});}catch{}}return oldLogout(...args);};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAuto('다른 화면으로 이동해 연속 발신을 중지했습니다.');});
 window.addEventListener('offline',()=>stopAuto('네트워크 연결이 끊겨 연속 발신을 중지했습니다.'));
 window.addEventListener('pagehide',()=>{stopAuto();clearCredentials();stopClock();void phone.disconnect();});
 sync();
-

@@ -18,7 +18,7 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
    sbClient={rpc:async(name,args)=>{
     if(name==='easycall_authorize_call'){window.__auth++;return window.__deny?{error:{message:'stopped'}}:{data:null};}
     if(name==='easycall_complete_call'){if(window.__failSave)return {error:{message:'offline'}};window.__saved.push(args.p_entry);window.__claimIndex++;return {data:{...args.p_entry,created_at:new Date().toISOString()}};}
-    if(name==='easycall_claim_voter')return {data:[{voter_id:String(window.__claimIndex),name:'Test',phone:'01012345678',last_result:'READY'}]};
+    if(name==='easycall_claim_voter')return {data:[{voter_id:String(window.__claimIndex),claim_call_id:'claim-'+window.__claimIndex,name:'Test',phone:'01012345678',last_result:'READY'}]};
     return {data:null};
    }};isEnterpriseRpcAvailable=true;refreshActiveRoleUI();
   });
@@ -84,5 +84,4 @@ let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(p
   console.log('PASS: smartphone timing, SIP registration/answer/end, secret clearing, save-gated auto loop, cancellation and authorization denial. External services mocked.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
-
 

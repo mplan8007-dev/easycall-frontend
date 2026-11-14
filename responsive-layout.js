@@ -17,3 +17,18 @@ function enhanceTables(){
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(enhanceTables);}
 const observer=new MutationObserver(changes=>{if(changes.some(c=>Array.from(c.addedNodes).some(n=>n.nodeType===1&&(n.matches('table,tr,td,th')||n.querySelector('table,tr')))))schedule();});
 observer.observe(document.body,{childList:true,subtree:true});enhanceTables();
+
+// Keep secondary work controls available without consuming the mobile header.
+const agentHeader=document.querySelector('#agent-view>header');
+if(agentHeader){
+ document.getElementById('tab-dialer-btn')?.parentElement.classList.add('ec-agent-tabs');
+ const host=agentHeader.lastElementChild,menu=document.createElement('details');menu.className='ec-work-menu';
+ const summary=document.createElement('summary');summary.textContent='업무 메뉴';menu.append(summary);
+ const panel=document.createElement('div');panel.className='ec-work-menu-panel';menu.append(panel);
+ const goal=host.querySelector('.w-44'),identity=document.getElementById('agent-display-id')?.parentElement,logout=host.querySelector('button[onclick="handleLogout()"]');
+ for(const item of [goal,identity,logout])if(item)panel.append(item);
+ host.append(menu);
+ document.addEventListener('click',event=>{if(!menu.contains(event.target))menu.open=false;});
+ menu.addEventListener('keydown',event=>{if(event.key==='Escape'){menu.open=false;summary.focus();}});
+}
+
