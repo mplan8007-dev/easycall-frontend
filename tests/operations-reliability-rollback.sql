@@ -67,8 +67,14 @@ do $$ declare v public.easycall_voters;r jsonb;entry jsonb;denied boolean;begin
  if not denied then raise exception 'DNC contact assigned';end if;
  select * into v from public.easycall_claim_selected_voter('load1','rel_absent');
  entry:=jsonb_build_object('camp_id','load1','voter_id',v.voter_id,'call_id',v.claim_call_id,'call_result','CALLBACK','status','NONE','duration_seconds',0,'memo','Fixture','callback_at',now()+interval '1 day');
- perform public.easycall_complete_call(entry);
- if not exists(select 1 from public.easycall_voters where camp_id='load1' and voter_id='rel_absent' and callback_at>now()) then raise exception 'Callback schedule missing';end if;
+ r:=public.easycall_complete_call(entry);
+ if (r->>'callback_at')::timestamptz is distinct from now()+interval '1 day' then raise exception 'Callback log schedule missing';end if;
+ -- Saved assignments are released and correctly disappear from the agent's direct RLS view.
+ if exists(select 1 from public.easycall_voters where camp_id='load1' and voter_id='rel_absent') then raise exception 'Released voter leaked through direct agent access';end if;
  perform public.easycall_close_agent_session();
+end $$;
+reset role;
+do $$ begin
+ if not exists(select 1 from public.easycall_voters where camp_id='load1' and voter_id='rel_absent' and callback_at=now()+interval '1 day') then raise exception 'Callback contact schedule missing';end if;
 end $$;
 rollback;
